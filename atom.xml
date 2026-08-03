@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Tech &amp; AI</title>
+  <link href="https://shaorui0.github.io/tech-en/tech-en/atom.xml" rel="self"/>
+  <link href="https://shaorui0.github.io/tech-en/tech-en/"/>
+  <updated>2026-08-03T16:19:14.697Z</updated>
+  <id>https://shaorui0.github.io/tech-en/tech-en/</id>
+  <author><name>Rui Shao</name></author>
+  <entry>
+    <title>Alert Governance: Turning the Pager from Noise Back into Decision Signal</title>
+    <link href="https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_alert-governance_en/"/>
+    <id>https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_alert-governance_en/</id>
+    <updated>2026-08-03T16:19:14.697Z</updated>
+    <published>2026-08-02T15:00:00.000Z</published>
+    <content type="html"><![CDATA[<p>Also in Chinese: 中文版 Why By the time this became a project, the pager had stopped being evidence of anything. The baseline: 367 alert rules carried the label that routes to OpsGenie, spread across 30 rule files, and OpsGenie was absorbing roughly 960 alerts a day — about 85% of…</p>]]></content>
+  </entry>
+  <entry>
+    <title>An audit of my own radar</title>
+    <link href="https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_an-audit-of-my-own-radar_en/"/>
+    <id>https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_an-audit-of-my-own-radar_en/</id>
+    <updated>2026-08-03T16:19:14.703Z</updated>
+    <published>2026-08-02T15:00:00.000Z</published>
+    <content type="html"><![CDATA[<p>Also in Chinese: 中文版 How the scores are produced The method comes first, because without it the numbers are noise. Each depth score on the radar is derived from evidence density: the count and depth of flagship artifacts (incident write-ups with quoted evidence, measured results…</p>]]></content>
+  </entry>
+  <entry>
+    <title>Designing the Elastic Compute Tier: Discrete Capacity, One Write Primitive, Readiness That Cannot Lie</title>
+    <link href="https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_designing-the-elastic-compute-tier_en/"/>
+    <id>https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_designing-the-elastic-compute-tier_en/</id>
+    <updated>2026-08-03T16:19:14.697Z</updated>
+    <published>2026-08-02T15:00:00.000Z</published>
+    <content type="html"><![CDATA[<p>Also in Chinese: 中文版 The architecture, as five decisions The pool itself is unremarkable; the design is in what it refuses to do. Five decisions carry the whole thing. 1 — Physical isolation, not a workload class. The heavy tail does not get a priority label inside the serving…</p>]]></content>
+  </entry>
+  <entry>
+    <title>Compiling a Document into a Control Loop: A Machine-Level Configuration Reconciler for 5G vRAN Bare Metal</title>
+    <link href="https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_compiling-a-document-into-a-control-loop_en/"/>
+    <id>https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_compiling-a-document-into-a-control-loop_en/</id>
+    <updated>2026-08-03T16:19:14.701Z</updated>
+    <published>2026-08-02T15:00:00.000Z</published>
+    <content type="html"><![CDATA[<p>Also in Chinese: 中文版 What it was, and why Kubernetes runs a reconcile loop over containers: declare a desired state, observe the actual state, converge the difference, repeat. This project pushed that philosophy one layer down, onto the bare-metal hardware that carries real-time…</p>]]></content>
+  </entry>
+  <entry>
+    <title>Engine-Level Query Routing: EXPLAIN ROUTE PLAN</title>
+    <link href="https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_engine-level-query-routing_en/"/>
+    <id>https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_engine-level-query-routing_en/</id>
+    <updated>2026-08-03T16:19:14.695Z</updated>
+    <published>2026-08-02T15:00:00.000Z</published>
+    <content type="html"><![CDATA[<p>Also in Chinese: 中文版 Why the decision has to happen before execution After the migration consolidated serving and analytics onto one Apache Doris deployment, fewer than 1% of queries were heavy — but a single misplaced heavy query could starve the shared light pool. Reactive…</p>]]></content>
+  </entry>
+  <entry>
+    <title>Production Kubernetes Upgrade Engineering: 50 Clusters, 1.24 → 1.29, Zero Incidents</title>
+    <link href="https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_kubernetes-upgrade-engineering_en/"/>
+    <id>https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_kubernetes-upgrade-engineering_en/</id>
+    <updated>2026-08-03T16:19:14.694Z</updated>
+    <published>2026-08-02T15:00:00.000Z</published>
+    <content type="html"><![CDATA[<p>Also in Chinese: 中文版 Why Kubernetes 1.24 was aging out of support; every unsupported minor compounds CVE exposure and compliance risk. The fleet was 50 self-managed clusters on AWS — kubeadm control planes, ASG-backed workers — and the existing practice did not scale: a single…</p>]]></content>
+  </entry>
+  <entry>
+    <title>Fan-Out Is the Floor: Two Targeted Optimizations for Query Shapes Nobody Controls</title>
+    <link href="https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_fan-out-is-the-floor_en/"/>
+    <id>https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_fan-out-is-the-floor_en/</id>
+    <updated>2026-08-03T16:19:14.696Z</updated>
+    <published>2026-08-02T15:00:00.000Z</published>
+    <content type="html"><![CDATA[<p>Also in Chinese: 中文版 Where this sits The analytics platform was rebuilt in three layers, and they solve different kinds of problem. Migration replaced the substrate: off ClickHouse onto Apache Doris with compute-storage separation. Not because Doris was faster — ClickHouse still…</p>]]></content>
+  </entry>
+  <entry>
+    <title>Rebuilding a 5-billion-row event store, down to the engine</title>
+    <link href="https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_rebuilding-a-5b-row-event-store_en/"/>
+    <id>https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_rebuilding-a-5b-row-event-store_en/</id>
+    <updated>2026-08-03T16:19:14.690Z</updated>
+    <published>2026-08-02T15:00:00.000Z</published>
+    <content type="html"><![CDATA[<p>Also in Chinese: 中文版 The one-paragraph version Our fraud-analytics event layer serves two increasingly conflicting workloads: millisecond point lookups on the serving path, and a growing stream of unpredictable ad-hoc analytics — increasingly generated by AI-agent-facing product…</p>]]></content>
+  </entry>
+  <entry>
+    <title>Refused is not timeout</title>
+    <link href="https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_refused-is-not-timeout_en/"/>
+    <id>https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_refused-is-not-timeout_en/</id>
+    <updated>2026-08-03T16:19:14.692Z</updated>
+    <published>2026-08-02T15:00:00.000Z</published>
+    <content type="html"><![CDATA[<p>Also in Chinese: 中文版 Symptom External connections to a database service failed instantly with connection refused. Instantly is the clue: refused means the packet arrived and nothing was listening — fast and deterministic. Timeout means a listener exists but is not answering. The…</p>]]></content>
+  </entry>
+  <entry>
+    <title>Replacing Prometheus Federation: Rebuilding a Multi-Tenant Monitoring Platform</title>
+    <link href="https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_replacing-prometheus-federation_en/"/>
+    <id>https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_replacing-prometheus-federation_en/</id>
+    <updated>2026-08-03T16:19:14.693Z</updated>
+    <published>2026-08-02T15:00:00.000Z</published>
+    <content type="html"><![CDATA[<p>Also in Chinese: 中文版 Why The global Prometheus at the top of our federation topology was OOMing two to three times a week. Its head block carried 1.2M series and cost 5–10 GB of memory to maintain; every crash-restart cycle left holes in the data, and those holes paged on-call…</p>]]></content>
+  </entry>
+  <entry>
+    <title>Order of operations under fire</title>
+    <link href="https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_order-of-operations-under-fire_en/"/>
+    <id>https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_order-of-operations-under-fire_en/</id>
+    <updated>2026-08-03T16:19:14.691Z</updated>
+    <published>2026-08-02T15:00:00.000Z</published>
+    <content type="html"><![CDATA[<p>Also in Chinese: 中文版 Symptom One tenant’s query rate spiked far above baseline. Serving latency rose, error rates climbed on the dependency chain, and asynchronous recomputation began competing with the message queue and the database for the same headroom. The sequence, and why…</p>]]></content>
+  </entry>
+  <entry>
+    <title>Restoring 5.2 billion rows without touching prod</title>
+    <link href="https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_restoring-5b-rows-without-touching-prod_en/"/>
+    <id>https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_restoring-5b-rows-without-touching-prod_en/</id>
+    <updated>2026-08-03T16:19:14.692Z</updated>
+    <published>2026-08-02T15:00:00.000Z</published>
+    <content type="html"><![CDATA[<p>Also in Chinese: 中文版 Correcting the premise The initial plan assumed rows expired by the database’s TTL could be recovered from the live volume. That assumption was wrong, and proving it wrong was the first deliverable: this engine’s TTL delete physically unlinks the data parts,…</p>]]></content>
+  </entry>
+  <entry>
+    <title>SRE in the Age of AI Agents</title>
+    <link href="https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_sre-in-the-age-of-ai-agents_en/"/>
+    <id>https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_sre-in-the-age-of-ai-agents_en/</id>
+    <updated>2026-08-03T16:19:14.705Z</updated>
+    <published>2026-08-02T15:00:00.000Z</published>
+    <content type="html"><![CDATA[<p>Also in Chinese: 中文版 Strip SRE down to first principles and it is one job: operating the loop between what a system should be doing and what it is actually doing. Detect the gap, explain it, close it, keep it closed. AI agents have not changed that definition at all. What they…</p>]]></content>
+  </entry>
+  <entry>
+    <title>The OS Fallacy: Why Stronger Models Make Orchestration Matter More, Not Less</title>
+    <link href="https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_the-os-fallacy_en/"/>
+    <id>https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_the-os-fallacy_en/</id>
+    <updated>2026-08-03T16:20:02.889Z</updated>
+    <published>2026-08-02T15:00:00.000Z</published>
+    <content type="html"><![CDATA[<p>Also in Chinese: 中文版 An argument I keep running into It goes roughly like this. The engineering layer around agentic coding — context trimming, orchestration frameworks, external rule systems — exists only to route around the model’s current weaknesses. Once reasoning models get…</p>]]></content>
+  </entry>
+  <entry>
+    <title>An SRE Oncall Triage Harness — Autonomous Investigation, Human-Owned Mutation</title>
+    <link href="https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_sre-oncall-triage-harness_en/"/>
+    <id>https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_sre-oncall-triage-harness_en/</id>
+    <updated>2026-08-03T16:19:14.700Z</updated>
+    <published>2026-08-02T15:00:00.000Z</published>
+    <content type="html"><![CDATA[<p>Also in Chinese: 中文版 Why In an oncall investigation the main agent’s real job is judgment: is this a false alarm, where is the root cause, what to query next, do we escalate. Judgment needs a clear context window. But a single raw range query can come back at 30K tokens, and a…</p>]]></content>
+  </entry>
+  <entry>
+    <title>The P100 that was exactly 1.00 seconds</title>
+    <link href="https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_the-p100-that-was-exactly-one-second_en/"/>
+    <id>https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_the-p100-that-was-exactly-one-second_en/</id>
+    <updated>2026-08-03T16:19:14.691Z</updated>
+    <published>2026-08-02T15:00:00.000Z</published>
+    <content type="html"><![CDATA[<p>Also in Chinese: 中文版 Symptom One tenant’s detection API showed P100 pinned at exactly 1.00 s, spiking every 5–10 minutes. P50 through P95 stayed at a healthy 1–2 ms. Several tenants sharing the same ingress layer were affected in the same windows. Nothing was down; something was…</p>]]></content>
+  </entry>
+  <entry>
+    <title>What I know I can&apos;t do yet</title>
+    <link href="https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_what-i-know-i-cant-do-yet_en/"/>
+    <id>https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_what-i-know-i-cant-do-yet_en/</id>
+    <updated>2026-08-03T16:19:14.704Z</updated>
+    <published>2026-08-02T15:00:00.000Z</published>
+    <content type="html"><![CDATA[<p>Also in Chinese: 中文版 The resume tells you what I can do. This page tells you what I know I cannot do yet. The dashed target line on the radar is a commitment with acceptance criteria, not a decorative outer ring — and the rule for this page is that every gap below carries a…</p>]]></content>
+  </entry>
+  <entry>
+    <title>What I understand SRE to require</title>
+    <link href="https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_what-i-understand-sre-to-require_en/"/>
+    <id>https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_what-i-understand-sre-to-require_en/</id>
+    <updated>2026-08-03T16:19:14.703Z</updated>
+    <published>2026-08-02T15:00:00.000Z</published>
+    <content type="html"><![CDATA[<p>Also in Chinese: 中文版 From tool inventories to problem classes There are two ways to slice SRE skill. The first is by tools: Kubernetes, Terraform, Prometheus, a cloud provider. That is the entry-level view, and its weakness is immediate — kubectl apply is a commodity. The second…</p>]]></content>
+  </entry>
+  <entry>
+    <title>Zombie System Tables: the Sub-Second OOM That 30-Second Monitoring Could Not See</title>
+    <link href="https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_zombie-system-tables-subsecond-oom_en/"/>
+    <id>https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_zombie-system-tables-subsecond-oom_en/</id>
+    <updated>2026-08-03T16:19:14.702Z</updated>
+    <published>2026-08-02T15:00:00.000Z</published>
+    <content type="html"><![CDATA[<p>Also in Chinese: 中文版 Symptoms: the alert fires three systems away from the cause The visible signal was Kafka consumer lag: a downstream ingestion consumer group’s lag rising monotonically across multiple tenants at once, with no traffic spike to explain it. The consumer itself…</p>]]></content>
+  </entry>
+  <entry>
+    <title>&quot;Knows Jenkins&quot;: What That Line Actually Tests in an SRE</title>
+    <link href="https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_what-knows-jenkins-actually-tests_en/"/>
+    <id>https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_what-knows-jenkins-actually-tests_en/</id>
+    <updated>2026-08-03T16:19:14.698Z</updated>
+    <published>2026-08-02T15:00:00.000Z</published>
+    <content type="html"><![CDATA[<p>Also in Chinese: 中文版 Why “Familiar with Jenkins” appears in countless SRE job descriptions, usually read as a tool claim: navigate the UI, write a Jenkinsfile, wire a webhook. That is table stakes, not what the line should test. The SRE reading starts elsewhere: the pipeline is…</p>]]></content>
+  </entry>
+</feed>

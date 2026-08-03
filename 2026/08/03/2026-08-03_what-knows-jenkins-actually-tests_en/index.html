@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 8.1.1">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/tech-en/favicon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/tech-en/favicon.svg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/tech-en/favicon.svg">
+  <link rel="mask-icon" href="/tech-en/favicon.svg" color="#222">
+
+<link rel="stylesheet" href="/tech-en/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"shaorui0.github.io","root":"/tech-en/","images":"/tech-en/images","scheme":"Gemini","darkmode":true,"version":"8.27.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}}</script><script src="/tech-en/js/config.js" defer></script>
+
+    <meta name="description" content="&quot;Familiar with Jenkins&quot; is in every SRE job description, but writing pipeline scripts is not the skill. The skill is treating the delivery pipeline as a production system: idempotent procedures, obser">
+<meta property="og:type" content="article">
+<meta property="og:title" content="&quot;Knows Jenkins&quot;: What That Line Actually Tests in an SRE">
+<meta property="og:url" content="https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_what-knows-jenkins-actually-tests_en/index.html">
+<meta property="og:site_name" content="Tech &amp; AI">
+<meta property="og:description" content="&quot;Familiar with Jenkins&quot; is in every SRE job description, but writing pipeline scripts is not the skill. The skill is treating the delivery pipeline as a production system: idempotent procedures, obser">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2026-08-02T15:00:00.000Z">
+<meta property="article:modified_time" content="2026-08-03T16:19:14.698Z">
+<meta property="article:author" content="Rui Shao">
+<meta property="article:tag" content="CI&#x2F;CD">
+<meta property="article:tag" content="Infrastructure as Code">
+<meta property="article:tag" content="Kubernetes">
+<meta property="article:tag" content="SRE">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_what-knows-jenkins-actually-tests_en/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_what-knows-jenkins-actually-tests_en/","path":"2026/08/03/2026-08-03_what-knows-jenkins-actually-tests_en/","title":"\"Knows Jenkins\": What That Line Actually Tests in an SRE"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>"Knows Jenkins": What That Line Actually Tests in an SRE | Tech & AI</title>
+  
+
+
+
+
+
+
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous" defer></script>
+<script src="/tech-en/js/utils.js" defer></script><script src="/tech-en/js/motion.js" defer></script><script src="/tech-en/js/sidebar.js" defer></script><script src="/tech-en/js/next-boot.js" defer></script>
+
+  
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.10.1/mermaid.min.js","integrity":"sha256-BmQmdWDS8X2OTbrwELWK366LV6escyWhHHe0XCTU/Hk="}}</script>
+  <script src="/tech-en/js/third-party/tags/mermaid.js" defer></script>
+
+
+
+
+
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/tech-en/css/noscript.css">
+  </noscript>
+<!-- hexo injector head_end start --><style>
+.article-toc-wrap {
+  margin-bottom: 1.5em;
+  padding: 1em 1.25em;
+  background: #f8f9fa;
+  border-radius: 6px;
+  border-left: 3px solid #ddd;
+}
+.article-toc-wrap .toc-title {
+  font-weight: bold;
+  margin-bottom: 0.5em;
+  font-size: 0.95em;
+  color: #555;
+}
+.article-toc-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.article-toc-list .article-toc-list { padding-left: 1em; margin-top: 0.25em; }
+.article-toc-item { margin: 0.35em 0; }
+.article-toc-link {
+  text-decoration: none;
+  color: #444;
+  font-size: 0.9em;
+}
+.article-toc-link:hover { color: #08c; text-decoration: underline; }
+.article-toc-level-3 .article-toc-link { font-size: 0.85em; }
+.article-toc-level-4 .article-toc-link { font-size: 0.8em; }
+</style><!-- hexo injector head_end end --></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/tech-en/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Tech & AI</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">Systems, Infrastructure, and AI</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="Search" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/tech-en/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-tags"><a href="/tech-en/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li><li class="menu-item menu-item-categories"><a href="/tech-en/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li><li class="menu-item menu-item-archives"><a href="/tech-en/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li><li class="menu-item menu-item-中文"><a href="https://shaorui0.github.io/tech/" rel="section"><i class="fa fa-language fa-fw"></i>中文</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Why"><span class="nav-number">1.</span> <span class="nav-text">Why</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#The-pipeline-is-a-production-system"><span class="nav-number">2.</span> <span class="nav-text">The pipeline is a production system</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Three-criteria-that-separate-tool-users-from-operators"><span class="nav-number">3.</span> <span class="nav-text">Three criteria that separate tool users from operators</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Idempotent-and-re-entrant-procedures"><span class="nav-number">3.1.</span> <span class="nav-text">Idempotent and re-entrant procedures</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Observable-and-diagnosable-state"><span class="nav-number">3.2.</span> <span class="nav-text">Observable and diagnosable state</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Configuration-as-code"><span class="nav-number">3.3.</span> <span class="nav-text">Configuration as code</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#When-automation-is-the-entropy"><span class="nav-number">4.</span> <span class="nav-text">When automation is the entropy</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Takeaways"><span class="nav-number">5.</span> <span class="nav-text">Takeaways</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Rui Shao</p>
+  <div class="site-description" itemprop="description">Rui Shao — writing about systems, infrastructure and AI</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/tech-en/archives/">
+          <span class="site-state-item-count">24</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">38</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/shaorui0" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;shaorui0" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.linkedin.com/in/rui-shao-a21a55194/" title="LinkedIn → https:&#x2F;&#x2F;www.linkedin.com&#x2F;in&#x2F;rui-shao-a21a55194&#x2F;" rel="noopener me" target="_blank"><i class="fab fa-linkedin fa-fw"></i>LinkedIn</a>
+      </span>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_what-knows-jenkins-actually-tests_en/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/tech-en/images/avatar.gif">
+      <meta itemprop="name" content="Rui Shao">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Tech & AI">
+      <meta itemprop="description" content="Rui Shao — writing about systems, infrastructure and AI">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="&quot;Knows Jenkins&quot;: What That Line Actually Tests in an SRE | Tech & AI">
+      <meta itemprop="description" content="&quot;Familiar with Jenkins&quot; is in every SRE job description, but writing pipeline scripts is not the skill. The skill is treating the delivery pipeline as a production system: idempotent procedures, observable job state, configuration in code — and knowing when automation itself becomes the new source of entropy. Grounded in a real Jenkins migration and its diagnose&#x2F;fix script pairs.">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          "Knows Jenkins": What That Line Actually Tests in an SRE
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2026-08-03 00:00:00" itemprop="dateCreated datePublished" datetime="2026-08-03T00:00:00+09:00">2026-08-03</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2026-08-04 01:19:14" itemprop="dateModified" datetime="2026-08-04T01:19:14+09:00">2026-08-04</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/tech-en/categories/Production-Engineering/" itemprop="url" rel="index"><span itemprop="name">Production Engineering</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+            <div class="post-description">"Familiar with Jenkins" is in every SRE job description, but writing pipeline scripts is not the skill. The skill is treating the delivery pipeline as a production system: idempotent procedures, observable job state, configuration in code — and knowing when automation itself becomes the new source of entropy. Grounded in a real Jenkins migration and its diagnose/fix script pairs.</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><nav class="article-toc-wrap" aria-label="Contents"><div class="toc-title">Contents</div><ol class="article-toc-list"><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#Why"><span class="article-toc-text">Why</span></a></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#The-pipeline-is-a-production-system"><span class="article-toc-text">The pipeline is a production system</span></a></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#Three-criteria-that-separate-tool-users-from-operators"><span class="article-toc-text">Three criteria that separate tool users from operators</span></a><ol class="article-toc-child"><li class="article-toc-item article-toc-level-3"><a class="article-toc-link" href="#Idempotent-and-re-entrant-procedures"><span class="article-toc-text">Idempotent and re-entrant procedures</span></a></li><li class="article-toc-item article-toc-level-3"><a class="article-toc-link" href="#Observable-and-diagnosable-state"><span class="article-toc-text">Observable and diagnosable state</span></a></li><li class="article-toc-item article-toc-level-3"><a class="article-toc-link" href="#Configuration-as-code"><span class="article-toc-text">Configuration as code</span></a></li></ol></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#When-automation-is-the-entropy"><span class="article-toc-text">When automation is the entropy</span></a></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#Takeaways"><span class="article-toc-text">Takeaways</span></a></li></ol></nav>
+<blockquote>
+<p>Also in Chinese: <a href="https://shaorui0.github.io/tech/2026/08/03/2026-08-03_what-knows-jenkins-actually-tests_zh/">中文版</a></p>
+</blockquote>
+<h2 id="Why">Why</h2>
+<p>“Familiar with Jenkins” appears in countless SRE job descriptions, usually read as a tool claim: navigate the UI, write a Jenkinsfile, wire a webhook. That is table stakes, not what the line should test. The SRE reading starts elsewhere: the pipeline is the road every change takes to production — so what happens when it hangs at 2 a.m., fails halfway through a deploy, or, worst of all, silently does the wrong thing and reports green?</p>
+<p>A Jenkins migration let me test my answer against reality: moving an installation between environments audits every assumption baked into it. Its failures supply the material below.</p>
+<h2 id="The-pipeline-is-a-production-system">The pipeline is a production system</h2>
+<p>The claim everything else follows from: most production incidents are change-induced, which makes the delivery pipeline the highest-leverage reliability surface an SRE owns, and the number-one incident source. I hold this as a conviction, not a neutral observation.</p>
+<p>Three consequences fall out. The pipeline deserves SLIs — success rate, duration, queue time — because unmeasured degradation stays invisible until it blocks a release. It deserves failure-mode analysis: for every stage, what happens when it dies halfway, and can the operator tell? And it deserves a capacity view: agents, dependency caches, and artifact stores are production dependencies, not scenery.</p>
+<p>One structural fact matters for Jenkins specifically: a declarative reconcile loop is idempotent by design; an imperative Jenkins pipeline is not — nothing guarantees that running a job twice converges to the same state. That is not a reason to avoid Jenkins; it is why “familiar with Jenkins” is a reliability skill: the idempotency the tool does not give you, you must construct.</p>
+<h2 id="Three-criteria-that-separate-tool-users-from-operators">Three criteria that separate tool users from operators</h2>
+<h3 id="Idempotent-and-re-entrant-procedures">Idempotent and re-entrant procedures</h3>
+<p>During the migration, agent image builds failed on two fronts at once: the Debian Buster base image had gone EOL, its apt repositories moved to the archive, and upstream Maven mirrors serving several transitive dependencies had gone dark — dependency resolution failed, compilation failed, the Docker build failed downstream, a three-stage cascade.</p>
+<p>The repair scripts I wrote follow one shape: guard, back up, converge, verify. The apt fix checks it is actually on a Buster system and no-ops otherwise, backs up the existing sources with a timestamp, then overwrites the configuration wholesale rather than patching lines. Overwrite-to-known-good is convergent: every run produces the same end state, so re-running is safe and dying in the middle costs nothing. The dependency-repair script ends with an explicit verify function asserting the artifacts now exist, instead of assuming success. The contrast case is the script that appends lines or assumes a clean start: run it twice and one incident becomes two.</p>
+<h3 id="Observable-and-diagnosable-state">Observable and diagnosable state</h3>
+<p>The repo pairs each fix script with a read-only diagnose script that collects facts — OS release, source inventory, a dry-run update, warnings on known-EOL codenames — and changes nothing. Diagnosis existing as a separate artifact is the point: it encodes “confirm the failure mode before mutating anything” as structure, not discipline.</p>
+<div class="mermaid">flowchart LR
+  D[&quot;diagnose-*.sh&lt;br/&gt;read-only, collect facts&quot;] --&gt; C{&quot;Root cause&lt;br/&gt;confirmed?&quot;}
+  C -- &quot;no&quot; --&gt; D
+  C -- &quot;yes&quot; --&gt; F[&quot;fix-*.sh&lt;br/&gt;guarded, convergent&quot;]
+  F --&gt; V[&quot;verify step&lt;br/&gt;assert end state&quot;]
+  V -- &quot;fail&quot; --&gt; D
+  V -- &quot;pass&quot; --&gt; R[&quot;re-run the pipeline&quot;]</div>
+<p>The second case is a side tool I built because Jenkins hides its own state: the UI shows one job, one build, one parameter set at a time. The tool pulls job status, recent builds, parameters, and commit IDs through the JSON API into one page spanning the old and new Jenkins environments, with one-click replay from the last successful parameters. Modest, but it embodies the criterion: job state should be extractable data, not an impression reconstructed by clicking. Full pipeline SLIs on a dashboard are the standard I would hold a mature setup to — stated here as a criterion, not as something this repo already had.</p>
+<h3 id="Configuration-as-code">Configuration as code</h3>
+<p>The delivery logic in this repo — some 275 pipeline definition files plus a shared library of reusable steps — lives in git: reviewable, diffable, and, decisively, migratable. The migration audited exactly this property. Everything in the repo moved cleanly; everything that lived only inside the running system — cached artifacts whose upstreams had since died, hand-tuned Maven settings inside agent pods — surfaced as a failure at migration time. That is the operational difference between pipeline-as-code and a snowflake Jenkins accreted through UI clicks: the snowflake is unrecoverable by definition. Extending the same criterion to the controller itself via JCasC is the standard I would apply to any Jenkins I own.</p>
+<h2 id="When-automation-is-the-entropy">When automation is the entropy</h2>
+<p>The counter-argument the thesis requires: automation is not the goal, and more of it is not monotonically better.</p>
+<p>The migration produced a clean specimen. While the upstream repositories were dying, the build Jenkinsfile had grown workaround stages — metadata repair, dependency debugging, direct-download fallbacks. Once the artifacts were properly migrated, those stages were dead code: masking signal, adding runtime, confusing the next reader. Part of the documented fix was deleting them. Automation ages like alert rules: each piece encodes assumptions that silently expire, and an automated path nobody watches decays without anyone noticing — a manual gate at least has a human in it who notices.</p>
+<p>Automation also opens new failure surface: credentials concentrated where the pipeline can reach them, a plugin supply chain, scripts that rot. That is why I read the manual review-and-approval stage in the production release flow as a design decision, not a gap: for low-frequency, high-blast-radius operations, a deliberate human gate is often the more reliable component. The ordering I defend: logically sound — provably runnable, observable, recoverable — beats maximally automated. Automate the frequent and reversible; gate the rare and irreversible.</p>
+<h2 id="Takeaways">Takeaways</h2>
+<ul>
+<li>“Familiar with Jenkins” should be read as “can own a delivery pipeline as a production system”: its failure modes, its state, its recovery paths — not its syntax.</li>
+<li>Idempotency is the precondition for everything else. A procedure you cannot safely re-run cannot be automated, retried, or handed to the next on-call.</li>
+<li>Automation degree is not the metric; it is a trade with its own entropy. Runnable, observable, recoverable comes first — then automate what earns it.</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tech-en/tags/SRE/" rel="tag"># SRE</a>
+              <a href="/tech-en/tags/Kubernetes/" rel="tag"># Kubernetes</a>
+              <a href="/tech-en/tags/CI-CD/" rel="tag"># CI/CD</a>
+              <a href="/tech-en/tags/Infrastructure-as-Code/" rel="tag"># Infrastructure as Code</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/tech-en/2026/02/12/2026-02-12_ai-era-professional-value-first-principle_en/" rel="prev" title="When Execution Becomes Cheap: Professional Value in the AI Era">
+                  <i class="fa fa-angle-left"></i> When Execution Becomes Cheap: Professional Value in the AI Era
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/tech-en/2026/08/03/2026-08-03_zombie-system-tables-subsecond-oom_en/" rel="next" title="Zombie System Tables: the Sub-Second OOM That 30-Second Monitoring Could Not See">
+                  Zombie System Tables: the Sub-Second OOM That 30-Second Monitoring Could Not See <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">Rui Shao</span>
+  </div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+<!-- hexo injector body_end start --><script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>mermaid.initialize({ startOnLoad: true, theme: "default" });</script><!-- hexo injector body_end end --></body>
+</html>

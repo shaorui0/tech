@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 8.1.1">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/tech-en/favicon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/tech-en/favicon.svg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/tech-en/favicon.svg">
+  <link rel="mask-icon" href="/tech-en/favicon.svg" color="#222">
+
+<link rel="stylesheet" href="/tech-en/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"shaorui0.github.io","root":"/tech-en/","images":"/tech-en/images","scheme":"Gemini","darkmode":true,"version":"8.27.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}}</script><script src="/tech-en/js/config.js" defer></script>
+
+    <meta name="description" content="A cross-tablet point-query index that prunes 566 tablets to about one before any tablet is opened, and a wide-read prefetch that removes serialization rather than IO — chosen because the cost of each">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Fan-Out Is the Floor: Two Targeted Optimizations for Query Shapes Nobody Controls">
+<meta property="og:url" content="https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_fan-out-is-the-floor_en/index.html">
+<meta property="og:site_name" content="Tech &amp; AI">
+<meta property="og:description" content="A cross-tablet point-query index that prunes 566 tablets to about one before any tablet is opened, and a wide-read prefetch that removes serialization rather than IO — chosen because the cost of each">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2026-08-02T15:00:00.000Z">
+<meta property="article:modified_time" content="2026-08-03T16:19:14.696Z">
+<meta property="article:author" content="Rui Shao">
+<meta property="article:tag" content="Apache Doris">
+<meta property="article:tag" content="ClickHouse">
+<meta property="article:tag" content="OLAP">
+<meta property="article:tag" content="SRE">
+<meta property="article:tag" content="Storage Engine">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_fan-out-is-the-floor_en/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_fan-out-is-the-floor_en/","path":"2026/08/03/2026-08-03_fan-out-is-the-floor_en/","title":"Fan-Out Is the Floor: Two Targeted Optimizations for Query Shapes Nobody Controls"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>Fan-Out Is the Floor: Two Targeted Optimizations for Query Shapes Nobody Controls | Tech & AI</title>
+  
+
+
+
+
+
+
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous" defer></script>
+<script src="/tech-en/js/utils.js" defer></script><script src="/tech-en/js/motion.js" defer></script><script src="/tech-en/js/sidebar.js" defer></script><script src="/tech-en/js/next-boot.js" defer></script>
+
+  
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.10.1/mermaid.min.js","integrity":"sha256-BmQmdWDS8X2OTbrwELWK366LV6escyWhHHe0XCTU/Hk="}}</script>
+  <script src="/tech-en/js/third-party/tags/mermaid.js" defer></script>
+
+
+
+
+
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/tech-en/css/noscript.css">
+  </noscript>
+<!-- hexo injector head_end start --><style>
+.article-toc-wrap {
+  margin-bottom: 1.5em;
+  padding: 1em 1.25em;
+  background: #f8f9fa;
+  border-radius: 6px;
+  border-left: 3px solid #ddd;
+}
+.article-toc-wrap .toc-title {
+  font-weight: bold;
+  margin-bottom: 0.5em;
+  font-size: 0.95em;
+  color: #555;
+}
+.article-toc-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.article-toc-list .article-toc-list { padding-left: 1em; margin-top: 0.25em; }
+.article-toc-item { margin: 0.35em 0; }
+.article-toc-link {
+  text-decoration: none;
+  color: #444;
+  font-size: 0.9em;
+}
+.article-toc-link:hover { color: #08c; text-decoration: underline; }
+.article-toc-level-3 .article-toc-link { font-size: 0.85em; }
+.article-toc-level-4 .article-toc-link { font-size: 0.8em; }
+</style><!-- hexo injector head_end end --></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/tech-en/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Tech & AI</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">Systems, Infrastructure, and AI</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="Search" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/tech-en/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-tags"><a href="/tech-en/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li><li class="menu-item menu-item-categories"><a href="/tech-en/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li><li class="menu-item menu-item-archives"><a href="/tech-en/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li><li class="menu-item menu-item-中文"><a href="https://shaorui0.github.io/tech/" rel="section"><i class="fa fa-language fa-fw"></i>中文</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Where-this-sits"><span class="nav-number">1.</span> <span class="nav-text">Where this sits</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Why-the-optimization-has-to-be-targeted-rather-than-general"><span class="nav-number">2.</span> <span class="nav-text">Why the optimization has to be targeted rather than general</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#The-measurement-that-reset-the-cost-model"><span class="nav-number">3.</span> <span class="nav-text">The measurement that reset the cost model</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Axis-one-prune-the-tablet-fan-out"><span class="nav-number">4.</span> <span class="nav-text">Axis one: prune the tablet fan-out</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#What-it-costs-stated-honestly"><span class="nav-number">4.1.</span> <span class="nav-text">What it costs, stated honestly</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Why-a-false-positive-is-acceptable-and-a-miss-never-is"><span class="nav-number">4.2.</span> <span class="nav-text">Why a false positive is acceptable and a miss never is</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#The-structural-cost-nobody-notices-at-demo-time"><span class="nav-number">4.3.</span> <span class="nav-text">The structural cost nobody notices at demo time</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#The-tradeoff-that-actually-cost-us-one-cache-two-working-sets"><span class="nav-number">5.</span> <span class="nav-text">The tradeoff that actually cost us: one cache, two working sets</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#The-incident-%E2%80%9Cwarmed-once%E2%80%9D-is-not-%E2%80%9Cstill-resident%E2%80%9D"><span class="nav-number">6.</span> <span class="nav-text">The incident: “warmed once” is not “still resident”</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#The-bug-that-made-the-whole-feature-a-no-op"><span class="nav-number">7.</span> <span class="nav-text">The bug that made the whole feature a no-op</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Axis-two-overlap-the-column-fan-out"><span class="nav-number">8.</span> <span class="nav-text">Axis two: overlap the column fan-out</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#What-it-costs-and-where-it-stops-working"><span class="nav-number">8.1.</span> <span class="nav-text">What it costs, and where it stops working</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Verification-status-stated-plainly"><span class="nav-number">8.2.</span> <span class="nav-text">Verification status, stated plainly</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Killing-my-own-first-implementation"><span class="nav-number">9.</span> <span class="nav-text">Killing my own first implementation</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Alternatives-rejected"><span class="nav-number">10.</span> <span class="nav-text">Alternatives rejected</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Takeaways"><span class="nav-number">11.</span> <span class="nav-text">Takeaways</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Rui Shao</p>
+  <div class="site-description" itemprop="description">Rui Shao — writing about systems, infrastructure and AI</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/tech-en/archives/">
+          <span class="site-state-item-count">24</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">38</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/shaorui0" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;shaorui0" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.linkedin.com/in/rui-shao-a21a55194/" title="LinkedIn → https:&#x2F;&#x2F;www.linkedin.com&#x2F;in&#x2F;rui-shao-a21a55194&#x2F;" rel="noopener me" target="_blank"><i class="fab fa-linkedin fa-fw"></i>LinkedIn</a>
+      </span>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_fan-out-is-the-floor_en/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/tech-en/images/avatar.gif">
+      <meta itemprop="name" content="Rui Shao">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Tech & AI">
+      <meta itemprop="description" content="Rui Shao — writing about systems, infrastructure and AI">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="Fan-Out Is the Floor: Two Targeted Optimizations for Query Shapes Nobody Controls | Tech & AI">
+      <meta itemprop="description" content="A cross-tablet point-query index that prunes 566 tablets to about one before any tablet is opened, and a wide-read prefetch that removes serialization rather than IO — chosen because the cost of each was mostly avoidable fan-out, and shipped fail-open because neither may ever change a result. Includes the tradeoff that actually cost us, and the silent incident it caused.">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Fan-Out Is the Floor: Two Targeted Optimizations for Query Shapes Nobody Controls
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2026-08-03 00:00:00" itemprop="dateCreated datePublished" datetime="2026-08-03T00:00:00+09:00">2026-08-03</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2026-08-04 01:19:14" itemprop="dateModified" datetime="2026-08-04T01:19:14+09:00">2026-08-04</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/tech-en/categories/Data-Platform/" itemprop="url" rel="index"><span itemprop="name">Data Platform</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+            <div class="post-description">A cross-tablet point-query index that prunes 566 tablets to about one before any tablet is opened, and a wide-read prefetch that removes serialization rather than IO — chosen because the cost of each was mostly avoidable fan-out, and shipped fail-open because neither may ever change a result. Includes the tradeoff that actually cost us, and the silent incident it caused.</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><nav class="article-toc-wrap" aria-label="Contents"><div class="toc-title">Contents</div><ol class="article-toc-list"><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#Where-this-sits"><span class="article-toc-text">Where this sits</span></a></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#Why-the-optimization-has-to-be-targeted-rather-than-general"><span class="article-toc-text">Why the optimization has to be targeted rather than general</span></a></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#The-measurement-that-reset-the-cost-model"><span class="article-toc-text">The measurement that reset the cost model</span></a></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#Axis-one-prune-the-tablet-fan-out"><span class="article-toc-text">Axis one: prune the tablet fan-out</span></a><ol class="article-toc-child"><li class="article-toc-item article-toc-level-3"><a class="article-toc-link" href="#What-it-costs-stated-honestly"><span class="article-toc-text">What it costs, stated honestly</span></a></li><li class="article-toc-item article-toc-level-3"><a class="article-toc-link" href="#Why-a-false-positive-is-acceptable-and-a-miss-never-is"><span class="article-toc-text">Why a false positive is acceptable and a miss never is</span></a></li><li class="article-toc-item article-toc-level-3"><a class="article-toc-link" href="#The-structural-cost-nobody-notices-at-demo-time"><span class="article-toc-text">The structural cost nobody notices at demo time</span></a></li></ol></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#The-tradeoff-that-actually-cost-us-one-cache-two-working-sets"><span class="article-toc-text">The tradeoff that actually cost us: one cache, two working sets</span></a></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#The-incident-%E2%80%9Cwarmed-once%E2%80%9D-is-not-%E2%80%9Cstill-resident%E2%80%9D"><span class="article-toc-text">The incident: “warmed once” is not “still resident”</span></a></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#The-bug-that-made-the-whole-feature-a-no-op"><span class="article-toc-text">The bug that made the whole feature a no-op</span></a></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#Axis-two-overlap-the-column-fan-out"><span class="article-toc-text">Axis two: overlap the column fan-out</span></a><ol class="article-toc-child"><li class="article-toc-item article-toc-level-3"><a class="article-toc-link" href="#What-it-costs-and-where-it-stops-working"><span class="article-toc-text">What it costs, and where it stops working</span></a></li><li class="article-toc-item article-toc-level-3"><a class="article-toc-link" href="#Verification-status-stated-plainly"><span class="article-toc-text">Verification status, stated plainly</span></a></li></ol></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#Killing-my-own-first-implementation"><span class="article-toc-text">Killing my own first implementation</span></a></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#Alternatives-rejected"><span class="article-toc-text">Alternatives rejected</span></a></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#Takeaways"><span class="article-toc-text">Takeaways</span></a></li></ol></nav>
+<blockquote>
+<p>Also in Chinese: <a href="https://shaorui0.github.io/tech/2026/08/03/2026-08-03_fan-out-is-the-floor_zh/">中文版</a></p>
+</blockquote>
+<h2 id="Where-this-sits">Where this sits</h2>
+<p>The analytics platform was rebuilt in three layers, and they solve different kinds of problem.</p>
+<p><strong>Migration</strong> replaced the substrate: off ClickHouse onto Apache Doris with compute-storage separation. Not because Doris was faster — ClickHouse still was — but because the <em>precondition</em> for ClickHouse’s speed had expired. Its performance depends on sorting keys and modelling the query shapes in advance, and once a growing share of queries arrives from AI agents, nobody knows the shapes in advance.</p>
+<p><strong>The elastic compute tier</strong> built a control plane on top: evaluate every query’s cost before execution, route it heavy or light at plan time, give the heavy tail a physically isolated compute group, and provision that group on demand from a floor of zero. That layer makes no query faster. It decides <em>where</em> each query lands and makes that place exist when needed.</p>
+<p><strong>This article is the third layer</strong>, and it is the only one that makes a query genuinely cheaper.</p>
+<h2 id="Why-the-optimization-has-to-be-targeted-rather-than-general">Why the optimization has to be targeted rather than general</h2>
+<p>Query text, workload mix, and query shape are all inputs we do not control, and a growing share of them is generated by product features and AI agents rather than written by hand and reviewed. “Tell the callers to write better SQL” is not a weak remedy here — it is architecturally unavailable.</p>
+<p>So the only remaining lever is to make the shapes a caller might plausibly write structurally cheaper. But that cannot mean optimizing everything, so the selection rule matters:</p>
+<blockquote>
+<p>A query shape is worth attacking when its cost is mostly <strong>avoidable fan-out</strong>. Attack waste, never necessary cost.</p>
+</blockquote>
+<p>Two shapes qualified, and they are worth stating side by side, because they fail differently:</p>
+<table>
+<thead>
+<tr>
+<th>Shape</th>
+<th>What is waste</th>
+<th>What is not</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Point lookup on a non-bucketed column</td>
+<td>opening 566 tablets when one holds the row</td>
+<td>the one tablet that holds it</td>
+</tr>
+<tr>
+<td>Wide read of hundreds of columns</td>
+<td>reading its column files <strong>serially</strong></td>
+<td>the column files themselves</td>
+</tr>
+</tbody>
+</table>
+<p>This is why the second one is not “optimizing <code>SELECT *</code>”. A wide read does not read fewer columns afterwards. It stops reading them one at a time.</p>
+<h2 id="The-measurement-that-reset-the-cost-model">The measurement that reset the cost model</h2>
+<p>The first instinct was to reduce rows scanned, so bloom filters went in. Rows scanned fell <strong>73%</strong> and wall-clock time did not move — because one user’s rows lived in <strong>2,044 files</strong>. That result did not optimize anything; it invalidated the cost model. The currency is not rows scanned, it is how many independent IO units must be opened and whether they can overlap.</p>
+<p>The mirror image arrived from the other direction: a <strong>3,727-column</strong> <code>SELECT *</code> measured <strong>253 s cold</strong>, while the planner’s byte-volume estimate (rows × average row bytes) classified it <em>light</em>. One overestimate and one underestimate, one root cause — the estimator was structurally blind to fan-out.</p>
+<p>Fan-out also has two independent axes, which is why there are two optimizations and not one: the <strong>tablet axis</strong> can be pruned, the <strong>column axis</strong> cannot, but it can be overlapped.</p>
+<h2 id="Axis-one-prune-the-tablet-fan-out">Axis one: prune the tablet fan-out</h2>
+<p>Every index Doris ships — zonemap, bloom filter, inverted, short-key, primary-key — is <strong>local to a tablet</strong>. Each can only answer “is this value inside the tablet you already opened”. When a table is not bucketed by the column being filtered, a point query has no choice but to open every tablet. The missing structure is a <em>global</em> one that answers a different question, earlier: <strong>which tablets could contain X, before any tablet is opened.</strong></p>
+<p>The shape it took, on the fork: one bloom filter per rowset per indexed column, written as a self-validating side file next to the rowset’s segments in object storage. At plan time the frontend extracts <code>=</code>/<code>IN</code> predicates, encodes probe values <strong>byte-identically to the write path</strong>, and asks each involved backend — one RPC per backend, not one per tablet — to test its tablets’ blooms. Tablets whose blooms all miss are dropped, and the candidate set is always intersected with the planner’s own tablet set. A 64-tablet demo table prunes to 1 tablet (<code>probes=1, degraded=0</code>); a non-existent value prunes to 0.</p>
+<div class="mermaid">flowchart LR
+    W[&quot;write path (per rowset)&lt;br/&gt;one bloom per indexed column&lt;br/&gt;side file in object storage&quot;] -.-&gt;|&quot;cold read, once&quot;| P
+    Q[&quot;FE: extract = / IN predicate&lt;br/&gt;encode byte-identically&quot;] --&gt; R[&quot;prune RPC&lt;br/&gt;one per backend · 500 ms budget&quot;]
+    R --&gt; P[&quot;BE: probe blooms&lt;br/&gt;from local file cache&quot;]
+    P --&gt; I[&quot;FE: intersect candidates&lt;br/&gt;with planned tablets&quot;]
+    I --&gt; S[&quot;scan ~1 tablet&lt;br/&gt;instead of 566&quot;]</div>
+<h3 id="What-it-costs-stated-honestly">What it costs, stated honestly</h3>
+<table>
+<thead>
+<tr>
+<th>Cost</th>
+<th>Size</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Write path</td>
+<td>one extra hash and insert per value, consuming the column-value stream the writer already produces — <strong>no extra IO</strong></td>
+</tr>
+<tr>
+<td>Storage</td>
+<td>planning target <strong>10–20 GB</strong> for the table, not the 6–8 GB first estimated, because the bloom’s bit count rounds up to a power of two; measured <strong>3–4 GiB per backend</strong> at four backends</td>
+</tr>
+<tr>
+<td>Plan-time latency</td>
+<td>one extra network round trip inside a point-query budget, capped at <strong>500 ms</strong>; a cold backend can pay a real object-storage stall before degrading</td>
+</tr>
+<tr>
+<td>Cache budget</td>
+<td>the index blocks live in the file cache’s INDEX queue, which is carved out of the queue that holds column data — see the next section</td>
+</tr>
+<tr>
+<td>Compaction coupling</td>
+<td>normal compaction rebuilds blooms for free through the shared writer path, but the <strong>ordered-rowset fast path</strong> links segments without invoking the column writer, so its output silently has no index at all until that is handled explicitly</td>
+</tr>
+<tr>
+<td>Lifecycle</td>
+<td>the new side files are not in the garbage collector’s enumeration path, so without a fix they leak in object storage forever</td>
+</tr>
+</tbody>
+</table>
+<h3 id="Why-a-false-positive-is-acceptable-and-a-miss-never-is">Why a false positive is acceptable and a miss never is</h3>
+<p>A false positive costs one extra scanned tablet: <strong>bounded, and budgeted by a knob</strong>. A false negative drops a tablet that actually holds data: <strong>unbounded, and it returns wrong results.</strong> Those two costs are not the same shape, so the design only ever leans one way — <em>over-scan, never skip</em>. Every failure path degrades to “this tablet must be scanned”: descriptor missing, bloom unreadable, not yet backfilled, RPC timeout, or a backend whose local view lags the query’s pinned snapshot version. The response field is deliberately named <em>candidate</em> rather than <em>pruned</em>, so any omission on the backend side naturally shows up as “returned too many candidates” (safe) instead of “pruned too many” (wrong).</p>
+<p>Exactly one semantic path can break that guarantee: <strong>byte-encoding mismatch</strong>. If a predicate literal, after the planner’s type coercion, encodes differently from the stored value, the probe misses a value that is really there. So any encoding uncertainty means <em>do not prune</em>: implicit casts, <code>CHAR(n)</code> padding, datetime scale, narrowing conversions, and <code>DECIMAL</code> outright, whose scale differences would break byte-identity. The cost is real — those columns never benefit, and affected queries lose pruning <strong>silently, without an error</strong>. It is the correct trade: losing a benefit is recoverable, encoding wrong once is not.</p>
+<h3 id="The-structural-cost-nobody-notices-at-demo-time">The structural cost nobody notices at demo time</h3>
+<p>The false-positive budget must be defined <strong>per tablet</strong>, not per bloom, because a tablet accumulates one bloom per rowset: with <code>B</code> blooms of per-bloom rate <code>p</code>, the tablet’s union false-positive rate is <code>B·p</code>. And <strong><code>B</code> is not a configuration knob</strong> — it is a function of how well compaction is keeping up.</p>
+<table>
+<thead>
+<tr>
+<th>B (blooms per tablet)</th>
+<th>tablet-level false positive</th>
+<th>expected mis-scanned tablets</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>1%</td>
+<td>~6 / 566</td>
+</tr>
+<tr>
+<td>5</td>
+<td>5%</td>
+<td>~28 / 566</td>
+</tr>
+<tr>
+<td>50</td>
+<td>~40% (union bound saturated)</td>
+<td>~226 / 566 — pruning has effectively stopped working</td>
+</tr>
+</tbody>
+</table>
+<p>So this index couples query performance to compaction health. That is the long-term liability it introduces, and it is worth saying out loud, because it is invisible in a demo and obvious in a quarter.</p>
+<h2 id="The-tradeoff-that-actually-cost-us-one-cache-two-working-sets">The tradeoff that actually cost us: one cache, two working sets</h2>
+<p>The index blocks and the column data compete for the same local file cache, and the competition is zero-sum by construction: the INDEX queue is sized as a percentage of capacity, and the queue holding column data is the <em>remainder</em>. Every point given to one is taken from the other — and the other is exactly what the 43-second wide read needs.</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>index side</th>
+<th>column-data side</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Working set</td>
+<td>3–4 GiB per backend; worst case ~14 GiB when one backend owns everything</td>
+<td>441 one-mebibyte blocks per wide read</td>
+</tr>
+<tr>
+<td>Value when resident</td>
+<td>probe costs 0.03 s, and pruning a tablet avoids <strong>all</strong> of that tablet’s downstream IO</td>
+<td>each block saves one ~97 ms round trip</td>
+</tr>
+<tr>
+<td>Cost when missing</td>
+<td>~100 ms per file, spent inside a <strong>hard 500 ms plan-time budget</strong>; blow the budget and the entire prune is abandoned, back to full fan-out</td>
+<td>linearly slower</td>
+</tr>
+<tr>
+<td>Failure curve</td>
+<td><strong>a cliff</strong></td>
+<td><strong>a slope</strong></td>
+</tr>
+</tbody>
+</table>
+<p>The conclusion follows from the shapes, not from preference: <strong>size the index queue for the worst-case single-backend working set, not the average</strong> — leave headroom on the cliff and let the slope absorb the squeeze. Both sides have to be computed before that number is set. Undersize it and a one-time cold-read cost becomes a permanent, non-converging object-storage bill.</p>
+<h2 id="The-incident-“warmed-once”-is-not-“still-resident”">The incident: “warmed once” is not “still resident”</h2>
+<p>A daemon warms each backend’s index files into cache on startup, so cold probes hit local disk instead of object storage. It kept a map of backend id to last start time and skipped any backend whose start time had not changed. That invariant is the wrong one.</p>
+<p>What happened, over three days on preprod: four backends were ingesting; the cluster was scaled down to a single backend for a single-node performance test, and the daemon warmed it <strong>once — the only warm-up it ever received</strong>; two days of ingest and compaction produced new index files that no past warm-up covered; the cluster was scaled back to four backends, and the three re-added ones registered with <strong>fresh backend ids</strong>. Then a manual check:</p>
+<table>
+<thead>
+<tr>
+<th>Backend</th>
+<th>cached</th>
+<th>missing</th>
+<th>wrong queue</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>the three re-added</td>
+<td>386–405 each</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td>the one that never restarted</td>
+<td><strong>0</strong></td>
+<td><strong>313</strong></td>
+<td><strong>73</strong></td>
+</tr>
+</tbody>
+</table>
+<p>The three new backends looked new to the daemon, so they were warmed normally. The original backend kept its id and never restarted, so it was skipped on every round from that single warm-up onward, and every probe against it became a cold object-storage read.</p>
+<p>The amplifier was capacity. The cache-sizing step had been skipped, leaving the INDEX queue at its 5% default; during the single-backend window that one backend owned every tablet’s blooms — roughly four times its normal footprint, which on its own exceeds any plausible 5% budget. <strong>It evicted its own warm-up.</strong></p>
+<p>Three things have to be said together about this:</p>
+<ol>
+<li><strong>Correctness was never affected.</strong> Every failure path degraded to over-scan. This was a performance and cost problem, exactly as designed.</li>
+<li><strong>It was silent.</strong> No alert, no error, no degraded flag — found by running a check script by hand. Residency was never an observable quantity.</li>
+<li><strong>The fix order was itself the judgement.</strong> Size the cache <em>first</em>, before shipping any repair mechanism. Otherwise a mechanism that re-reads whatever is missing will re-read it on every round for as long as the budget is smaller than the working set — turning a one-time cost into a permanent one.</li>
+</ol>
+<p>The repair replaced “process warmed once” with a residency-driven loop, governed by one hard constraint: <strong>a sweep over a fully resident backend must issue zero object-storage GETs.</strong> That single requirement eliminates most of the obvious designs.</p>
+<table>
+<thead>
+<tr>
+<th>Rejected repair</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Re-warm every backend every round</td>
+<td>violates the zero-GET rule; permanent bandwidth waste</td>
+</tr>
+<tr>
+<td>Let each backend sweep itself, no coordinator</td>
+<td>a backend does not know its own consistent-hash ownership, so it would miss tablets moved onto it by a membership change — <strong>the incident’s own scenario</strong></td>
+</tr>
+<tr>
+<td>Check residency over HTTP from the coordinator</td>
+<td>hundreds of calls per sweep, and it duplicates cache-internal logic</td>
+</tr>
+<tr>
+<td>Pin the index blocks so they can never be evicted</td>
+<td>it removes them from budget accounting, which <strong>makes sizing mistakes invisible</strong></td>
+</tr>
+<tr>
+<td>Ship the queue resize only, treat it as a config incident</td>
+<td>correct as phase one, insufficient alone</td>
+</tr>
+</tbody>
+</table>
+<p>And the counters — checked, resident, repaired, failed — shipped as metrics, because the first lesson of the incident is that residency has to be observable without a human remembering to look.</p>
+<h2 id="The-bug-that-made-the-whole-feature-a-no-op">The bug that made the whole feature a no-op</h2>
+<p>Before any of that, plan-time pruning <strong>silently never fired</strong> for ordinary queries. Two independent causes, both in the planner:</p>
+<p>The predicate map it read was always empty at that point, because the only code path that populates it is a short-circuit point-query path that normal queries do not take. And “just populate it during node initialization” would not have worked either: the translator recurses into the child — creating and initializing the scan node — <em>before</em> attaching predicates to it. That is not an accident, it is the inherent order of a top-down visit that constructs fragments bottom-up. At initialization time the predicate list is empty by definition.</p>
+<p>Worse, the naive fix would have been <strong>unsafe</strong>. Pruning during initialization pins its own snapshot version, taken earlier than the version the query actually reads, which is pinned later and uniformly. Versions are monotonic, so the pruned rowset set could be a strict <em>subset</em> of what the query reads — violating the superset invariant and <strong>silently returning fewer rows</strong>. A performance bug repaired into a correctness bug.</p>
+<p>The fix moved pruning to the point where the query’s real read version is computed, after the whole plan is translated. It incidentally collapsed per-partition metadata calls to zero extra and backend probe RPCs from one-per-partition-per-backend to one-per-backend.</p>
+<p>The class matters more than the fix: a <strong>silent, ordering-dependent no-op</strong>. It compiled, ran, never threw, never logged, and never triggered. Its unit test passed because it bypassed the entire call chain and tested the encoding logic in isolation. Verification has to cover call <em>order</em>, not only function correctness.</p>
+<h2 id="Axis-two-overlap-the-column-fan-out">Axis two: overlap the column fan-out</h2>
+<p>For a wide read, the column files are not waste — they are the work. The waste is doing them one at a time.</p>
+<p>The measured baseline for one such read: <strong>43.45 s wall clock, 98.6% of it remote IO, 441 object-storage fetches</strong>. The obvious story is “one serial read per column”. Reading the code showed it is <strong>up to three</strong>, in a strict order:</p>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Read</th>
+<th>Offset comes from</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>ordinal index page</td>
+<td>footer-resident — <strong>free</strong></td>
+</tr>
+<tr>
+<td>2</td>
+<td>data page</td>
+<td>the ordinal index — <strong>depends on read 1</strong></td>
+</tr>
+<tr>
+<td>3</td>
+<td>dictionary page (dictionary-encoded columns, 56% of this table)</td>
+<td>footer-resident — <strong>free</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Only read 2 has a data dependency.</strong> Reads 1 and 3 have byte offsets that are already in memory once the segment footer is parsed, so both can be issued immediately, in parallel, with no prior IO. The entire design is a consequence of that one fact.</p>
+<p>So: before the serial loop runs, warm every column’s meta pages concurrently, and open each column’s cache window ahead of the read that would have opened it later — deduplicated into cache-block-aligned ranges and submitted to the prefetch thread pool that already exists. The serial loop itself stays <strong>byte-for-byte unchanged</strong>; by the time it reaches column N, column N’s block is local.</p>
+<p>Correctness is argued structurally rather than by testing: the prefetch tasks are dry-run reads into a null destination, they decode nothing and mutate no reader state; they run on a pool that only ever performs that one operation; a full queue or any other failure degrades to “the loop reads it synchronously, as today”; and a block already being fetched is in a downloading state that a concurrent reader waits on, so no duplicate object-storage GET is ever issued. Remove the two warming steps and results must be bit-identical.</p>
+<h3 id="What-it-costs-and-where-it-stops-working">What it costs, and where it stops working</h3>
+<p>The prefetch pool is backend-wide and its width is the throttle: with the default worker count and ~441 blocks per query, concurrent wide lookups <strong>queue rather than multiply</strong> object-storage concurrency. That is deliberate. The feature is off by default and gated on column count and row count so that scan-shaped queries are untouched. Two costs were accepted: a single master switch means the two warming steps cannot be rolled back independently, and the change touches code that compaction also runs through.</p>
+<p>One clarification that matters more than it looks: <strong>the warming step is not free of IO</strong>. The index loads that follow it still block — they just block on a warm cache. What it removes is the serialization, not the reads.</p>
+<p>And it stops working on array columns (2.5% of this table, deliberately skipped): an array’s item pages cannot be prefetched at all, because <em>which</em> item pages are needed depends on offsets that have not been read yet. Coverage is 97.5% of columns, measured from the table’s own schema, and the array pages are largely warmed incidentally anyway because they sit between scalar columns that are.</p>
+<h3 id="Verification-status-stated-plainly">Verification status, stated plainly</h3>
+<p>This layer’s benefit is <strong>projected, not measured</strong>. The design and implementation are complete; the numbers are arithmetic over the measured baseline. Two things stand between it and a claim:</p>
+<p>The baseline itself has to be rebuilt. It was measured on a build that predates the prefetch subsystem this design extends, so it must be re-measured on the target release with the switches off — and <strong>that run may well be slower</strong>, because it will expose thousands of serial index loads at iterator-init time, which is itself one of the things this change removes.</p>
+<p>And the acceptance metric I originally wanted <strong>cannot be computed under this design</strong>. Prefetch reads are dry-run reads with the query id and cache statistics nulled out, so the profile’s remote-IO counters fall toward zero while wall clock falls: the IO did not disappear, it stopped being attributed. I cannot prove “we parallelized rather than moved the work” by showing per-fetch latency unchanged. The substitute checks are counting submitted prefetch tasks, and comparing total bytes written into the cache before and after, which should stay flat.</p>
+<h2 id="Killing-my-own-first-implementation">Killing my own first implementation</h2>
+<p>The first version of the prefetch was a self-contained path: its own stage enum, its own iterator method, its own block-folding arithmetic, its own configuration flags, sitting in front of the read loop. It was committed. Two days later I folded the whole thing into the prefetch subsystem that already existed and deleted it.</p>
+<p>The reasons were mechanical, not aesthetic. The two overlapped on data pages, and each had derived the same block arithmetic separately — <strong>two submitters against one cache, with two caps that did not know about each other and no shared deduplication</strong>. And the genuinely new idea, warming meta pages, belonged somewhere the standalone version could not reach: ahead of the existing subsystem’s own per-column index loads, which is also where it fixes that subsystem’s worst behaviour on a wide table.</p>
+<p>The part worth keeping is the condition that flips the answer, recorded at the time: had this needed to ship on the currently deployed release, where the subsystem does not exist and reuse would mean backporting more than a thousand lines across dozens of files, keeping both paths would have been correct. <strong>The answer depends entirely on one fact about the target release</strong> — which is the kind of thing that should be written down rather than remembered.</p>
+<h2 id="Alternatives-rejected">Alternatives rejected</h2>
+<table>
+<thead>
+<tr>
+<th>Alternative</th>
+<th>Why not</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>An exact inverted map from value to tablet, in the shared metadata store</td>
+<td>hundreds of gigabytes and billions of writes against a store other systems depend on. Zero false positives is genuinely better; kept as a swappable backend if precision ever becomes a hard requirement</td>
+</tr>
+<tr>
+<td>A routing table plus a tablet hint</td>
+<td>the strongest pragmatic alternative, and worth measuring as a baseline. Not chosen because tablet ids are not stable across split, merge, schema change, or restore, and it needs dual writes with a freshness window</td>
+</tr>
+<tr>
+<td>One mutable per-tablet aggregate bloom instead of one per rowset</td>
+<td>reintroduces the only question in this design that can produce wrong answers: has the aggregate already absorbed the just-committed rowset? Per-rowset decomposition eliminates it by construction</td>
+</tr>
+<tr>
+<td>A transposed or bit-sliced global structure</td>
+<td>same freshness problem; flagged as the preferred evolution if tablet counts reach tens of thousands</td>
+</tr>
+<tr>
+<td>An in-memory prune directory in the frontend</td>
+<td>the exact structure does not fit the heap, so it forces a new stateful service to save one cache read</td>
+</tr>
+<tr>
+<td>Re-bucketing the table by the filtered column</td>
+<td>destroys the locality every existing per-user query depends on, and requires rewriting billions of rows. Not changing the physical layout was a stated constraint</td>
+</tr>
+<tr>
+<td>Writing the bloom into the segment footer</td>
+<td>reading it would require opening the segment file, which defeats the entire point of pruning before data files are opened</td>
+</tr>
+</tbody>
+</table>
+<h2 id="Takeaways">Takeaways</h2>
+<ul>
+<li><strong>Rows scanned is a proxy. Fan-out is the floor.</strong> A 73% reduction in rows with zero wall-clock change is the cheapest possible proof that you are optimizing the wrong quantity.</li>
+<li><strong>When you cannot constrain the input, the only lever left is making the shapes cheap</strong> — but then the selection rule has to be explicit, or “optimization” becomes an infinite backlog. Attack avoidable fan-out; leave necessary cost alone.</li>
+<li><strong>Compare the shape of costs, not their size.</strong> Bounded costs can be managed with a knob; unbounded ones have to be eliminated architecturally. That is why over-scan is acceptable and skipping is not, and why the cache budget goes to the failure curve that is a cliff rather than the one that is a slope.</li>
+<li><strong>An index that depends on background maintenance inherits that maintenance’s health.</strong> Pruning power decays as blooms accumulate per tablet, so this feature’s value is a function of compaction keeping up.</li>
+<li><strong>The characteristic failure of a cache-residency design is silence.</strong> “Warmed once” says nothing about “still resident”, and nothing will page you. Make residency a counter before you make it a mechanism.</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tech-en/tags/SRE/" rel="tag"># SRE</a>
+              <a href="/tech-en/tags/Apache-Doris/" rel="tag"># Apache Doris</a>
+              <a href="/tech-en/tags/ClickHouse/" rel="tag"># ClickHouse</a>
+              <a href="/tech-en/tags/OLAP/" rel="tag"># OLAP</a>
+              <a href="/tech-en/tags/Storage-Engine/" rel="tag"># Storage Engine</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/tech-en/2026/08/03/2026-08-03_rebuilding-a-5b-row-event-store_en/" rel="prev" title="Rebuilding a 5-billion-row event store, down to the engine">
+                  <i class="fa fa-angle-left"></i> Rebuilding a 5-billion-row event store, down to the engine
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/tech-en/2026/08/03/2026-08-03_kubernetes-upgrade-engineering_en/" rel="next" title="Production Kubernetes Upgrade Engineering: 50 Clusters, 1.24 → 1.29, Zero Incidents">
+                  Production Kubernetes Upgrade Engineering: 50 Clusters, 1.24 → 1.29, Zero Incidents <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">Rui Shao</span>
+  </div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+<!-- hexo injector body_end start --><script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>mermaid.initialize({ startOnLoad: true, theme: "default" });</script><!-- hexo injector body_end end --></body>
+</html>

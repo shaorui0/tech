@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 8.1.1">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/tech-en/favicon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/tech-en/favicon.svg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/tech-en/favicon.svg">
+  <link rel="mask-icon" href="/tech-en/favicon.svg" color="#222">
+
+<link rel="stylesheet" href="/tech-en/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"shaorui0.github.io","root":"/tech-en/","images":"/tech-en/images","scheme":"Gemini","darkmode":true,"version":"8.27.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}}</script><script src="/tech-en/js/config.js" defer></script>
+
+    <meta name="description" content="A Kafka consumer-lag alert that was really a terabyte of upgrade residue inside ClickHouse, detonated by a one-second background merge">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Zombie System Tables: the Sub-Second OOM That 30-Second Monitoring Could Not See">
+<meta property="og:url" content="https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_zombie-system-tables-subsecond-oom_en/index.html">
+<meta property="og:site_name" content="Tech &amp; AI">
+<meta property="og:description" content="A Kafka consumer-lag alert that was really a terabyte of upgrade residue inside ClickHouse, detonated by a one-second background merge">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2026-08-02T15:00:00.000Z">
+<meta property="article:modified_time" content="2026-08-03T16:19:14.702Z">
+<meta property="article:author" content="Rui Shao">
+<meta property="article:tag" content="Incident Response">
+<meta property="article:tag" content="Root Cause Analysis">
+<meta property="article:tag" content="SRE">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_zombie-system-tables-subsecond-oom_en/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_zombie-system-tables-subsecond-oom_en/","path":"2026/08/03/2026-08-03_zombie-system-tables-subsecond-oom_en/","title":"Zombie System Tables: the Sub-Second OOM That 30-Second Monitoring Could Not See"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>Zombie System Tables: the Sub-Second OOM That 30-Second Monitoring Could Not See | Tech & AI</title>
+  
+
+
+
+
+
+
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous" defer></script>
+<script src="/tech-en/js/utils.js" defer></script><script src="/tech-en/js/motion.js" defer></script><script src="/tech-en/js/sidebar.js" defer></script><script src="/tech-en/js/next-boot.js" defer></script>
+
+  
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.10.1/mermaid.min.js","integrity":"sha256-BmQmdWDS8X2OTbrwELWK366LV6escyWhHHe0XCTU/Hk="}}</script>
+  <script src="/tech-en/js/third-party/tags/mermaid.js" defer></script>
+
+
+
+
+
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/tech-en/css/noscript.css">
+  </noscript>
+<!-- hexo injector head_end start --><style>
+.article-toc-wrap {
+  margin-bottom: 1.5em;
+  padding: 1em 1.25em;
+  background: #f8f9fa;
+  border-radius: 6px;
+  border-left: 3px solid #ddd;
+}
+.article-toc-wrap .toc-title {
+  font-weight: bold;
+  margin-bottom: 0.5em;
+  font-size: 0.95em;
+  color: #555;
+}
+.article-toc-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.article-toc-list .article-toc-list { padding-left: 1em; margin-top: 0.25em; }
+.article-toc-item { margin: 0.35em 0; }
+.article-toc-link {
+  text-decoration: none;
+  color: #444;
+  font-size: 0.9em;
+}
+.article-toc-link:hover { color: #08c; text-decoration: underline; }
+.article-toc-level-3 .article-toc-link { font-size: 0.85em; }
+.article-toc-level-4 .article-toc-link { font-size: 0.8em; }
+</style><!-- hexo injector head_end end --></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/tech-en/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Tech & AI</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">Systems, Infrastructure, and AI</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="Search" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/tech-en/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-tags"><a href="/tech-en/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li><li class="menu-item menu-item-categories"><a href="/tech-en/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li><li class="menu-item menu-item-archives"><a href="/tech-en/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li><li class="menu-item menu-item-中文"><a href="https://shaorui0.github.io/tech/" rel="section"><i class="fa fa-language fa-fw"></i>中文</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Symptoms-the-alert-fires-three-systems-away-from-the-cause"><span class="nav-number">1.</span> <span class="nav-text">Symptoms: the alert fires three systems away from the cause</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Investigation-when-the-failure-is-faster-than-the-scrape"><span class="nav-number">2.</span> <span class="nav-text">Investigation: when the failure is faster than the scrape</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Fix-and-prevention"><span class="nav-number">3.</span> <span class="nav-text">Fix and prevention</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Lessons"><span class="nav-number">4.</span> <span class="nav-text">Lessons</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Rui Shao</p>
+  <div class="site-description" itemprop="description">Rui Shao — writing about systems, infrastructure and AI</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/tech-en/archives/">
+          <span class="site-state-item-count">24</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">38</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/shaorui0" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;shaorui0" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.linkedin.com/in/rui-shao-a21a55194/" title="LinkedIn → https:&#x2F;&#x2F;www.linkedin.com&#x2F;in&#x2F;rui-shao-a21a55194&#x2F;" rel="noopener me" target="_blank"><i class="fab fa-linkedin fa-fw"></i>LinkedIn</a>
+      </span>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_zombie-system-tables-subsecond-oom_en/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/tech-en/images/avatar.gif">
+      <meta itemprop="name" content="Rui Shao">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Tech & AI">
+      <meta itemprop="description" content="Rui Shao — writing about systems, infrastructure and AI">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="Zombie System Tables: the Sub-Second OOM That 30-Second Monitoring Could Not See | Tech & AI">
+      <meta itemprop="description" content="A Kafka consumer-lag alert that was really a terabyte of upgrade residue inside ClickHouse, detonated by a one-second background merge">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Zombie System Tables: the Sub-Second OOM That 30-Second Monitoring Could Not See
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2026-08-03 00:00:00" itemprop="dateCreated datePublished" datetime="2026-08-03T00:00:00+09:00">2026-08-03</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2026-08-04 01:19:14" itemprop="dateModified" datetime="2026-08-04T01:19:14+09:00">2026-08-04</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/tech-en/categories/Incidents/" itemprop="url" rel="index"><span itemprop="name">Incidents</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+            <div class="post-description">A Kafka consumer-lag alert that was really a terabyte of upgrade residue inside ClickHouse, detonated by a one-second background merge</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><nav class="article-toc-wrap" aria-label="Contents"><div class="toc-title">Contents</div><ol class="article-toc-list"><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#Symptoms-the-alert-fires-three-systems-away-from-the-cause"><span class="article-toc-text">Symptoms: the alert fires three systems away from the cause</span></a></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#Investigation-when-the-failure-is-faster-than-the-scrape"><span class="article-toc-text">Investigation: when the failure is faster than the scrape</span></a></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#Fix-and-prevention"><span class="article-toc-text">Fix and prevention</span></a></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#Lessons"><span class="article-toc-text">Lessons</span></a></li></ol></nav>
+<blockquote>
+<p>Also in Chinese: <a href="https://shaorui0.github.io/tech/2026/08/03/2026-08-03_zombie-system-tables-subsecond-oom_zh/">中文版</a></p>
+</blockquote>
+<h2 id="Symptoms-the-alert-fires-three-systems-away-from-the-cause">Symptoms: the alert fires three systems away from the cause</h2>
+<p>The visible signal was Kafka consumer lag: a downstream ingestion consumer group’s lag rising monotonically across multiple tenants at once, with no traffic spike to explain it. The consumer itself looked guilty and was not. Its inserts into ClickHouse were being rejected with <code>Code 241 MEMORY_LIMIT_EXCEEDED</code>; each failed batch sent the consumer into a 30-second sleep-and-rebalance retry loop, replaying the same records into the same failure. The distance between symptom and cause was the defining feature of this incident: the pager said Kafka, the root cause lived in ClickHouse’s own system tables.</p>
+<h2 id="Investigation-when-the-failure-is-faster-than-the-scrape">Investigation: when the failure is faster than the scrape</h2>
+<p>Point-in-time inspection found nothing. By the time anyone exec’d into the pod, <code>SHOW PROCESSES</code> and <code>system.merges</code> were clean, and memory sat at its ~2 GiB baseline. The metrics platform, scraping at 30-second intervals, showed the same flat line. Even the error text misled: <code>current RSS: 8.85 GiB</code> reads like a slow leak. It was not. The case broke open on ClickHouse’s internal 1-second-granularity metric log, which showed the true shape: baseline ~2 GiB, a single-second spike to the 21.60 GiB server ceiling, an OvercommitTracker kill, then straight back to baseline. A sub-second failure is invisible to a 30-second scrape by construction; only an in-engine time series could prove it.</p>
+<p>With the spike established, the question became what allocated 20 GiB in one shot. The answer was upgrade residue. When a ClickHouse upgrade changes a system log table’s schema, it renames the old table with a numeric suffix and creates a fresh one; it never drops the old data. This fleet had been upgraded repeatedly, and the corpses had accumulated: a renamed trace log at 1.21 TiB, a renamed profiling log at 308 GiB. These zombie tables receive no writes and have no readers, but their parts still participate in background merges. One such merge on a 1+ TiB zombie allocated its way from 2 GiB to the 21.60 GiB cap within a second, got killed, and took the concurrent insert queries down with it.</p>
+<h2 id="Fix-and-prevention">Fix and prevention</h2>
+<p>The fix was deletion, with the right scope. Truncating the active system logs relieved forward pressure but touched nothing: TRUNCATE only acts on the current no-suffix tables. The zombies had to be dropped explicitly, past ClickHouse’s 50 GB drop guard, via a per-query override; a 1+ TiB drop completed in 1-3 minutes with the server serving throughout. Because the tables had no writers and no readers, the operation was risk-free by construction. Consumer lag did not drain on its own; the consumer needed a restart to break the rebalance loop.</p>
+<p>Prevention went three ways. First, configuration: TTLs on the internal log tables that ship without one, the highest-volume log disabled outright, and the server memory ceiling pinned explicitly. Second, process: the upgrade runbook now ends with an audit of system tables for new suffixed residue, because this is a latent defect every upgrade re-creates. Third, fleet scope: one confirmed diagnosis triggered an immediate cross-cluster audit, which found 1.65 TiB of zombies on the worst cluster and 250 GiB on a sibling in another region, already producing 3 OOMs per day and climbing the same curve.</p>
+<h2 id="Lessons">Lessons</h2>
+<ul>
+<li>Monitoring granularity must match failure timescale. A 30-second scrape cannot testify about a one-second spike; for engines that keep 1-second internal metrics, that log is the primary evidence source after any OOM.</li>
+<li>Raising the pod’s memory limit was the obvious knob and the wrong one: it delays an unbounded-growth failure, it does not stop it.</li>
+<li>Upgrade residue is a horizontal defect. If an upgrade left debris on one cluster, it left debris on every cluster with the same history: diagnose once, then audit the fleet.</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tech-en/tags/SRE/" rel="tag"># SRE</a>
+              <a href="/tech-en/tags/Incident-Response/" rel="tag"># Incident Response</a>
+              <a href="/tech-en/tags/Root-Cause-Analysis/" rel="tag"># Root Cause Analysis</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/tech-en/2026/08/03/2026-08-03_what-knows-jenkins-actually-tests_en/" rel="prev" title="&quot;Knows Jenkins&quot;: What That Line Actually Tests in an SRE">
+                  <i class="fa fa-angle-left"></i> "Knows Jenkins": What That Line Actually Tests in an SRE
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/tech-en/2026/08/03/2026-08-03_what-i-understand-sre-to-require_en/" rel="next" title="What I understand SRE to require">
+                  What I understand SRE to require <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">Rui Shao</span>
+  </div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+<!-- hexo injector body_end start --><script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>mermaid.initialize({ startOnLoad: true, theme: "default" });</script><!-- hexo injector body_end end --></body>
+</html>

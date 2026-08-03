@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 8.1.1">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/tech-en/favicon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/tech-en/favicon.svg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/tech-en/favicon.svg">
+  <link rel="mask-icon" href="/tech-en/favicon.svg" color="#222">
+
+<link rel="stylesheet" href="/tech-en/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"shaorui0.github.io","root":"/tech-en/","images":"/tech-en/images","scheme":"Gemini","darkmode":true,"version":"8.27.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}}</script><script src="/tech-en/js/config.js" defer></script>
+
+    <meta name="description" content="Audited a pager emitting ~960 OpsGenie alerts a day, ~85% of them default-P3, from 367 paging rules — traced four structural root causes, and rebuilt admission, dedup, and ownership so decay has to fi">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Alert Governance: Turning the Pager from Noise Back into Decision Signal">
+<meta property="og:url" content="https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_alert-governance_en/index.html">
+<meta property="og:site_name" content="Tech &amp; AI">
+<meta property="og:description" content="Audited a pager emitting ~960 OpsGenie alerts a day, ~85% of them default-P3, from 367 paging rules — traced four structural root causes, and rebuilt admission, dedup, and ownership so decay has to fi">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2026-08-02T15:00:00.000Z">
+<meta property="article:modified_time" content="2026-08-03T16:19:14.697Z">
+<meta property="article:author" content="Rui Shao">
+<meta property="article:tag" content="Observability">
+<meta property="article:tag" content="Prometheus">
+<meta property="article:tag" content="SLO">
+<meta property="article:tag" content="SRE">
+<meta property="article:tag" content="VictoriaMetrics">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_alert-governance_en/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_alert-governance_en/","path":"2026/08/03/2026-08-03_alert-governance_en/","title":"Alert Governance: Turning the Pager from Noise Back into Decision Signal"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>Alert Governance: Turning the Pager from Noise Back into Decision Signal | Tech & AI</title>
+  
+
+
+
+
+
+
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous" defer></script>
+<script src="/tech-en/js/utils.js" defer></script><script src="/tech-en/js/motion.js" defer></script><script src="/tech-en/js/sidebar.js" defer></script><script src="/tech-en/js/next-boot.js" defer></script>
+
+  
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.10.1/mermaid.min.js","integrity":"sha256-BmQmdWDS8X2OTbrwELWK366LV6escyWhHHe0XCTU/Hk="}}</script>
+  <script src="/tech-en/js/third-party/tags/mermaid.js" defer></script>
+
+
+
+
+
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/tech-en/css/noscript.css">
+  </noscript>
+<!-- hexo injector head_end start --><style>
+.article-toc-wrap {
+  margin-bottom: 1.5em;
+  padding: 1em 1.25em;
+  background: #f8f9fa;
+  border-radius: 6px;
+  border-left: 3px solid #ddd;
+}
+.article-toc-wrap .toc-title {
+  font-weight: bold;
+  margin-bottom: 0.5em;
+  font-size: 0.95em;
+  color: #555;
+}
+.article-toc-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.article-toc-list .article-toc-list { padding-left: 1em; margin-top: 0.25em; }
+.article-toc-item { margin: 0.35em 0; }
+.article-toc-link {
+  text-decoration: none;
+  color: #444;
+  font-size: 0.9em;
+}
+.article-toc-link:hover { color: #08c; text-decoration: underline; }
+.article-toc-level-3 .article-toc-link { font-size: 0.85em; }
+.article-toc-level-4 .article-toc-link { font-size: 0.8em; }
+</style><!-- hexo injector head_end end --></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/tech-en/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Tech & AI</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">Systems, Infrastructure, and AI</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="Search" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/tech-en/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-tags"><a href="/tech-en/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li><li class="menu-item menu-item-categories"><a href="/tech-en/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li><li class="menu-item menu-item-archives"><a href="/tech-en/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li><li class="menu-item menu-item-中文"><a href="https://shaorui0.github.io/tech/" rel="section"><i class="fa fa-language fa-fw"></i>中文</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Why"><span class="nav-number">1.</span> <span class="nav-text">Why</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#How"><span class="nav-number">2.</span> <span class="nav-text">How</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Why-alerting-systems-decay"><span class="nav-number">3.</span> <span class="nav-text">Why alerting systems decay</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Keeping-it-clean-anti-entropy-mechanisms"><span class="nav-number">4.</span> <span class="nav-text">Keeping it clean: anti-entropy mechanisms</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Takeaways"><span class="nav-number">5.</span> <span class="nav-text">Takeaways</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Rui Shao</p>
+  <div class="site-description" itemprop="description">Rui Shao — writing about systems, infrastructure and AI</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/tech-en/archives/">
+          <span class="site-state-item-count">24</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">38</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/shaorui0" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;shaorui0" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.linkedin.com/in/rui-shao-a21a55194/" title="LinkedIn → https:&#x2F;&#x2F;www.linkedin.com&#x2F;in&#x2F;rui-shao-a21a55194&#x2F;" rel="noopener me" target="_blank"><i class="fab fa-linkedin fa-fw"></i>LinkedIn</a>
+      </span>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_alert-governance_en/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/tech-en/images/avatar.gif">
+      <meta itemprop="name" content="Rui Shao">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Tech & AI">
+      <meta itemprop="description" content="Rui Shao — writing about systems, infrastructure and AI">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="Alert Governance: Turning the Pager from Noise Back into Decision Signal | Tech & AI">
+      <meta itemprop="description" content="Audited a pager emitting ~960 OpsGenie alerts a day, ~85% of them default-P3, from 367 paging rules — traced four structural root causes, and rebuilt admission, dedup, and ownership so decay has to fight back against the system.">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Alert Governance: Turning the Pager from Noise Back into Decision Signal
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2026-08-03 00:00:00" itemprop="dateCreated datePublished" datetime="2026-08-03T00:00:00+09:00">2026-08-03</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2026-08-04 01:19:14" itemprop="dateModified" datetime="2026-08-04T01:19:14+09:00">2026-08-04</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/tech-en/categories/Observability/" itemprop="url" rel="index"><span itemprop="name">Observability</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+            <div class="post-description">Audited a pager emitting ~960 OpsGenie alerts a day, ~85% of them default-P3, from 367 paging rules — traced four structural root causes, and rebuilt admission, dedup, and ownership so decay has to fight back against the system.</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><nav class="article-toc-wrap" aria-label="Contents"><div class="toc-title">Contents</div><ol class="article-toc-list"><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#Why"><span class="article-toc-text">Why</span></a></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#How"><span class="article-toc-text">How</span></a></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#Why-alerting-systems-decay"><span class="article-toc-text">Why alerting systems decay</span></a></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#Keeping-it-clean-anti-entropy-mechanisms"><span class="article-toc-text">Keeping it clean: anti-entropy mechanisms</span></a></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#Takeaways"><span class="article-toc-text">Takeaways</span></a></li></ol></nav>
+<blockquote>
+<p>Also in Chinese: <a href="https://shaorui0.github.io/tech/2026/08/03/2026-08-03_alert-governance_zh/">中文版</a></p>
+</blockquote>
+<h2 id="Why">Why</h2>
+<p>By the time this became a project, the pager had stopped being evidence of anything. The baseline: 367 alert rules carried the label that routes to OpsGenie, spread across 30 rule files, and OpsGenie was absorbing roughly 960 alerts a day — about 85% of them P3, because P3 was simply the default when no priority was set. The infra-team channel alone ran at ~12 alerts an hour, around 290 a day.</p>
+<p>The texture was worse than the volume. One OOM-kill rule with <code>for: 0m</code> produced 80 alerts in three days from 18 crash-looping pods; the top three rules together accounted for 145 pages in that window. A single ALB QPS-zero alert fanned out to six Slack channels at once, then fired again two minutes later. One channel took 8 OpsGenie alerts in six minutes. The batch pipeline’s timeout alert paged the same stuck job hourly — three pages, three hours, one problem — and rated a job 28% over its average the same P1 as one 300% over; on the sampled day it produced 10+ P1 pages, all @-mentioning the subteam, none carrying a diagnostic link. Twelve infra alert channels existed; two had gone silent and nobody had noticed.</p>
+<p>The cost was plain: alert fatigue from low-signal pages slows triage exactly when response quality matters most. The governing principle came first and stayed one sentence: <strong>an alert that cannot direct action gets turned off or demoted.</strong></p>
+<h2 id="How">How</h2>
+<p>The method was a decision tree, applied per alert, backed by evidence — every judgment traced to a captured alert sample or a rule definition, not to opinion.</p>
+<div class="mermaid">flowchart TB
+  A[&quot;Alert fires&quot;] --&gt; B{&quot;Can it direct action?&quot;}
+  B -- &quot;No&quot; --&gt; OFF[&quot;Turn off / remove @ / demote to info channel&quot;]
+  B -- &quot;Yes&quot; --&gt; SEV{&quot;How far off baseline?&quot;}
+  SEV -- &quot;under 2x&quot; --&gt; SKIP[&quot;No alert&quot;]
+  SEV -- &quot;2x to 4x&quot; --&gt; P2[&quot;P2: channel post, no @&quot;]
+  SEV -- &quot;over 4x&quot; --&gt; P1[&quot;P1: page + @ owner&quot;]
+  P1 --&gt; Q[&quot;Quality ladder: prefilled links → runbook attached → auto-remediation&quot;]
+  OFF --&gt; R[&quot;One primary channel, dedup alias, owner label&quot;]
+  P2 --&gt; R
+  P1 --&gt; R</div>
+<p>The audit surfaced four structural root causes: the OpsGenie label was a free one-line switch with no admission threshold; overlapping Alertmanager routes with <code>continue: true</code> fanned one alert into multiple receivers; no receiver set a dedup alias, so the same problem re-created itself as a new alert on every re-fire; and a bypass script posted straight to OpsGenie with hardcoded P3, invisible to all routing and inhibition.</p>
+<p>Execution was phased so that measurement preceded change. Phase 0 built the baseline dashboard — the numbers above. Phase 1 was config stop-the-bleed, packaged as two reviewable PRs with pre-flight lint and a rollback path: debounce windows on the noisiest rules (<code>for: 0m</code> → 10m), a hard admission gate so only P1/P2 reaches OpsGenie, severity tiering for the batch alerts, and a dedup alias with <code>update_alerts</code> on every receiver so repeats increment a counter instead of paging. Phase 2 split the shared OpsGenie API key into per-team integrations, added causal inhibition chains, and set auto-close policies. Phase 3 made the fixes structural: the bypass sender rerouted through Alertmanager, and a <code>team</code> ownership label required on every rule. Each phase carried acceptance gates against the baseline: OpsGenie volume 960/day → under 400, then under 200; the top-3 noise sources 145 per 3 days → under 40, then under 15; P3 share 85% → under 50%, then under 30%; on-call watching three channels instead of twelve. The same pass delegated deploy-approval toil — 11 approval requests @-ing infra on-call in two days, all for preprod — to team-lead approval, since an existing auto-approve path already proved infra review added nothing there.</p>
+<h2 id="Why-alerting-systems-decay">Why alerting systems decay</h2>
+<p>The analysis chapter of this project, and the part I consider its actual core, is a mechanism, not a list of bad rules. An alerting system increases in entropy unless external work is applied — and the audit shows exactly why.</p>
+<p>The incentives are asymmetric. Adding an alert is cheap and visible: after an incident, one label line routes a new rule to the pager, there is no admission threshold, and the author looks diligent. That is how 367 paging rules accumulate. Deleting an alert is risky and invisible: delete wrong and you own the missed outage; delete right and nothing observable happens. So the flow runs one way.</p>
+<p>Meanwhile every rule’s semantics silently expire as the system evolves under it, and expiry emits no signal. The audit is a catalog of this: a node-memory alert at 90%, a threshold that predates 90% being a normal operating level for a Kubernetes node; a 300Mbps traffic page, though high traffic alone is not a failure and gave on-call nothing to do; a QPS-zero alert built on the assumption that traffic is always present, firing on endpoints that legitimately have none. Priority decayed the same way: with P3 as the unexamined default, 85% of alerts shared one level and the field carried no information — trivial and severe deviations paged identically. Even the topology decayed: two of twelve channels had simply died, and the system grew a bypass path around its own governance. None of this was anyone’s mistake. It is the default trajectory of any system where adding is free, deleting is punished, and failure is silent.</p>
+<h2 id="Keeping-it-clean-anti-entropy-mechanisms">Keeping it clean: anti-entropy mechanisms</h2>
+<p>A one-time cleanup only resets the entropy to a low point; preventing recurrence means structures that apply work continuously. Three came out of this project: admission control — the P1/P2 gate in front of OpsGenie, a required ownership label on every rule, and a planned CI lint rejecting any paging rule without a <code>runbook_url</code>; standing measurement — the baseline dashboard kept as a permanent alert SLO dashboard, plus an automated weekly toil report, making pager quality itself a monitored metric; and a review loop — a quarterly, owner-assigned alert review with explicit severity thresholds, proposed upward as a team-level process. The intent: decay now has to fight the system instead of riding its defaults.</p>
+<h2 id="Takeaways">Takeaways</h2>
+<ul>
+<li>An alerting system obeys a second law: without continuous external work it accumulates noise, because adding alerts is cheap and visible while removing them is risky and invisible. Governance is that work, institutionalized.</li>
+<li>Cleanup is a state change; admission control is a rate change. The gate in front of the pager (priority threshold, owner, runbook) is worth more than any single purge.</li>
+<li>Make the pager itself an SLO object: if alert volume, priority mix, and dedup ratio are not on a dashboard, their regression is invisible — which is how the entropy got in the first time.</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tech-en/tags/Observability/" rel="tag"># Observability</a>
+              <a href="/tech-en/tags/SRE/" rel="tag"># SRE</a>
+              <a href="/tech-en/tags/VictoriaMetrics/" rel="tag"># VictoriaMetrics</a>
+              <a href="/tech-en/tags/Prometheus/" rel="tag"># Prometheus</a>
+              <a href="/tech-en/tags/SLO/" rel="tag"># SLO</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/tech-en/2026/08/03/2026-08-03_an-audit-of-my-own-radar_en/" rel="prev" title="An audit of my own radar">
+                  <i class="fa fa-angle-left"></i> An audit of my own radar
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">Rui Shao</span>
+  </div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+<!-- hexo injector body_end start --><script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>mermaid.initialize({ startOnLoad: true, theme: "default" });</script><!-- hexo injector body_end end --></body>
+</html>

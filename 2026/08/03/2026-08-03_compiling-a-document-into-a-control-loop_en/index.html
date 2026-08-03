@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 8.1.1">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/tech-en/favicon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/tech-en/favicon.svg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/tech-en/favicon.svg">
+  <link rel="mask-icon" href="/tech-en/favicon.svg" color="#222">
+
+<link rel="stylesheet" href="/tech-en/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"shaorui0.github.io","root":"/tech-en/","images":"/tech-en/images","scheme":"Gemini","darkmode":true,"version":"8.27.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}}</script><script src="/tech-en/js/config.js" defer></script>
+
+    <meta name="description" content="A self-authored, continuously running systemd-level daemon that turned Intel&#39;s Best Known Configuration from prose-and-shell documentation into a git-declared, continuously audited desired state acros">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Compiling a Document into a Control Loop: A Machine-Level Configuration Reconciler for 5G vRAN Bare Metal">
+<meta property="og:url" content="https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_compiling-a-document-into-a-control-loop_en/index.html">
+<meta property="og:site_name" content="Tech &amp; AI">
+<meta property="og:description" content="A self-authored, continuously running systemd-level daemon that turned Intel&#39;s Best Known Configuration from prose-and-shell documentation into a git-declared, continuously audited desired state acros">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2026-08-02T15:00:00.000Z">
+<meta property="article:modified_time" content="2026-08-03T16:19:14.701Z">
+<meta property="article:author" content="Rui Shao">
+<meta property="article:tag" content="CI&#x2F;CD">
+<meta property="article:tag" content="Infrastructure as Code">
+<meta property="article:tag" content="Kubernetes">
+<meta property="article:tag" content="SRE">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_compiling-a-document-into-a-control-loop_en/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_compiling-a-document-into-a-control-loop_en/","path":"2026/08/03/2026-08-03_compiling-a-document-into-a-control-loop_en/","title":"Compiling a Document into a Control Loop: A Machine-Level Configuration Reconciler for 5G vRAN Bare Metal"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>Compiling a Document into a Control Loop: A Machine-Level Configuration Reconciler for 5G vRAN Bare Metal | Tech & AI</title>
+  
+
+
+
+
+
+
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous" defer></script>
+<script src="/tech-en/js/utils.js" defer></script><script src="/tech-en/js/motion.js" defer></script><script src="/tech-en/js/sidebar.js" defer></script><script src="/tech-en/js/next-boot.js" defer></script>
+
+  
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.10.1/mermaid.min.js","integrity":"sha256-BmQmdWDS8X2OTbrwELWK366LV6escyWhHHe0XCTU/Hk="}}</script>
+  <script src="/tech-en/js/third-party/tags/mermaid.js" defer></script>
+
+
+
+
+
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/tech-en/css/noscript.css">
+  </noscript>
+<!-- hexo injector head_end start --><style>
+.article-toc-wrap {
+  margin-bottom: 1.5em;
+  padding: 1em 1.25em;
+  background: #f8f9fa;
+  border-radius: 6px;
+  border-left: 3px solid #ddd;
+}
+.article-toc-wrap .toc-title {
+  font-weight: bold;
+  margin-bottom: 0.5em;
+  font-size: 0.95em;
+  color: #555;
+}
+.article-toc-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.article-toc-list .article-toc-list { padding-left: 1em; margin-top: 0.25em; }
+.article-toc-item { margin: 0.35em 0; }
+.article-toc-link {
+  text-decoration: none;
+  color: #444;
+  font-size: 0.9em;
+}
+.article-toc-link:hover { color: #08c; text-decoration: underline; }
+.article-toc-level-3 .article-toc-link { font-size: 0.85em; }
+.article-toc-level-4 .article-toc-link { font-size: 0.8em; }
+</style><!-- hexo injector head_end end --></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/tech-en/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Tech & AI</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">Systems, Infrastructure, and AI</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="Search" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/tech-en/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-tags"><a href="/tech-en/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li><li class="menu-item menu-item-categories"><a href="/tech-en/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li><li class="menu-item menu-item-archives"><a href="/tech-en/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li><li class="menu-item menu-item-中文"><a href="https://shaorui0.github.io/tech/" rel="section"><i class="fa fa-language fa-fw"></i>中文</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#What-it-was-and-why"><span class="nav-number">1.</span> <span class="nav-text">What it was, and why</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Why-BKC-is-a-desired-state-by-nature"><span class="nav-number">2.</span> <span class="nav-text">Why BKC is a desired state by nature</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#The-constraints-that-drove-it-the-5G-side"><span class="nav-number">3.</span> <span class="nav-text">The constraints that drove it (the 5G side)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Architecture"><span class="nav-number">4.</span> <span class="nav-text">Architecture</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#The-engineering-core-reconcile-graded-by-risk"><span class="nav-number">5.</span> <span class="nav-text">The engineering core: reconcile graded by risk</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Problems-a-controller-like-this-must-solve"><span class="nav-number">6.</span> <span class="nav-text">Problems a controller like this must solve</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Scope"><span class="nav-number">7.</span> <span class="nav-text">Scope</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Takeaways"><span class="nav-number">8.</span> <span class="nav-text">Takeaways</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Rui Shao</p>
+  <div class="site-description" itemprop="description">Rui Shao — writing about systems, infrastructure and AI</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/tech-en/archives/">
+          <span class="site-state-item-count">24</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">38</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/shaorui0" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;shaorui0" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.linkedin.com/in/rui-shao-a21a55194/" title="LinkedIn → https:&#x2F;&#x2F;www.linkedin.com&#x2F;in&#x2F;rui-shao-a21a55194&#x2F;" rel="noopener me" target="_blank"><i class="fab fa-linkedin fa-fw"></i>LinkedIn</a>
+      </span>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_compiling-a-document-into-a-control-loop_en/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/tech-en/images/avatar.gif">
+      <meta itemprop="name" content="Rui Shao">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Tech & AI">
+      <meta itemprop="description" content="Rui Shao — writing about systems, infrastructure and AI">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="Compiling a Document into a Control Loop: A Machine-Level Configuration Reconciler for 5G vRAN Bare Metal | Tech & AI">
+      <meta itemprop="description" content="A self-authored, continuously running systemd-level daemon that turned Intel&#39;s Best Known Configuration from prose-and-shell documentation into a git-declared, continuously audited desired state across ~30 bare-metal servers spanning multiple clusters.">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Compiling a Document into a Control Loop: A Machine-Level Configuration Reconciler for 5G vRAN Bare Metal
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2026-08-03 00:00:00" itemprop="dateCreated datePublished" datetime="2026-08-03T00:00:00+09:00">2026-08-03</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2026-08-04 01:19:14" itemprop="dateModified" datetime="2026-08-04T01:19:14+09:00">2026-08-04</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/tech-en/categories/Production-Engineering/" itemprop="url" rel="index"><span itemprop="name">Production Engineering</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+            <div class="post-description">A self-authored, continuously running systemd-level daemon that turned Intel's Best Known Configuration from prose-and-shell documentation into a git-declared, continuously audited desired state across ~30 bare-metal servers spanning multiple clusters.</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><nav class="article-toc-wrap" aria-label="Contents"><div class="toc-title">Contents</div><ol class="article-toc-list"><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#What-it-was-and-why"><span class="article-toc-text">What it was, and why</span></a></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#Why-BKC-is-a-desired-state-by-nature"><span class="article-toc-text">Why BKC is a desired state by nature</span></a></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#The-constraints-that-drove-it-the-5G-side"><span class="article-toc-text">The constraints that drove it (the 5G side)</span></a></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#Architecture"><span class="article-toc-text">Architecture</span></a></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#The-engineering-core-reconcile-graded-by-risk"><span class="article-toc-text">The engineering core: reconcile graded by risk</span></a></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#Problems-a-controller-like-this-must-solve"><span class="article-toc-text">Problems a controller like this must solve</span></a></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#Scope"><span class="article-toc-text">Scope</span></a></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#Takeaways"><span class="article-toc-text">Takeaways</span></a></li></ol></nav>
+<blockquote>
+<p>Also in Chinese: <a href="https://shaorui0.github.io/tech/2026/08/03/2026-08-03_compiling-a-document-into-a-control-loop_zh/">中文版</a></p>
+</blockquote>
+<h2 id="What-it-was-and-why">What it was, and why</h2>
+<p>Kubernetes runs a reconcile loop over containers: declare a desired state, observe the actual state, converge the difference, repeat. This project pushed that philosophy one layer down, onto the bare-metal hardware that carries real-time radio traffic in a 5G vRAN stack.</p>
+<p>Intel’s cloud-ification of 5G moves the radio access network’s L1/L2 off purpose-built silicon and onto general-purpose Xeon servers with standard NICs and software (the FlexRAN reference architecture). Whether that software hits certified performance depends entirely on the hardware, firmware, and kernel being tuned to exactly the values Intel has validated — the Best Known Configuration, or BKC.</p>
+<p>My work sat in the IaC layer: hardware-level configuration management for this fleet. The concrete deliverable was a self-authored, continuously running machine-level controller — one daemon per node, at the systemd layer.</p>
+<p>The starting point is the whole point. Before this system, the BKC was not compiled into anything executable. It lived as prose and copy-paste shell snippets in a doc, as tribal knowledge in engineers’ heads, and as an assumption that “it was probably right when we installed it.” Provisioning a node meant opening that doc and pasting commands by hand — no enforcement, no audit, no drift detection. This was more primitive than Ansible: not “Ansible was not good enough,” but that there was no Ansible-tier layer at all. In one sentence, the project compiled a document into a control loop: desired state moved from scattered prose and human memory into a git-declared, machine-executable, continuously enforced form.</p>
+<h2 id="Why-BKC-is-a-desired-state-by-nature">Why BKC is a desired state by nature</h2>
+<p>BKC is a validated recipe for a full stack that delivers certified performance: BIOS (C-state / P-state policy, Turbo, SR-IOV, VT-d/IOMMU, NUMA, power profile), kernel (an RT / low-latency build, boot parameters such as isolcpus, nohz_full, hugepages), NIC (the ice driver plus a DDP profile version), firmware, and OS tuning. It is, structurally, already a desired state — it just lacks a controller that continuously enforces it. That controller is what this project built. It also grounds an abstract claim in a concrete, commercially meaningful anchor: reconcile is a general idea, not a Kubernetes feature.</p>
+<h2 id="The-constraints-that-drove-it-the-5G-side">The constraints that drove it (the 5G side)</h2>
+<p>Three hard properties shaped every design decision:</p>
+<ul>
+<li>Deterministic latency budgets are microsecond-scale. Fronthaul timing (O-RAN 7.2x), C-state wake latency, cross-NUMA access — a single unclosed C-state or one drifted tuning value can eat the budget and violate a timing SLA. Determinism at the bottom layer is a physical requirement, not an optimization.</li>
+<li>Drift does not crash; it silently degrades. A node off-BKC usually does not error — it jitters, drops packets, breaks the fronthaul timing budget. The hardest failure to diagnose is the one where every health check is green and performance is simply worse.</li>
+<li>Provisioning complete does not equal certified performance in place. A node that installs, boots K8s, and runs pods says nothing about whether C-states are off, the NIC firmware is right, the DDP profile is correct, or hugepages and isolcpus actually landed. The question the system answers: how do we define and continuously enforce “5G-grade hardware readiness”?</li>
+</ul>
+<h2 id="Architecture">Architecture</h2>
+<div class="mermaid">flowchart TB
+    G[&quot;Git = single source of truth&lt;br/&gt;signed BKC profiles&lt;br/&gt;platform &amp;cap; workload &amp;cap; overlay&quot;]
+    subgraph OBS[&quot;Control plane = read-only observer&quot;]
+        AGG[&quot;Aggregator + dashboard&lt;br/&gt;heartbeat / compliance / drift&quot;]
+        LEASE[&quot;Reboot-token / lease service&lt;br/&gt;at most K disruptions per failure domain&quot;]
+    end
+    subgraph TEST[&quot;Internal test clusters (multiple)&quot;]
+        N1[&quot;node&lt;br/&gt;systemd &amp;rarr; bkc-agent&quot;]
+        N2[&quot;node&lt;br/&gt;systemd &amp;rarr; bkc-agent&quot;]
+    end
+    subgraph CUST[&quot;Delivered bare-metal cluster (may have no k8s)&quot;]
+        M1[&quot;node&lt;br/&gt;systemd &amp;rarr; bkc-agent&quot;]
+    end
+    G --&gt;|&quot;1 pull + verify signature&quot;| N1
+    G --&gt;|pull| N2
+    G --&gt;|pull| M1
+    N1 --&gt;|&quot;2 push heartbeat + compliance&quot;| AGG
+    N2 --&gt; AGG
+    M1 --&gt; AGG
+    N1 -.-&gt;|&quot;3 acquire token before reboot&quot;| LEASE
+    M1 -.-&gt; LEASE
+    AGG === X[&quot;no reverse command channel&lt;br/&gt;center never pushes to nodes&quot;]</div>
+<p>The design is pull-based, and the control plane is an observer rather than a commander. There are three data flows and none point from the center to a node: each node pulls its BKC profile from git and verifies the signature before applying; each pushes a heartbeat and compliance summary to a read-only aggregator; and before any disruptive action a node must acquire a token. The center degrades into a dashboard that can die without stopping a single node from enforcing.</p>
+<p>Two facts force this shape. Convergence has to live at the systemd layer, not the K8s layer: you cannot assume K8s is even up (bare-metal delivery, testbed re-imaging, a node that just powered on), the drift lives in a layer K8s cannot see (BIOS, kernel cmdline, NIC firmware, sysctl), and a solution delivered to a customer must be self-contained — one systemd unit plus one agent binary, not a dependency on the customer already running an orchestrator. And two reconcile loops nest: systemd keeps the agent process alive, the agent keeps the node’s configuration from drifting — the same structure as kube-controller-manager over pods, with the target swapped for Linux plus hardware.</p>
+<h2 id="The-engineering-core-reconcile-graded-by-risk">The engineering core: reconcile graded by risk</h2>
+<p>This is the line between running a script and designing a controller. A one-shot config push is not enough when the machines are live and constantly changed, so such a controller must classify every configuration item along two axes — can it be audited, and what is the cost and risk of remediating it — and act accordingly:</p>
+<ul>
+<li>🟢 online and reversible (sysctl, CPU governor, IRQ affinity, tuned profile): reconcile immediately.</li>
+<li>🟡 requires draining the node first (NIC ice driver and DDP reload, which needs the interface down).</li>
+<li>🟠 requires a maintenance window and reboot (BIOS values, kernel version, kernel cmdline — none take effect until reboot).</li>
+<li>🔴 audit-only, never auto-changed (NIC NVM firmware, FEC accelerator firmware — a flash is high-risk).</li>
+</ul>
+<div class="mermaid">flowchart TB
+    A[&quot;audit item&lt;br/&gt;desired vs actual&quot;] --&gt; D{&quot;drift?&quot;}
+    D --&gt;|no| OK[&quot;no-op&lt;br/&gt;report compliant&quot;]
+    D --&gt;|yes| C{&quot;remediation risk&quot;}
+    C --&gt;|&quot;green: online reversible&quot;| G1[&quot;apply now&lt;br/&gt;sysctl / governor / IRQ / tuned&quot;]
+    C --&gt;|&quot;yellow: needs drain&quot;| G2[&quot;drain node first&lt;br/&gt;NIC driver + DDP reload&quot;]
+    C --&gt;|&quot;orange: needs reboot&quot;| G3[&quot;stage &amp;rarr; window &amp;rarr; reboot&lt;br/&gt;BIOS / kernel / cmdline&quot;]
+    C --&gt;|&quot;red: flash risk&quot;| G4[&quot;audit-only, never auto-change&lt;br/&gt;NIC / FEC firmware&quot;]</div>
+<p>Three principles fall out. Audit always precedes and is independent of update: even for items the controller never changes, continuously producing per-node compliance plus a drift timestamp lights up the silent-degradation blind spot and becomes a delivery-compliance artifact. Remediation must be traffic-aware, because the target is a live node carrying real-time radio traffic. And every action is idempotent and forward-only: current equal to desired is always a no-op.</p>
+<p>The audit-and-monitor half is the confirmed core of what I built and ran: the daemon continuously inspects each node — BIOS via Redfish/BMC and in-band vendor tools, kernel via /proc/cmdline, tuning via sysctl and tuned, NIC via ethtool and devlink — and reports compliance. The full risk-tiered model above, with drain, maintenance windows, and reboot coordination, is stated here as how such a controller must be built to act safely on live nodes.</p>
+<h2 id="Problems-a-controller-like-this-must-solve">Problems a controller like this must solve</h2>
+<p>Framed as design, not war stories — these are the problems any honest version of this system has to answer:</p>
+<ul>
+<li>The monitor must not perturb the monitored. On a node with isolcpus, the isolated cores run the RT RAN workload. An audit agent scheduled onto those cores, or one whose child processes escape onto them, becomes a noisy neighbor and manufactures the very jitter it exists to protect against. It must be pinned to housekeeping cores and refuse to run on isolated ones, its children constrained by the same cpuset.</li>
+<li>A cross-reboot state machine. Changes that only take effect after reboot (BIOS, kernel) mean the agent has to survive the reboot it triggers: a persisted state machine plus an intent marker read on boot, bounded retries to break boot loops, and a bootloader last-known-good fallback so a bad cmdline cannot brick a customer node.</li>
+<li>Reboot tokens rate-limited by failure domain. Under a pull model a single BKC bump in git is seen by every node on the next poll — without a distributed lease capping how many nodes in a domain may be disrupted at once, they would all reboot together, a self-inflicted correlated failure. Fail-safe default: token service unreachable means do not reboot.</li>
+<li>Signed profiles. The agent runs as root on every machine and can flash firmware, and desired state comes from git. The trust boundary has to be locked with signature verification (fail-closed), an INTENT audit log per mutation, reviewed protected branches, and human approval for the highest-risk class (firmware flash) — especially because this ships to customers running the agent as root on their own bare metal.</li>
+</ul>
+<p>This is the same blast-radius discipline as the Kubernetes upgrade project’s serial:1, quorum math, and PodDisruptionBudget — one mind, two layers.</p>
+<h2 id="Scope">Scope</h2>
+<p>The system deliberately stops at the systemd layer and does not become a K8s Node Operator. The scenario is precisely “below K8s, on customer bare metal, possibly with no K8s at all,” so moving up into an Operator would contradict the reason the project exists. Exposing compliance as a Node label for the scheduler (the NFD-style neighbor) is an imaginable adjacent direction, explicitly out of scope.</p>
+<h2 id="Takeaways">Takeaways</h2>
+<ul>
+<li>Reconcile is target-agnostic. A document becomes a control loop once desired state is declarative, machine-executable, and continuously enforced — the target can be a container or a NIC firmware version. This project is the argument that the idea belongs below K8s as much as above it.</li>
+<li>Audit is worth more than auto-remediation on day one. Making a hardware-layer blind spot visible, as per-node compliance and drift timestamps, is the value; safe remediation is the second step, gated by risk and traffic.</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tech-en/tags/SRE/" rel="tag"># SRE</a>
+              <a href="/tech-en/tags/Kubernetes/" rel="tag"># Kubernetes</a>
+              <a href="/tech-en/tags/CI-CD/" rel="tag"># CI/CD</a>
+              <a href="/tech-en/tags/Infrastructure-as-Code/" rel="tag"># Infrastructure as Code</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/tech-en/2026/08/03/2026-08-03_engine-level-query-routing_en/" rel="prev" title="Engine-Level Query Routing: EXPLAIN ROUTE PLAN">
+                  <i class="fa fa-angle-left"></i> Engine-Level Query Routing: EXPLAIN ROUTE PLAN
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/tech-en/2026/08/03/2026-08-03_designing-the-elastic-compute-tier_en/" rel="next" title="Designing the Elastic Compute Tier: Discrete Capacity, One Write Primitive, Readiness That Cannot Lie">
+                  Designing the Elastic Compute Tier: Discrete Capacity, One Write Primitive, Readiness That Cannot Lie <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">Rui Shao</span>
+  </div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+<!-- hexo injector body_end start --><script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>mermaid.initialize({ startOnLoad: true, theme: "default" });</script><!-- hexo injector body_end end --></body>
+</html>
