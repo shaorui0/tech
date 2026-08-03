@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 8.1.1">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/tech/favicon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/tech/favicon.svg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/tech/favicon.svg">
+  <link rel="mask-icon" href="/tech/favicon.svg" color="#222">
+
+<link rel="stylesheet" href="/tech/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"shaorui0.github.io","root":"/tech/","images":"/tech/images","scheme":"Gemini","darkmode":true,"version":"8.27.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/tech/js/config.js" defer></script>
+
+    <meta name="description" content="不背 K8s 概念,而是从&#39;两个不可回避的事实&#39;推导整个 K8s。子系统、resource kind、Operator 模式,全是必然推论而不是设计选择。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="K8s 系统设计哲学:从第一性原理推导整套架构">
+<meta property="og:url" content="https://shaorui0.github.io/tech/2026/05/20/2026-05-20_k8s-design-philosophy-first-principles_zh/index.html">
+<meta property="og:site_name" content="Tech &amp; AI · 中文">
+<meta property="og:description" content="不背 K8s 概念,而是从&#39;两个不可回避的事实&#39;推导整个 K8s。子系统、resource kind、Operator 模式,全是必然推论而不是设计选择。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-05-19T15:00:00.000Z">
+<meta property="article:modified_time" content="2026-05-20T13:12:58.697Z">
+<meta property="article:author" content="Rui Shao">
+<meta property="article:tag" content="Kubernetes">
+<meta property="article:tag" content="Operator">
+<meta property="article:tag" content="第一性原理">
+<meta property="article:tag" content="系统设计">
+<meta property="article:tag" content="设计哲学">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://shaorui0.github.io/tech/2026/05/20/2026-05-20_k8s-design-philosophy-first-principles_zh/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://shaorui0.github.io/tech/2026/05/20/2026-05-20_k8s-design-philosophy-first-principles_zh/","path":"2026/05/20/2026-05-20_k8s-design-philosophy-first-principles_zh/","title":"K8s 系统设计哲学:从第一性原理推导整套架构"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>K8s 系统设计哲学:从第一性原理推导整套架构 | Tech & AI · 中文</title>
+  
+
+
+
+
+
+
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous" defer></script>
+<script src="/tech/js/utils.js" defer></script><script src="/tech/js/motion.js" defer></script><script src="/tech/js/sidebar.js" defer></script><script src="/tech/js/next-boot.js" defer></script>
+
+  
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.10.1/mermaid.min.js","integrity":"sha256-BmQmdWDS8X2OTbrwELWK366LV6escyWhHHe0XCTU/Hk="}}</script>
+  <script src="/tech/js/third-party/tags/mermaid.js" defer></script>
+
+
+
+
+
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/tech/css/noscript.css">
+  </noscript>
+<!-- hexo injector head_end start --><style>
+.article-toc-wrap {
+  margin-bottom: 1.5em;
+  padding: 1em 1.25em;
+  background: #f8f9fa;
+  border-radius: 6px;
+  border-left: 3px solid #ddd;
+}
+.article-toc-wrap .toc-title {
+  font-weight: bold;
+  margin-bottom: 0.5em;
+  font-size: 0.95em;
+  color: #555;
+}
+.article-toc-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.article-toc-list .article-toc-list { padding-left: 1em; margin-top: 0.25em; }
+.article-toc-item { margin: 0.35em 0; }
+.article-toc-link {
+  text-decoration: none;
+  color: #444;
+  font-size: 0.9em;
+}
+.article-toc-link:hover { color: #08c; text-decoration: underline; }
+.article-toc-level-3 .article-toc-link { font-size: 0.85em; }
+.article-toc-level-4 .article-toc-link { font-size: 0.8em; }
+</style><!-- hexo injector head_end end --></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/tech/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Tech & AI · 中文</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">系统、基础设施与 AI</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/tech/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-tags"><a href="/tech/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/tech/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/tech/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li><li class="menu-item menu-item-english"><a href="https://shaorui0.github.io/tech-en/" rel="section"><i class="fa fa-language fa-fw"></i>English</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80%E3%80%81%E8%B5%B7%E7%82%B9-%E4%B8%A4%E4%B8%AA%E4%B8%8D%E5%8F%AF%E5%9B%9E%E9%81%BF%E7%9A%84%E4%BA%8B%E5%AE%9E"><span class="nav-number">1.</span> <span class="nav-text">一、起点:两个不可回避的事实</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8C%E3%80%81%E5%9B%9B%E4%B8%AA%E5%BF%85%E7%84%B6%E6%8E%A8%E8%AE%BA-%E2%86%92-%E6%A0%B8%E5%BF%83%E6%9E%B6%E6%9E%84"><span class="nav-number">2.</span> <span class="nav-text">二、四个必然推论 → 核心架构</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8E%A8%E8%AE%BA-1-%E5%BF%85%E9%A1%BB-declarative-%E4%B8%8D%E8%83%BD-imperative"><span class="nav-number">2.1.</span> <span class="nav-text">推论 1:必须 declarative,不能 imperative</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8E%A8%E8%AE%BA-2-%E5%BF%85%E9%A1%BB%E6%9C%89%E5%94%AF%E4%B8%80%E7%9A%84%E7%9C%9F%E7%9B%B8%E6%BA%90"><span class="nav-number">2.2.</span> <span class="nav-text">推论 2:必须有唯一的真相源</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8E%A8%E8%AE%BA-3-%E6%89%80%E6%9C%89%E4%B8%9C%E8%A5%BF%E9%83%BD%E5%BE%97%E6%98%AF-%E8%B5%84%E6%BA%90"><span class="nav-number">2.3.</span> <span class="nav-text">推论 3:所有东西都得是&quot;资源&quot;</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8E%A8%E8%AE%BA-4-%E6%9C%BA%E5%88%B6%E4%B8%8E%E7%AD%96%E7%95%A5%E5%BF%85%E9%A1%BB%E5%88%86%E7%A6%BB-Unix-%E5%93%B2%E5%AD%A6"><span class="nav-number">2.4.</span> <span class="nav-text">推论 4:机制与策略必须分离(Unix 哲学)</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%89%E3%80%81%E4%B8%BA%E4%BB%80%E4%B9%88%E6%98%AF%E8%BF%99%E4%BA%9B-Resource-Kind"><span class="nav-number">3.</span> <span class="nav-text">三、为什么是这些 Resource Kind?</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A0%B8%E5%BF%83%E5%8E%9F%E5%88%99"><span class="nav-number">3.1.</span> <span class="nav-text">核心原则</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%86%E7%B1%BB%E6%80%BB%E8%A1%A8"><span class="nav-number">3.2.</span> <span class="nav-text">分类总表</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%AF%8F%E7%B1%BB%E7%9A%84%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F"><span class="nav-number">3.3.</span> <span class="nav-text">每类的设计模式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%89%E4%B8%AA%E6%AD%A3%E4%BA%A4%E7%BB%B4%E5%BA%A6"><span class="nav-number">3.4.</span> <span class="nav-text">三个正交维度</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9B%9B%E3%80%81%E4%B8%BA%E4%BB%80%E4%B9%88%E5%8F%AB-K8s-%E5%8C%96-%E8%80%8C%E4%B8%8D%E6%98%AF-%E9%83%A8%E7%BD%B2%E5%9C%A8-K8s-%E4%B8%8A"><span class="nav-number">4.</span> <span class="nav-text">四、为什么叫&quot;K8s 化&quot;而不是&quot;部署在 K8s 上&quot;?</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#K8s-%E7%9A%84%E4%B8%96%E7%95%8C%E8%A7%82-%E4%BA%94%E6%9D%A1"><span class="nav-number">4.1.</span> <span class="nav-text">K8s 的世界观(五条)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%80%E4%B8%AA-Postgres-%E8%A2%AB-K8s-%E5%8C%96-%E5%89%8D%E5%90%8E"><span class="nav-number">4.2.</span> <span class="nav-text">一个 Postgres 被&quot;K8s 化&quot;前后</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Operator-%E6%98%AF-K8s-%E5%93%B2%E5%AD%A6%E7%9A%84-%E7%BB%88%E6%9E%81%E6%8A%95%E5%B0%84"><span class="nav-number">4.3.</span> <span class="nav-text">Operator 是 K8s 哲学的&quot;终极投射&quot;</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%9C%9F%E7%9A%84-K8s-%E5%8C%96%E4%BA%86-%E7%9A%84%E4%BA%94%E6%9D%A1%E5%88%A4%E6%8D%AE"><span class="nav-number">4.4.</span> <span class="nav-text">&quot;真的 K8s 化了&quot;的五条判据</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%94%E3%80%81%E6%95%B4%E5%A5%97%E6%80%9D%E6%83%B3%E6%B5%93%E7%BC%A9%E6%88%90%E4%B8%80%E5%BC%A0%E5%9B%BE"><span class="nav-number">5.</span> <span class="nav-text">五、整套思想浓缩成一张图</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80%E5%8F%A5%E8%AF%9D%E6%94%B6%E5%B0%BE"><span class="nav-number">6.</span> <span class="nav-text">一句话收尾</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Rui Shao</p>
+  <div class="site-description" itemprop="description">Rui Shao 的技术博客（中文）— 系统、基础设施与 AI</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/tech/archives/">
+          <span class="site-state-item-count">39</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/tech/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tech/tags/">
+        <span class="site-state-item-count">63</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/shaorui0" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;shaorui0" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.linkedin.com/in/rui-shao-a21a55194/" title="LinkedIn → https:&#x2F;&#x2F;www.linkedin.com&#x2F;in&#x2F;rui-shao-a21a55194&#x2F;" rel="noopener me" target="_blank"><i class="fab fa-linkedin fa-fw"></i>LinkedIn</a>
+      </span>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://shaorui0.github.io/tech/2026/05/20/2026-05-20_k8s-design-philosophy-first-principles_zh/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/tech/images/avatar.gif">
+      <meta itemprop="name" content="Rui Shao">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Tech & AI · 中文">
+      <meta itemprop="description" content="Rui Shao 的技术博客（中文）— 系统、基础设施与 AI">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="K8s 系统设计哲学:从第一性原理推导整套架构 | Tech & AI · 中文">
+      <meta itemprop="description" content="不背 K8s 概念,而是从&#39;两个不可回避的事实&#39;推导整个 K8s。子系统、resource kind、Operator 模式,全是必然推论而不是设计选择。">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          K8s 系统设计哲学:从第一性原理推导整套架构
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2026-05-20 00:00:00 / 修改时间：22:12:58" itemprop="dateCreated datePublished" datetime="2026-05-20T00:00:00+09:00">2026-05-20</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/tech/categories/%E5%B7%A5%E7%A8%8B%E5%93%B2%E5%AD%A6/" itemprop="url" rel="index"><span itemprop="name">工程哲学</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+            <div class="post-description">不背 K8s 概念,而是从'两个不可回避的事实'推导整个 K8s。子系统、resource kind、Operator 模式,全是必然推论而不是设计选择。</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><nav class="article-toc-wrap" aria-label="文章目录"><div class="toc-title">文章目录</div><ol class="article-toc-list"><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#%E4%B8%80%E3%80%81%E8%B5%B7%E7%82%B9-%E4%B8%A4%E4%B8%AA%E4%B8%8D%E5%8F%AF%E5%9B%9E%E9%81%BF%E7%9A%84%E4%BA%8B%E5%AE%9E"><span class="article-toc-text">一、起点:两个不可回避的事实</span></a></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#%E4%BA%8C%E3%80%81%E5%9B%9B%E4%B8%AA%E5%BF%85%E7%84%B6%E6%8E%A8%E8%AE%BA-%E2%86%92-%E6%A0%B8%E5%BF%83%E6%9E%B6%E6%9E%84"><span class="article-toc-text">二、四个必然推论 → 核心架构</span></a><ol class="article-toc-child"><li class="article-toc-item article-toc-level-3"><a class="article-toc-link" href="#%E6%8E%A8%E8%AE%BA-1-%E5%BF%85%E9%A1%BB-declarative-%E4%B8%8D%E8%83%BD-imperative"><span class="article-toc-text">推论 1:必须 declarative,不能 imperative</span></a></li><li class="article-toc-item article-toc-level-3"><a class="article-toc-link" href="#%E6%8E%A8%E8%AE%BA-2-%E5%BF%85%E9%A1%BB%E6%9C%89%E5%94%AF%E4%B8%80%E7%9A%84%E7%9C%9F%E7%9B%B8%E6%BA%90"><span class="article-toc-text">推论 2:必须有唯一的真相源</span></a></li><li class="article-toc-item article-toc-level-3"><a class="article-toc-link" href="#%E6%8E%A8%E8%AE%BA-3-%E6%89%80%E6%9C%89%E4%B8%9C%E8%A5%BF%E9%83%BD%E5%BE%97%E6%98%AF-%E8%B5%84%E6%BA%90"><span class="article-toc-text">推论 3:所有东西都得是&quot;资源&quot;</span></a></li><li class="article-toc-item article-toc-level-3"><a class="article-toc-link" href="#%E6%8E%A8%E8%AE%BA-4-%E6%9C%BA%E5%88%B6%E4%B8%8E%E7%AD%96%E7%95%A5%E5%BF%85%E9%A1%BB%E5%88%86%E7%A6%BB-Unix-%E5%93%B2%E5%AD%A6"><span class="article-toc-text">推论 4:机制与策略必须分离(Unix 哲学)</span></a></li></ol></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#%E4%B8%89%E3%80%81%E4%B8%BA%E4%BB%80%E4%B9%88%E6%98%AF%E8%BF%99%E4%BA%9B-Resource-Kind"><span class="article-toc-text">三、为什么是这些 Resource Kind?</span></a><ol class="article-toc-child"><li class="article-toc-item article-toc-level-3"><a class="article-toc-link" href="#%E6%A0%B8%E5%BF%83%E5%8E%9F%E5%88%99"><span class="article-toc-text">核心原则</span></a></li><li class="article-toc-item article-toc-level-3"><a class="article-toc-link" href="#%E5%88%86%E7%B1%BB%E6%80%BB%E8%A1%A8"><span class="article-toc-text">分类总表</span></a></li><li class="article-toc-item article-toc-level-3"><a class="article-toc-link" href="#%E6%AF%8F%E7%B1%BB%E7%9A%84%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F"><span class="article-toc-text">每类的设计模式</span></a></li><li class="article-toc-item article-toc-level-3"><a class="article-toc-link" href="#%E4%B8%89%E4%B8%AA%E6%AD%A3%E4%BA%A4%E7%BB%B4%E5%BA%A6"><span class="article-toc-text">三个正交维度</span></a></li></ol></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#%E5%9B%9B%E3%80%81%E4%B8%BA%E4%BB%80%E4%B9%88%E5%8F%AB-K8s-%E5%8C%96-%E8%80%8C%E4%B8%8D%E6%98%AF-%E9%83%A8%E7%BD%B2%E5%9C%A8-K8s-%E4%B8%8A"><span class="article-toc-text">四、为什么叫&quot;K8s 化&quot;而不是&quot;部署在 K8s 上&quot;?</span></a><ol class="article-toc-child"><li class="article-toc-item article-toc-level-3"><a class="article-toc-link" href="#K8s-%E7%9A%84%E4%B8%96%E7%95%8C%E8%A7%82-%E4%BA%94%E6%9D%A1"><span class="article-toc-text">K8s 的世界观(五条)</span></a></li><li class="article-toc-item article-toc-level-3"><a class="article-toc-link" href="#%E4%B8%80%E4%B8%AA-Postgres-%E8%A2%AB-K8s-%E5%8C%96-%E5%89%8D%E5%90%8E"><span class="article-toc-text">一个 Postgres 被&quot;K8s 化&quot;前后</span></a></li><li class="article-toc-item article-toc-level-3"><a class="article-toc-link" href="#Operator-%E6%98%AF-K8s-%E5%93%B2%E5%AD%A6%E7%9A%84-%E7%BB%88%E6%9E%81%E6%8A%95%E5%B0%84"><span class="article-toc-text">Operator 是 K8s 哲学的&quot;终极投射&quot;</span></a></li><li class="article-toc-item article-toc-level-3"><a class="article-toc-link" href="#%E7%9C%9F%E7%9A%84-K8s-%E5%8C%96%E4%BA%86-%E7%9A%84%E4%BA%94%E6%9D%A1%E5%88%A4%E6%8D%AE"><span class="article-toc-text">&quot;真的 K8s 化了&quot;的五条判据</span></a></li></ol></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#%E4%BA%94%E3%80%81%E6%95%B4%E5%A5%97%E6%80%9D%E6%83%B3%E6%B5%93%E7%BC%A9%E6%88%90%E4%B8%80%E5%BC%A0%E5%9B%BE"><span class="article-toc-text">五、整套思想浓缩成一张图</span></a></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#%E4%B8%80%E5%8F%A5%E8%AF%9D%E6%94%B6%E5%B0%BE"><span class="article-toc-text">一句话收尾</span></a></li></ol></nav>
+<p><em>这篇博客是一次思想梳理。我没有去读 K8s 文档,而是反过来问:如果今天让我从零设计一个分布式编排系统,我会推导出什么?然后对照 K8s 看,哪些是必然,哪些是巧合,哪些是历史包袱。</em></p>
+<p>我想搞清楚三件事:</p>
+<ol>
+<li><strong>K8s 有哪些子系统?为什么是这些,而不是别的?</strong></li>
+<li><strong>为什么有这么多 resource kind?它们怎么分类?</strong></li>
+<li><strong>为什么我们说&quot;K8s 化&quot;某个系统,而不是&quot;部署在 K8s 上&quot;?</strong></li>
+</ol>
+<p>下面是我推导出来的框架。</p>
+<hr>
+<h2 id="一、起点-两个不可回避的事实">一、起点:两个不可回避的事实</h2>
+<p>要把&quot;运行很多程序在很多机器上&quot;做对,你只能接受两个现实:</p>
+<ol>
+<li><strong>分布式系统里,部分失败是常态。</strong> 机器会挂、网络会断、磁盘会满。</li>
+<li><strong>操作者的意图 ≠ 系统的现实。</strong> 你说&quot;我要 3 个副本&quot;,但此刻可能只有 2 个在跑。意图稳定,现实漂移。</li>
+</ol>
+<p><strong>K8s 所有设计,都是这两个事实的逻辑推论。</strong> 不是 Google 拍脑袋设计的,是被现实逼出来的。</p>
+<hr>
+<h2 id="二、四个必然推论-→-核心架构">二、四个必然推论 → 核心架构</h2>
+<h3 id="推论-1-必须-declarative-不能-imperative">推论 1:必须 declarative,不能 imperative</h3>
+<p>部分失败下,&quot;执行命令&quot;这个动作本身就没意义——失败了你不知道做了一半还是没做。</p>
+<p><strong>解法</strong>:不描述&quot;做什么&quot;,只描述&quot;应该是什么&quot;。用户写 desired state,系统持续把 observed state 推过去。</p>
+<p>这就是 <strong>reconcile loop</strong>:整个 K8s 只有这一个核心循环。</p>
+<div class="mermaid">graph LR
+    A[Desired State&lt;br/&gt;用户写的 YAML] --&gt; R{Reconciler}
+    O[Observed State&lt;br/&gt;etcd 里的真实状态] --&gt; R
+    R --&gt;|diff &amp; act| W[Real World&lt;br/&gt;Pods/Services/...]
+    W --&gt;|observe| O</div>
+<h3 id="推论-2-必须有唯一的真相源">推论 2:必须有唯一的真相源</h3>
+<p>意图分散就永远没有收敛目标 → <strong>etcd</strong>(Raft 共识存储)<br>
+但 etcd 只解决&quot;存&quot;,还需要:</p>
+<ul>
+<li>唯一<strong>写入口</strong> = API server(做认证/鉴权/校验)</li>
+<li>唯一<strong>读出口</strong> = API server(所有 controller 都 watch 它)</li>
+</ul>
+<h3 id="推论-3-所有东西都得是-资源">推论 3:所有东西都得是&quot;资源&quot;</h3>
+<p>既然 reconcile 是唯一模式,就把它泛化。所有可管理的东西都建模成 resource,每个 resource 配一个 controller。Controller 之间<strong>互不通信</strong>,只通过 etcd 交换状态。</p>
+<p>这是 <strong>level-triggered, edge-blind</strong> 设计——controller 可以崩溃、重启、丢消息,不影响正确性。</p>
+<h3 id="推论-4-机制与策略必须分离-Unix-哲学">推论 4:机制与策略必须分离(Unix 哲学)</h3>
+<div class="mermaid">graph TB
+    subgraph &quot;L4 工作负载&quot;
+        APP[用户的 Pods]
+    end
+    subgraph &quot;L3 机制层 - 怎么做&quot;
+        K[kubelet]
+        CRI[CRI&lt;br/&gt;容器运行时]
+        CNI[CNI&lt;br/&gt;网络插件]
+        CSI[CSI&lt;br/&gt;存储插件]
+    end
+    subgraph &quot;L2 策略层 - 做什么&quot;
+        CTL[Controllers]
+        SCH[Scheduler]
+    end
+    subgraph &quot;L1 内核接口&quot;
+        API[kube-apiserver]
+    end
+    subgraph &quot;L0 真相源&quot;
+        ETCD[(etcd)]
+    end
+
+    APP --&gt; K
+    K --&gt; CRI
+    K --&gt; CNI
+    K --&gt; CSI
+    K -.watch.-&gt; API
+    CTL -.watch.-&gt; API
+    SCH -.watch.-&gt; API
+    API &lt;--&gt; ETCD</div>
+<p><strong>核心洞察:K8s 就是 Unix 哲学在分布式系统的复刻。</strong></p>
+<ul>
+<li>etcd = 文件系统</li>
+<li>API server = 内核</li>
+<li>resources = 文件</li>
+<li>controllers = daemons</li>
+<li>reconcile loop = 唯一的 syscall pattern</li>
+</ul>
+<hr>
+<h2 id="三、为什么是这些-Resource-Kind">三、为什么是这些 Resource Kind?</h2>
+<p>不要去背 K8s 有哪些 resource,反过来问:<strong>运行一个程序到底需要什么?</strong></p>
+<p>七个原子需求:<strong>算力 / 镜像 / 配置 / 存储 / 网络 / 身份 / 生命周期</strong></p>
+<p>每一类需求,都因为<strong>变化频率、权限边界、生命周期的差异</strong>被进一步拆成多个 kind。</p>
+<h3 id="核心原则">核心原则</h3>
+<blockquote>
+<p>变化频率不同、生命周期不同、权限边界不同的东西,必须拆成不同 resource。</p>
+</blockquote>
+<p>一锅炖会导致:改一维度被迫动所有维度。这就是耦合的代价。</p>
+<h3 id="分类总表">分类总表</h3>
+<div class="mermaid">graph TB
+    subgraph &quot;Workload - 跑什么&quot;
+        POD[Pod] --&gt; RS[ReplicaSet]
+        RS --&gt; DEP[Deployment]
+        DEP --&gt; HPA[HPA]
+        STS[StatefulSet]
+        DS[DaemonSet]
+        JOB[Job/CronJob]
+    end
+
+    subgraph &quot;Config - 带什么参数&quot;
+        CM[ConfigMap]
+        SEC[Secret]
+    end
+
+    subgraph &quot;Storage - 数据放哪&quot;
+        PVC[PVC&lt;br/&gt;用户视角] --&gt; PV[PV&lt;br/&gt;实现视角]
+        PV --&gt; SC[StorageClass&lt;br/&gt;供给规则]
+        SC --&gt; CSID[CSI Driver]
+    end
+
+    subgraph &quot;Networking - 怎么通信&quot;
+        SVC[Service&lt;br/&gt;L4]
+        ING[Ingress/Gateway&lt;br/&gt;L7]
+        NP[NetworkPolicy&lt;br/&gt;策略]
+    end
+
+    subgraph &quot;Identity - 它是谁&quot;
+        SA[ServiceAccount] --&gt; RB[RoleBinding]
+        RB --&gt; ROLE[Role]
+    end
+
+    subgraph &quot;Policy - 不能干什么&quot;
+        Q[ResourceQuota]
+        LR[LimitRange]
+        PDB[PodDisruptionBudget]
+    end
+
+    subgraph &quot;Extension - 怎么加新东西&quot;
+        CRD[CustomResourceDefinition]
+        OP[Operator]
+        CRD --&gt; OP
+    end</div>
+<h3 id="每类的设计模式">每类的设计模式</h3>
+<table>
+<thead>
+<tr>
+<th>类别</th>
+<th>回答什么问题</th>
+<th>设计模式</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Workload</strong></td>
+<td>跑什么、几个、怎么重启</td>
+<td>controller 层级:Pod → RS → Deployment → HPA</td>
+</tr>
+<tr>
+<td><strong>Config</strong></td>
+<td>带什么参数</td>
+<td>与 Pod 解耦 + RBAC 隔离(Secret 单独存在为了权限边界)</td>
+</tr>
+<tr>
+<td><strong>Storage</strong></td>
+<td>数据放哪</td>
+<td>声明(PVC) / 实现(PV) / 供给(SC) / 驱动(CSI)<strong>四层分离</strong></td>
+</tr>
+<tr>
+<td><strong>Networking</strong></td>
+<td>怎么通信</td>
+<td>L4 / L7 分层 + 连通性与策略正交</td>
+</tr>
+<tr>
+<td><strong>Identity</strong></td>
+<td>它是谁</td>
+<td>能力(Role) 与 授予(Binding) 分离</td>
+</tr>
+<tr>
+<td><strong>Policy</strong></td>
+<td>不能干什么</td>
+<td>全部是&quot;约束&quot;而非&quot;实体&quot;</td>
+</tr>
+<tr>
+<td><strong>Extension</strong></td>
+<td>怎么加新东西</td>
+<td><strong>元抽象</strong>——让 K8s 自己可扩展</td>
+</tr>
+</tbody>
+</table>
+<h3 id="三个正交维度">三个正交维度</h3>
+<p>每个 resource 在三个轴上有坐标:</p>
+<ol>
+<li><strong>抽象层次</strong>:用户视角 ↔ 实现视角(PVC vs PV、Service vs EndpointSlice)</li>
+<li><strong>变化频率</strong>:高频变(Pod、ConfigMap)↔ 低频变(StorageClass、ClusterRole)</li>
+<li><strong>作用范围</strong>:对象级 ↔ namespace 级 ↔ 集群级</li>
+</ol>
+<p><strong>这三个轴上每个不同的点,都是一个独立的变化维度,必须独立建模。</strong></p>
+<hr>
+<h2 id="四、为什么叫-K8s-化-而不是-部署在-K8s-上">四、为什么叫&quot;K8s 化&quot;而不是&quot;部署在 K8s 上&quot;?</h2>
+<p>&quot;化&quot;是世界观的迁移,不是物理位置的迁移。</p>
+<ul>
+<li><strong>容器化</strong>:不是把程序放进容器,是接受&quot;无状态、不可变&quot;的世界观</li>
+<li><strong>服务化</strong>:不是拆进程,是接受&quot;网络是边界、failure 是一等公民&quot;</li>
+<li><strong>K8s 化</strong>:不是 kubectl apply,是让系统<strong>采纳 K8s 的运维本体论</strong></li>
+</ul>
+<h3 id="K8s-的世界观-五条">K8s 的世界观(五条)</h3>
+<ol>
+<li>一切皆 resource</li>
+<li>声明而非命令</li>
+<li>Reconcile 是唯一动词</li>
+<li>Level-triggered, eventually consistent</li>
+<li>通过 label/ref 组合</li>
+</ol>
+<h3 id="一个-Postgres-被-K8s-化-前后">一个 Postgres 被&quot;K8s 化&quot;前后</h3>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>化之前</th>
+<th>化之后</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>接口</td>
+<td>psql、SSH、配置文件</td>
+<td><code>kind: PostgresCluster</code></td>
+</tr>
+<tr>
+<td>谁懂运维</td>
+<td>DBA 脑子 + Confluence</td>
+<td>Controller 代码</td>
+</tr>
+<tr>
+<td>扩容</td>
+<td>手动开机器 + basebackup</td>
+<td><code>spec.replicas: 5</code></td>
+</tr>
+<tr>
+<td>故障切换</td>
+<td>告警 → 人 → 改 DNS</td>
+<td>Controller watch → 自动 promote</td>
+</tr>
+<tr>
+<td>升级</td>
+<td>周末停机 + 祈祷</td>
+<td>改 <code>spec.version</code>,rolling upgrade</td>
+</tr>
+<tr>
+<td>错误模型</td>
+<td>Pager → 人介入</td>
+<td>Reconcile 失败 → 自动重试</td>
+</tr>
+<tr>
+<td>审计</td>
+<td>history + Slack 截图</td>
+<td>所有变更过 API server</td>
+</tr>
+</tbody>
+</table>
+<p><strong>注意:Postgres 本身没变。变的是&quot;谁在操作它&quot;——从人的肌肉记忆,迁移到一段持续运行的代码。</strong></p>
+<p>这就是&quot;化&quot;的本质:<strong>运维知识的载体从 tribal knowledge 变成 executable code。</strong></p>
+<h3 id="Operator-是-K8s-哲学的-终极投射">Operator 是 K8s 哲学的&quot;终极投射&quot;</h3>
+<p>绝大多数人没意识到的点:<strong>Operator 模式不是 K8s 新增的特性,它就是 K8s 本身的样子。</strong></p>
+<div class="mermaid">graph LR
+    subgraph &quot;K8s 内置&quot;
+        D1[Deployment CRD] --&gt; C1[deployment-controller]
+        C1 --&gt; RS1[创建 ReplicaSet]
+    end
+
+    subgraph &quot;你写的 Operator&quot;
+        D2[PostgresCluster CRD] --&gt; C2[postgres-operator]
+        C2 --&gt; RS2[创建 StatefulSet+Service+Secret]
+    end
+
+    D1 -.形状一模一样.-&gt; D2</div>
+<p><strong>Deployment-controller 和 PostgresOperator 在 K8s 看来没有任何区别。</strong></p>
+<p>对比其他系统:</p>
+<ul>
+<li><strong>Linux</strong>:用户态写不了 syscall——内核机制不向上传递</li>
+<li><strong>数据库</strong>:SQL planner 是封闭的,stored procedure 变不成 query planner</li>
+<li><strong>Hadoop</strong>:调度框架是调度框架,用户作业进不去调度逻辑</li>
+</ul>
+<p><strong>唯独 K8s,把自己的内核模式完全开放给用户复用。</strong> 这就是&quot;终极投射&quot;——设计本身是<strong>分形(fractal)</strong> 的,从最内层(pod 调度)到最外层(管 ML training),每一层都是同一个图案的复制。</p>
+<h3 id="真的-K8s-化了-的五条判据">&quot;真的 K8s 化了&quot;的五条判据</h3>
+<ol>
+<li>它有自己的 CRD 吗?</li>
+<li>删除一个底层 Pod,会被恢复成&quot;该有的样子&quot;吗?</li>
+<li>运维操作能通过修改 spec 字段触发吗?</li>
+<li>和 K8s 原生抽象(Service、Secret、RBAC、监控)天然集成吗?</li>
+<li>运维知识有没有从人脑迁移到 controller 代码?</li>
+</ol>
+<p><strong>五条全过,才算真正 K8s 化。否则只是&quot;部署在 K8s 上&quot;。</strong></p>
+<hr>
+<h2 id="五、整套思想浓缩成一张图">五、整套思想浓缩成一张图</h2>
+<div class="mermaid">graph TB
+    F1[事实 1&lt;br/&gt;部分失败是常态]
+    F2[事实 2&lt;br/&gt;意图 ≠ 现实]
+
+    F1 --&gt; R1[推论:Declarative]
+    F2 --&gt; R1
+    R1 --&gt; RL[Reconcile Loop&lt;br/&gt;唯一核心模式]
+
+    RL --&gt; N1[需要唯一真相源]
+    N1 --&gt; ETCD[(etcd + API server)]
+
+    RL --&gt; N2[需要泛化模式]
+    N2 --&gt; RES[一切皆 Resource]
+
+    RES --&gt; KIND[Resource Kinds&lt;br/&gt;按变化频率/权限/生命周期拆分]
+    KIND --&gt; CAT[七类:Workload/Config/Storage&lt;br/&gt;Network/Identity/Policy/Extension]
+
+    RES --&gt; EXT[CRD + Custom Controller]
+    EXT --&gt; OP[Operator 模式]
+    OP --&gt; K8SIFY[K8s 化&lt;br/&gt;运维知识 → executable code]
+
+    RL --&gt; SEP[机制/策略分离]
+    SEP --&gt; LAYER[L0 etcd → L1 API → L2 策略 → L3 机制 → L4 负载]</div>
+<hr>
+<h2 id="一句话收尾">一句话收尾</h2>
+<blockquote>
+<p><strong>K8s 不是被设计出来的,它是&quot;运行很多程序在很多机器上&quot;这件事在两个残酷现实下的必然产物。</strong></p>
+</blockquote>
+<p>理解任何 K8s 的概念,问三个问题:</p>
+<ol>
+<li><strong>它在 reconcile 什么?</strong> Desired state 是谁写的?Observed state 来自哪?</li>
+<li><strong>它解耦了哪个变化维度?</strong> 如果不拆,会跟谁耦合?</li>
+<li><strong>它在哪个抽象层次?</strong> 用户面还是实现面?机制还是策略?</li>
+</ol>
+<p>答得出来,就理解了;答不出来,就是还没看到底。</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tech/tags/Kubernetes/" rel="tag"># Kubernetes</a>
+              <a href="/tech/tags/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/" rel="tag"># 系统设计</a>
+              <a href="/tech/tags/%E7%AC%AC%E4%B8%80%E6%80%A7%E5%8E%9F%E7%90%86/" rel="tag"># 第一性原理</a>
+              <a href="/tech/tags/%E8%AE%BE%E8%AE%A1%E5%93%B2%E5%AD%A6/" rel="tag"># 设计哲学</a>
+              <a href="/tech/tags/Operator/" rel="tag"># Operator</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/tech/2026/05/20/2026-05-20_locality-from-cpu-to-agent_zh/" rel="prev" title="Locality 是整个 CS 栈的同一根线:从 CPU cache 到 AI agent">
+                  <i class="fa fa-angle-left"></i> Locality 是整个 CS 栈的同一根线:从 CPU cache 到 AI agent
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/tech/2026/07/20/2026-07-20_slo-top-down-monitoring_zh/" rel="next" title="从标 CPU 到设计 SLO：一个 SRE 对监控的重新理解">
+                  从标 CPU 到设计 SLO：一个 SRE 对监控的重新理解 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">Rui Shao</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+<!-- hexo injector body_end start --><script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>mermaid.initialize({ startOnLoad: true, theme: "default" });</script><!-- hexo injector body_end end --></body>
+</html>

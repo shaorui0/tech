@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 8.1.1">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/tech/favicon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/tech/favicon.svg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/tech/favicon.svg">
+  <link rel="mask-icon" href="/tech/favicon.svg" color="#222">
+
+<link rel="stylesheet" href="/tech/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"shaorui0.github.io","root":"/tech/","images":"/tech/images","scheme":"Gemini","darkmode":true,"version":"8.27.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/tech/js/config.js" defer></script>
+
+    <meta name="description" content="雷达上的 target 虚线是承诺，不是装饰：三个按优先级排列的缺口，每个都带一条可检验的补齐定义。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="接下来应该做什么">
+<meta property="og:url" content="https://shaorui0.github.io/tech/2026/08/03/2026-08-03_what-i-know-i-cant-do-yet_zh/index.html">
+<meta property="og:site_name" content="Tech &amp; AI · 中文">
+<meta property="og:description" content="雷达上的 target 虚线是承诺，不是装饰：三个按优先级排列的缺口，每个都带一条可检验的补齐定义。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-08-02T15:00:00.000Z">
+<meta property="article:modified_time" content="2026-08-03T16:19:14.705Z">
+<meta property="article:author" content="Rui Shao">
+<meta property="article:tag" content="SRE">
+<meta property="article:tag" content="工程判断">
+<meta property="article:tag" content="职业">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://shaorui0.github.io/tech/2026/08/03/2026-08-03_what-i-know-i-cant-do-yet_zh/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://shaorui0.github.io/tech/2026/08/03/2026-08-03_what-i-know-i-cant-do-yet_zh/","path":"2026/08/03/2026-08-03_what-i-know-i-cant-do-yet_zh/","title":"接下来应该做什么"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>接下来应该做什么 | Tech & AI · 中文</title>
+  
+
+
+
+
+
+
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous" defer></script>
+<script src="/tech/js/utils.js" defer></script><script src="/tech/js/motion.js" defer></script><script src="/tech/js/sidebar.js" defer></script><script src="/tech/js/next-boot.js" defer></script>
+
+  
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.10.1/mermaid.min.js","integrity":"sha256-BmQmdWDS8X2OTbrwELWK366LV6escyWhHHe0XCTU/Hk="}}</script>
+  <script src="/tech/js/third-party/tags/mermaid.js" defer></script>
+
+
+
+
+
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/tech/css/noscript.css">
+  </noscript>
+<!-- hexo injector head_end start --><style>
+.article-toc-wrap {
+  margin-bottom: 1.5em;
+  padding: 1em 1.25em;
+  background: #f8f9fa;
+  border-radius: 6px;
+  border-left: 3px solid #ddd;
+}
+.article-toc-wrap .toc-title {
+  font-weight: bold;
+  margin-bottom: 0.5em;
+  font-size: 0.95em;
+  color: #555;
+}
+.article-toc-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.article-toc-list .article-toc-list { padding-left: 1em; margin-top: 0.25em; }
+.article-toc-item { margin: 0.35em 0; }
+.article-toc-link {
+  text-decoration: none;
+  color: #444;
+  font-size: 0.9em;
+}
+.article-toc-link:hover { color: #08c; text-decoration: underline; }
+.article-toc-level-3 .article-toc-link { font-size: 0.85em; }
+.article-toc-level-4 .article-toc-link { font-size: 0.8em; }
+</style><!-- hexo injector head_end end --></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/tech/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Tech & AI · 中文</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">系统、基础设施与 AI</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/tech/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-tags"><a href="/tech/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/tech/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/tech/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li><li class="menu-item menu-item-english"><a href="https://shaorui0.github.io/tech-en/" rel="section"><i class="fa fa-language fa-fw"></i>English</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BC%98%E5%85%88%E7%BA%A7%E4%B8%80%EF%BC%9A%E5%AE%89%E5%85%A8%E5%90%88%E8%A7%84%E7%9A%84%E4%BC%A0%E7%BB%9F%E9%9D%A2%EF%BC%8840-%E2%86%92-65%EF%BC%89"><span class="nav-number">1.</span> <span class="nav-text">优先级一：安全合规的传统面（40 → 65）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BC%98%E5%85%88%E7%BA%A7%E4%BA%8C%EF%BC%9ASLO-%E4%B8%8E-error-budget-%E7%9A%84%E7%9C%9F%E5%AE%9E%E8%BF%90%E8%90%A5%EF%BC%8872-%E2%86%92-82%EF%BC%89"><span class="nav-number">2.</span> <span class="nav-text">优先级二：SLO 与 error budget 的真实运营（72 → 82）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BC%98%E5%85%88%E7%BA%A7%E4%B8%89%EF%BC%9A%E8%B7%A8%E5%9B%A2%E9%98%9F%E5%BD%B1%E5%93%8D%E5%8A%9B%EF%BC%8852-%E2%86%92-75%EF%BC%89"><span class="nav-number">3.</span> <span class="nav-text">优先级三：跨团队影响力（52 → 75）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BA%95%E4%B8%8B%E7%9A%84%E6%96%B9%E5%90%91"><span class="nav-number">4.</span> <span class="nav-text">底下的方向</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Rui Shao</p>
+  <div class="site-description" itemprop="description">Rui Shao 的技术博客（中文）— 系统、基础设施与 AI</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/tech/archives/">
+          <span class="site-state-item-count">39</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/tech/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tech/tags/">
+        <span class="site-state-item-count">63</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/shaorui0" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;shaorui0" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.linkedin.com/in/rui-shao-a21a55194/" title="LinkedIn → https:&#x2F;&#x2F;www.linkedin.com&#x2F;in&#x2F;rui-shao-a21a55194&#x2F;" rel="noopener me" target="_blank"><i class="fab fa-linkedin fa-fw"></i>LinkedIn</a>
+      </span>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://shaorui0.github.io/tech/2026/08/03/2026-08-03_what-i-know-i-cant-do-yet_zh/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/tech/images/avatar.gif">
+      <meta itemprop="name" content="Rui Shao">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Tech & AI · 中文">
+      <meta itemprop="description" content="Rui Shao 的技术博客（中文）— 系统、基础设施与 AI">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="接下来应该做什么 | Tech & AI · 中文">
+      <meta itemprop="description" content="雷达上的 target 虚线是承诺，不是装饰：三个按优先级排列的缺口，每个都带一条可检验的补齐定义。">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          接下来应该做什么
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2026-08-03 00:00:00" itemprop="dateCreated datePublished" datetime="2026-08-03T00:00:00+09:00">2026-08-03</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2026-08-04 01:19:14" itemprop="dateModified" datetime="2026-08-04T01:19:14+09:00">2026-08-04</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/tech/categories/%E8%A7%86%E8%A7%92/" itemprop="url" rel="index"><span itemprop="name">视角</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+            <div class="post-description">雷达上的 target 虚线是承诺，不是装饰：三个按优先级排列的缺口，每个都带一条可检验的补齐定义。</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><nav class="article-toc-wrap" aria-label="文章目录"><div class="toc-title">文章目录</div><ol class="article-toc-list"><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#%E4%BC%98%E5%85%88%E7%BA%A7%E4%B8%80%EF%BC%9A%E5%AE%89%E5%85%A8%E5%90%88%E8%A7%84%E7%9A%84%E4%BC%A0%E7%BB%9F%E9%9D%A2%EF%BC%8840-%E2%86%92-65%EF%BC%89"><span class="article-toc-text">优先级一：安全合规的传统面（40 → 65）</span></a></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#%E4%BC%98%E5%85%88%E7%BA%A7%E4%BA%8C%EF%BC%9ASLO-%E4%B8%8E-error-budget-%E7%9A%84%E7%9C%9F%E5%AE%9E%E8%BF%90%E8%90%A5%EF%BC%8872-%E2%86%92-82%EF%BC%89"><span class="article-toc-text">优先级二：SLO 与 error budget 的真实运营（72 → 82）</span></a></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#%E4%BC%98%E5%85%88%E7%BA%A7%E4%B8%89%EF%BC%9A%E8%B7%A8%E5%9B%A2%E9%98%9F%E5%BD%B1%E5%93%8D%E5%8A%9B%EF%BC%8852-%E2%86%92-75%EF%BC%89"><span class="article-toc-text">优先级三：跨团队影响力（52 → 75）</span></a></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#%E5%BA%95%E4%B8%8B%E7%9A%84%E6%96%B9%E5%90%91"><span class="article-toc-text">底下的方向</span></a></li></ol></nav>
+<blockquote>
+<p>英文版：<a href="https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_what-i-know-i-cant-do-yet_en/">English</a></p>
+</blockquote>
+<p>简历告诉你我会什么。这一页告诉你我知道自己还不会什么。雷达上的 target 虚线是带验收标准的承诺，不是装饰性的外圈。这一页的规则是：下面每一个缺口都必须挂一条可检验的「补上」定义。没有这条规则，这类页面会退化成励志文案。</p>
+<h2 id="优先级一：安全合规的传统面（40-→-65）">优先级一：安全合规的传统面（40 → 65）</h2>
+<p>**现状缺口。**我的安全工作是真实的，但是单侧的：它在 AI agent 这个前沿，包括默认拒绝的工具网关、写入 attestation、按爆炸半径分级的执行闸门。传统面（作为架构学科的 IAM 设计、SOC 2 类的审计框架）在我的记录里缺席，雷达上的 40 就是这个意思。</p>
+<p>**为什么排第一。**它是雷达上最大的绝对缺口；在反欺诈相关领域运营数据平台，合规是「什么时候」的问题，不是「要不要」的问题；而且它是最难靠阅读补齐的一个轴：审计和 IAM 这类工作必须亲身参与，因为难点在组织层面，不在技术层面。</p>
+<p>**什么算补上。**一次真实合规审计的参与记录，或者一个由我端到端负责的 IAM 治理项目（role model 设计加一个实际运转的 access review 回路），并且能用本站其余内容同等的证据标准把它讲出来。</p>
+<h2 id="优先级二：SLO-与-error-budget-的真实运营（72-→-82）">优先级二：SLO 与 error budget 的真实运营（72 → 82）</h2>
+<p>**现状缺口。**我有方法论（SLI/SLO 分层、对症状告警）和一套运转中的告警体系。记录里没有的是这样一句话：「我为这个服务定义了 SLO，并运营了一个季度。」懂 error budget 的理论，和真正花掉过一份 error budget，是两种不同的资历。</p>
+<p>**为什么重要。**这是把事件响应从被动技能转化为可靠性治理的那一块拼图：救火救得好，和用一个数字决定组织应该容忍多少火，是两回事。它也是 incident 轴上杠杆最高的单项，而且收益大部分会被 obs 轴继承。</p>
+<p>**什么算补上。**一份真实服务的 SLO 定义文档，加上至少一个由 error budget 消耗驱动的决策实例：一次被按住的发布，或者一次可靠性工作压过功能的重排期，并附上预算的算术。</p>
+<h2 id="优先级三：跨团队影响力（52-→-75）">优先级三：跨团队影响力（52 → 75）</h2>
+<p>**现状缺口。**影响力的记录真实但局部：内部培训、告警治理倡议、一份逆转了 leadership 决策的审计。缺的是「推动跨团队立项」级别的完整叙事：我提出，其他团队投入人力，最后落地。</p>
+<p>**为什么重要。**这是 senior 以上的硬门槛。没有它，其他所有轴的上限都是个人卓越：组织得到的是一个强工程师，而不是一个乘数。</p>
+<p>**什么算补上。**一个由我发起、跨两个及以上团队、有资源投入的项目，从提案到结果全程可追溯。不是参与别人的立项，而是发起。</p>
+<h2 id="底下的方向">底下的方向</h2>
+<p>这三项投资服务于一条刻意选定的主线：SRE 向 AI infrastructure 演进，把 agent 作为操作者、治理它们的平台、对它们的可观测、支撑它们的运行时当作长期方向。这条线有自己的页面，这里不展开。它出现在本页只有一个原因：上面三个缺口是为了在这场转型中存活而选的，不是不顾转型选的。合规判断、SLO 治理、跨团队发起，恰恰是当调查本身被自动化之后，SRE 角色里仍然留给人的那部分。</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tech/tags/SRE/" rel="tag"># SRE</a>
+              <a href="/tech/tags/%E8%81%8C%E4%B8%9A/" rel="tag"># 职业</a>
+              <a href="/tech/tags/%E5%B7%A5%E7%A8%8B%E5%88%A4%E6%96%AD/" rel="tag"># 工程判断</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/tech/2026/08/03/2026-08-03_zombie-system-tables-subsecond-oom_zh/" rel="prev" title="僵尸系统表：30 秒采集看不见的亚秒级 OOM">
+                  <i class="fa fa-angle-left"></i> 僵尸系统表：30 秒采集看不见的亚秒级 OOM
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/tech/2026/08/03/2026-08-03_the-p100-that-was-exactly-one-second_zh/" rel="next" title="恰好 1.00 秒的 P100">
+                  恰好 1.00 秒的 P100 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">Rui Shao</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+<!-- hexo injector body_end start --><script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>mermaid.initialize({ startOnLoad: true, theme: "default" });</script><!-- hexo injector body_end end --></body>
+</html>
