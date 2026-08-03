@@ -1,8 +1,616 @@
-<!doctype html>
-<html lang="en"><head><meta charset="utf-8">
-<title>Moved</title>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 8.1.1">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/tech-en/favicon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/tech-en/favicon.svg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/tech-en/favicon.svg">
+  <link rel="mask-icon" href="/tech-en/favicon.svg" color="#222">
+
+<link rel="stylesheet" href="/tech-en/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"shaorui0.github.io","root":"/tech-en/","images":"/tech-en/images","scheme":"Gemini","darkmode":true,"version":"8.27.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}}</script><script src="/tech-en/js/config.js" defer></script>
+
+    <meta name="description" content="When dashboards are all green but users are already down, you’re facing a control system failure, not an observability problem. The Incident 02:17 AM. A major customer reports massive request timeouts">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Where Monitoring Systems Die">
+<meta property="og:url" content="https://shaorui0.github.io/tech-en/2026/02/11/2026-02-11_production-monitoring_en/index.html">
+<meta property="og:site_name" content="Tech &amp; AI">
+<meta property="og:description" content="When dashboards are all green but users are already down, you’re facing a control system failure, not an observability problem. The Incident 02:17 AM. A major customer reports massive request timeouts">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2026-02-11T09:01:31.000Z">
+<meta property="article:modified_time" content="2026-03-23T03:50:59.010Z">
+<meta property="article:author" content="Rui Shao">
+<meta property="article:tag" content="Monitoring Systems">
+<meta property="article:tag" content="Observability">
+<meta property="article:tag" content="Production Operations">
+<meta property="article:tag" content="SRE">
+<meta property="article:tag" content="System Design">
+<meta name="twitter:card" content="summary">
+
+
 <link rel="canonical" href="https://shaorui0.github.io/tech-en/2026/02/11/2026-02-11_production-monitoring_en/">
-<meta http-equiv="refresh" content="0; url=https://shaorui0.github.io/tech-en/2026/02/11/2026-02-11_production-monitoring_en/">
-<script>location.replace("https://shaorui0.github.io/tech-en/2026/02/11/2026-02-11_production-monitoring_en/");</script>
-<style>body{font-family:-apple-system,sans-serif;margin:4rem auto;max-width:32rem;padding:0 1.5rem;line-height:1.6}a{color:#1155cc}</style>
-</head><body><p>The English blog moved to <a href="https://shaorui0.github.io/tech-en/2026/02/11/2026-02-11_production-monitoring_en/">its own site</a>.</p></body></html>
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"https://shaorui0.github.io/tech-en/2026/02/11/2026-02-11_production-monitoring_en/","path":"2026/02/11/2026-02-11_production-monitoring_en/","title":"Where Monitoring Systems Die"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>Where Monitoring Systems Die | Tech & AI</title>
+  
+
+
+
+
+
+
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous" defer></script>
+<script src="/tech-en/js/utils.js" defer></script><script src="/tech-en/js/motion.js" defer></script><script src="/tech-en/js/sidebar.js" defer></script><script src="/tech-en/js/next-boot.js" defer></script>
+
+  
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.10.1/mermaid.min.js","integrity":"sha256-BmQmdWDS8X2OTbrwELWK366LV6escyWhHHe0XCTU/Hk="}}</script>
+  <script src="/tech-en/js/third-party/tags/mermaid.js" defer></script>
+
+
+
+
+
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/tech-en/css/noscript.css">
+  </noscript>
+<!-- hexo injector head_end start --><style>
+.article-toc-wrap {
+  margin-bottom: 1.5em;
+  padding: 1em 1.25em;
+  background: #f8f9fa;
+  border-radius: 6px;
+  border-left: 3px solid #ddd;
+}
+.article-toc-wrap .toc-title {
+  font-weight: bold;
+  margin-bottom: 0.5em;
+  font-size: 0.95em;
+  color: #555;
+}
+.article-toc-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.article-toc-list .article-toc-list { padding-left: 1em; margin-top: 0.25em; }
+.article-toc-item { margin: 0.35em 0; }
+.article-toc-link {
+  text-decoration: none;
+  color: #444;
+  font-size: 0.9em;
+}
+.article-toc-link:hover { color: #08c; text-decoration: underline; }
+.article-toc-level-3 .article-toc-link { font-size: 0.85em; }
+.article-toc-level-4 .article-toc-link { font-size: 0.8em; }
+</style><!-- hexo injector head_end end --></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/tech-en/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Tech & AI</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">Systems, Infrastructure, and AI</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="Search" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/tech-en/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-tags"><a href="/tech-en/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li><li class="menu-item menu-item-categories"><a href="/tech-en/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li><li class="menu-item menu-item-archives"><a href="/tech-en/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li><li class="menu-item menu-item-中文"><a href="https://shaorui0.github.io/tech/" rel="section"><i class="fa fa-language fa-fw"></i>中文</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#The-Incident"><span class="nav-number">1.</span> <span class="nav-text">The Incident</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#How-it-unraveled"><span class="nav-number">1.1.</span> <span class="nav-text">How it unraveled</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Why-Most-Monitoring-Systems-Provide-No-Value"><span class="nav-number">2.</span> <span class="nav-text">Why Most Monitoring Systems Provide No Value</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#CPU-90-doesn%E2%80%99t-mean-risk"><span class="nav-number">2.1.</span> <span class="nav-text">CPU 90% doesn’t mean risk</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Signal-to-noise-was-inverted"><span class="nav-number">2.2.</span> <span class="nav-text">Signal-to-noise was inverted</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Decision-latency-was-infinite"><span class="nav-number">2.3.</span> <span class="nav-text">Decision latency was infinite</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Monitoring-Systems-Are-Safety-Systems"><span class="nav-number">3.</span> <span class="nav-text">Monitoring Systems Are Safety Systems</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#The-control-loop"><span class="nav-number">3.1.</span> <span class="nav-text">The control loop</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Classical-control-theory-failures"><span class="nav-number">3.2.</span> <span class="nav-text">Classical control theory failures</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Monitoring-That-Survives-Production-Failures"><span class="nav-number">4.</span> <span class="nav-text">Monitoring That Survives Production Failures</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Survivability-levels"><span class="nav-number">4.1.</span> <span class="nav-text">Survivability levels</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Cardinality-the-hidden-survival-threat"><span class="nav-number">4.2.</span> <span class="nav-text">Cardinality: the hidden survival threat</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Meta-monitoring"><span class="nav-number">4.3.</span> <span class="nav-text">Meta-monitoring</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Observability-Storage-Is-a-Data-Platform-Problem"><span class="nav-number">5.</span> <span class="nav-text">Observability Storage Is a Data Platform Problem</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#From-CPU-to-Revenue-Monitoring-the-Right-Layer"><span class="nav-number">6.</span> <span class="nav-text">From CPU to Revenue: Monitoring the Right Layer</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#The-cognitive-stack"><span class="nav-number">6.1.</span> <span class="nav-text">The cognitive stack</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Monitor-value-streams-not-infrastructure"><span class="nav-number">6.2.</span> <span class="nav-text">Monitor value streams, not infrastructure</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Dashboards-That-Support-Decisions"><span class="nav-number">7.</span> <span class="nav-text">Dashboards That Support Decisions</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Why-Engineers-Stop-Looking-at-Dashboards"><span class="nav-number">8.</span> <span class="nav-text">Why Engineers Stop Looking at Dashboards</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Trust-collapse"><span class="nav-number">8.1.</span> <span class="nav-text">Trust collapse</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Trust-is-engineered-not-declared"><span class="nav-number">8.2.</span> <span class="nav-text">Trust is engineered, not declared</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Ownership"><span class="nav-number">8.3.</span> <span class="nav-text">Ownership</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Risk-Driven-Monitoring"><span class="nav-number">9.</span> <span class="nav-text">Risk-Driven Monitoring</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Six-ways-monitoring-dies"><span class="nav-number">9.1.</span> <span class="nav-text">Six ways monitoring dies</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Where-Will-It-Die"><span class="nav-number">10.</span> <span class="nav-text">Where Will It Die?</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Rui Shao</p>
+  <div class="site-description" itemprop="description">Rui Shao — writing about systems, infrastructure and AI</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/tech-en/archives/">
+          <span class="site-state-item-count">24</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">38</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/shaorui0" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;shaorui0" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.linkedin.com/in/rui-shao-a21a55194/" title="LinkedIn → https:&#x2F;&#x2F;www.linkedin.com&#x2F;in&#x2F;rui-shao-a21a55194&#x2F;" rel="noopener me" target="_blank"><i class="fab fa-linkedin fa-fw"></i>LinkedIn</a>
+      </span>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://shaorui0.github.io/tech-en/2026/02/11/2026-02-11_production-monitoring_en/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/tech-en/images/avatar.gif">
+      <meta itemprop="name" content="Rui Shao">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Tech & AI">
+      <meta itemprop="description" content="Rui Shao — writing about systems, infrastructure and AI">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="Where Monitoring Systems Die | Tech & AI">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Where Monitoring Systems Die
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2026-02-11 18:01:31" itemprop="dateCreated datePublished" datetime="2026-02-11T18:01:31+09:00">2026-02-11</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2026-03-23 12:50:59" itemprop="dateModified" datetime="2026-03-23T12:50:59+09:00">2026-03-23</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/tech-en/categories/Production-Engineering/" itemprop="url" rel="index"><span itemprop="name">Production Engineering</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><nav class="article-toc-wrap" aria-label="Contents"><div class="toc-title">Contents</div><ol class="article-toc-list"><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#The-Incident"><span class="article-toc-text">The Incident</span></a><ol class="article-toc-child"><li class="article-toc-item article-toc-level-3"><a class="article-toc-link" href="#How-it-unraveled"><span class="article-toc-text">How it unraveled</span></a></li></ol></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#Why-Most-Monitoring-Systems-Provide-No-Value"><span class="article-toc-text">Why Most Monitoring Systems Provide No Value</span></a><ol class="article-toc-child"><li class="article-toc-item article-toc-level-3"><a class="article-toc-link" href="#CPU-90-doesn%E2%80%99t-mean-risk"><span class="article-toc-text">CPU 90% doesn’t mean risk</span></a></li><li class="article-toc-item article-toc-level-3"><a class="article-toc-link" href="#Signal-to-noise-was-inverted"><span class="article-toc-text">Signal-to-noise was inverted</span></a></li><li class="article-toc-item article-toc-level-3"><a class="article-toc-link" href="#Decision-latency-was-infinite"><span class="article-toc-text">Decision latency was infinite</span></a></li></ol></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#Monitoring-Systems-Are-Safety-Systems"><span class="article-toc-text">Monitoring Systems Are Safety Systems</span></a><ol class="article-toc-child"><li class="article-toc-item article-toc-level-3"><a class="article-toc-link" href="#The-control-loop"><span class="article-toc-text">The control loop</span></a></li><li class="article-toc-item article-toc-level-3"><a class="article-toc-link" href="#Classical-control-theory-failures"><span class="article-toc-text">Classical control theory failures</span></a></li></ol></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#Monitoring-That-Survives-Production-Failures"><span class="article-toc-text">Monitoring That Survives Production Failures</span></a><ol class="article-toc-child"><li class="article-toc-item article-toc-level-3"><a class="article-toc-link" href="#Survivability-levels"><span class="article-toc-text">Survivability levels</span></a></li><li class="article-toc-item article-toc-level-3"><a class="article-toc-link" href="#Cardinality-the-hidden-survival-threat"><span class="article-toc-text">Cardinality: the hidden survival threat</span></a></li><li class="article-toc-item article-toc-level-3"><a class="article-toc-link" href="#Meta-monitoring"><span class="article-toc-text">Meta-monitoring</span></a></li></ol></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#Observability-Storage-Is-a-Data-Platform-Problem"><span class="article-toc-text">Observability Storage Is a Data Platform Problem</span></a></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#From-CPU-to-Revenue-Monitoring-the-Right-Layer"><span class="article-toc-text">From CPU to Revenue: Monitoring the Right Layer</span></a><ol class="article-toc-child"><li class="article-toc-item article-toc-level-3"><a class="article-toc-link" href="#The-cognitive-stack"><span class="article-toc-text">The cognitive stack</span></a></li><li class="article-toc-item article-toc-level-3"><a class="article-toc-link" href="#Monitor-value-streams-not-infrastructure"><span class="article-toc-text">Monitor value streams, not infrastructure</span></a></li></ol></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#Dashboards-That-Support-Decisions"><span class="article-toc-text">Dashboards That Support Decisions</span></a></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#Why-Engineers-Stop-Looking-at-Dashboards"><span class="article-toc-text">Why Engineers Stop Looking at Dashboards</span></a><ol class="article-toc-child"><li class="article-toc-item article-toc-level-3"><a class="article-toc-link" href="#Trust-collapse"><span class="article-toc-text">Trust collapse</span></a></li><li class="article-toc-item article-toc-level-3"><a class="article-toc-link" href="#Trust-is-engineered-not-declared"><span class="article-toc-text">Trust is engineered, not declared</span></a></li><li class="article-toc-item article-toc-level-3"><a class="article-toc-link" href="#Ownership"><span class="article-toc-text">Ownership</span></a></li></ol></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#Risk-Driven-Monitoring"><span class="article-toc-text">Risk-Driven Monitoring</span></a><ol class="article-toc-child"><li class="article-toc-item article-toc-level-3"><a class="article-toc-link" href="#Six-ways-monitoring-dies"><span class="article-toc-text">Six ways monitoring dies</span></a></li></ol></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#Where-Will-It-Die"><span class="article-toc-text">Where Will It Die?</span></a></li></ol></nav>
+<p><strong>When dashboards are all green but users are already down, you’re facing a control system failure, not an observability problem.</strong></p>
+<h2 id="The-Incident">The Incident</h2>
+<p>02:17 AM. A major customer reports massive request timeouts in the support channel.</p>
+<p>02:19. Oncall gets paged.</p>
+<p>02:21. Grafana opens. All green. CPU normal. Memory normal. Error rate near zero. The system looks completely healthy.</p>
+<p>02:25. More customers report timeouts. Business leaders join the call: How many customers affected? What’s the impact scope? Do we need to rollback? How long to recover?</p>
+<p>No one can answer. Monitoring systems exist, but they provide nothing usable for decisions.</p>
+<span id="more"></span>
+<h3 id="How-it-unraveled">How it unraveled</h3>
+<p><strong>First: monitoring reality diverged from user reality.</strong> At 02:30, the infra dashboard showed CPU &lt; 40%, memory normal, network normal, pod count normal, no error spike. Meanwhile, users experienced request timeouts, frozen pages, API latency &gt; 20 seconds.</p>
+<p><strong>Second: we couldn’t answer critical questions.</strong> Management asked five questions: How big is the impact? Specific region? Single customer? Need rollback? Need public announcement? We could answer none of them.</p>
+<p><strong>Third: trust eroded.</strong> By 02:40, engineers were SSHing into machines, manually checking logs, printing internal state, adding temporary debug. They stopped looking at dashboards. Once engineers bypass the monitoring system, the system has lost control.</p>
+<p><strong>Fourth: monitoring itself nearly failed.</strong> At 02:50, Prometheus queries started slowing. High cardinality queries OOM’d. Some dashboards took &gt; 40 seconds to load. If Prometheus crashed, we’d be completely blind.</p>
+<p><strong>Root cause</strong> (found at 03:12 through manual investigation): a core dependency service had exhausted its connection pool, causing cascading timeouts. But infra metrics didn’t trigger any alert. No dependency latency SLO, no per-client SLO, no request saturation metrics. Monitoring wasn’t wrong. It just didn’t monitor actual risks.</p>
+<p>I walked away from that incident realizing we had observability but no control capability. Monitoring existed. Decision capability did not.</p>
+<p><strong>If a monitoring system will die, where will it die?</strong></p>
+<hr>
+<h2 id="Why-Most-Monitoring-Systems-Provide-No-Value">Why Most Monitoring Systems Provide No Value</h2>
+<p>At 02:25, the dashboard showed CPU, memory, network: everything infrastructure engineers care about. But it couldn’t tell us how many users were affected or whether we should rollback.</p>
+<p>Most monitoring systems measure the wrong things. They measure infrastructure. They don’t measure what matters: <strong>organizational action capability</strong>.</p>
+<p><strong>Monitoring value = ability to change behavior or decisions.</strong> If it cannot trigger action, it’s noise.</p>
+<h3 id="CPU-90-doesn’t-mean-risk">CPU 90% doesn’t mean risk</h3>
+<p>CPU 90% but no user impact? Probably fine. CPU 90% during traffic peak? Expected. CPU 90% during low traffic? Suspicious. Raw metrics tell you state. Risk requires interpretation.</p>
+<p>In our incident, CPU was normal. Users were down. The metrics weren’t wrong. They measured the wrong thing.</p>
+<h3 id="Signal-to-noise-was-inverted">Signal-to-noise was inverted</h3>
+<p>At 02:25 we had too much noise (infrastructure metrics) and not enough signal (user impact). The solution isn’t more data. It’s less noise: filter, group, raise confidence thresholds, remove low-value metrics.</p>
+<h3 id="Decision-latency-was-infinite">Decision latency was infinite</h3>
+<p>The main proxy for action capability is <strong>decision latency</strong>: time from signal to action decision. Target for critical incidents: &lt; 5 minutes.</p>
+<ul>
+<li>Signal detection: &lt; 1 minute</li>
+<li>Interpretation: &lt; 2 minutes</li>
+<li>Decision: &lt; 2 minutes</li>
+</ul>
+<p>We were stuck at interpretation. We couldn’t translate signals into user impact.</p>
+<p>The real question isn’t “what metrics should we collect?” It’s “what decisions do we need to make, and what information supports them?”</p>
+<hr>
+<h2 id="Monitoring-Systems-Are-Safety-Systems">Monitoring Systems Are Safety Systems</h2>
+<p>An airplane cockpit doesn’t show raw altitude and fuel numbers. It shows: “distance to danger threshold,” “fuel sufficient to reach destination,” “approaching stall speed.” Raw metrics are less valuable than processed insights. Monitoring isn’t about showing altitude. It’s about ensuring you don’t crash.</p>
+<p>At 02:25, we had raw metrics. We had no safety signals.</p>
+<h3 id="The-control-loop">The control loop</h3>
+<p>Monitoring is a feedback control system: Reality &gt; Signal &gt; Interpretation &gt; Risk Framework &gt; Decision &gt; Action &gt; System Change &gt; New Reality.</p>
+<p>If any link breaks, monitoring becomes observation noise.</p>
+<div class="mermaid">graph LR
+    A[Reality&lt;br/&gt;User Reality] --&gt; B[Signal&lt;br/&gt;Signal]
+    B --&gt; C[Interpretation&lt;br/&gt;Interpretation]
+    C --&gt; D[Risk Framework&lt;br/&gt;Risk Framework]
+    D --&gt; E[Decision&lt;br/&gt;Decision]
+    E --&gt; F[Action&lt;br/&gt;Action]
+    F --&gt; G[System Change&lt;br/&gt;System Change]
+    G --&gt; A
+
+    style B fill:#ffcccc
+    style C fill:#ffcccc
+    style D fill:#ffcccc
+    style E fill:#ffcccc
+
+    B -.Break Point 1: Infrastructure signals&lt;br/&gt;Not user signals.-&gt; B
+    C -.Break Point 2: Cannot interpret&lt;br/&gt;Signal meaning.-&gt; C
+    D -.Break Point 3: No SLO/error budget&lt;br/&gt;No risk assessment.-&gt; D
+    E -.Break Point 4: Cannot decide&lt;br/&gt;What to do.-&gt; E</div>
+<p>In our incident, the loop broke at every point. We had infrastructure signals instead of user signals. We couldn’t interpret what signals meant. We had no SLO, no error budget, no risk framework. We couldn’t decide what to do. No action triggered. The control loop never closed.</p>
+<h3 id="Classical-control-theory-failures">Classical control theory failures</h3>
+<p><strong>Oscillation</strong>: alert storms where alerts trigger actions that cause more alerts. We’d seen it before, just not that night.</p>
+<p><strong>Noise</strong>: false positives that get muted, until real alerts are also muted. That night was the opposite: infrastructure metrics normal, users down. Noise masking signal.</p>
+<p><strong>Delay</strong>: we had fresh data, but it was the wrong data. CPU metrics were current. User impact was absent.</p>
+<hr>
+<h2 id="Monitoring-That-Survives-Production-Failures">Monitoring That Survives Production Failures</h2>
+<p>At 02:50, Prometheus queries OOM’d. Dashboards took 40+ seconds to load. One Prometheus crash away from complete blindness.</p>
+<p>Monitoring systems must be more stable than what they monitor. We especially need monitoring when production has problems. If monitoring is unstable, we’re blind when we need vision most.</p>
+<h3 id="Survivability-levels">Survivability levels</h3>
+<p><strong>Level 0: Coupled with application.</strong> Monitoring runs on same infrastructure. App crashes, monitoring crashes. Fine for dev environments. Useless during incidents.</p>
+<p><strong>Level 1: Independent compute/storage.</strong> Monitoring has its own VMs and storage. App crashes, monitoring survives. Region fails, monitoring also fails. At 02:50, we realized we needed at least this.</p>
+<p><strong>Level 2: Independent failure domain.</strong> Different AZs, different network, different storage. Survives AZ failures but not regional ones.</p>
+<p><strong>Level 3: Cross-region with buffering.</strong> Multi-region, offline analysis. Survives regional failures and network partitions. Required when incident costs are measured in millions.</p>
+<table>
+<thead>
+<tr>
+<th>Level</th>
+<th>When App Crashes</th>
+<th>When AZ Fails</th>
+<th>When Region Fails</th>
+<th>Applicable Scenarios</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Level 0</strong></td>
+<td>Monitoring crashes</td>
+<td>Monitoring crashes</td>
+<td>Monitoring crashes</td>
+<td>Dev environments</td>
+</tr>
+<tr>
+<td><strong>Level 1</strong></td>
+<td>Monitoring survives</td>
+<td>Monitoring fails</td>
+<td>Monitoring fails</td>
+<td>Small production</td>
+</tr>
+<tr>
+<td><strong>Level 2</strong></td>
+<td>Monitoring survives</td>
+<td>Monitoring survives</td>
+<td>Monitoring fails</td>
+<td>Critical production</td>
+</tr>
+<tr>
+<td><strong>Level 3</strong></td>
+<td>Monitoring survives</td>
+<td>Monitoring survives</td>
+<td>Monitoring survives</td>
+<td>Critical business</td>
+</tr>
+</tbody>
+</table>
+<h3 id="Cardinality-the-hidden-survival-threat">Cardinality: the hidden survival threat</h3>
+<p>Labels multiply. <code>service x region x instance x endpoint x status</code> = millions of time series. Queries that worked in steady state fail during incidents. Memory exhausts. Costs explode.</p>
+<p>The solution isn’t a better database. It’s label governance: limit label dimensions, use recording rules, aggregate early.</p>
+<h3 id="Meta-monitoring">Meta-monitoring</h3>
+<p>You need to monitor the monitoring system, but the meta-monitoring must be simpler than main monitoring. Otherwise you get recursion. In our incident, we didn’t know Prometheus was struggling until queries started failing.</p>
+<hr>
+<h2 id="Observability-Storage-Is-a-Data-Platform-Problem">Observability Storage Is a Data Platform Problem</h2>
+<p>Most people think monitoring = Grafana dashboards. Grafana is just visualization. The core is the database. When queries fail, dashboards fail.</p>
+<p>Observability storage is a high-frequency time-series data warehouse: write-heavy, read-heavy, high cardinality, with compression, retention, and cost pressure. This isn’t an OLTP problem.</p>
+<p><strong>Cardinality explosion</strong> causes memory exhaustion (Prometheus OOM), slow queries (scanning millions of series), and storage cost blowup. Solution: label governance, recording rules for aggregation, never put high-cardinality data (user IDs, request IDs) in labels.</p>
+<p><strong>Storage tiering</strong> matters during incidents. Hot incidents need hot data with fast queries. We were querying cold data during a hot incident, with no prioritization.</p>
+<p><strong>Query performance</strong> degrades at the worst time. Dashboards run complex aggregations on-demand during incidents. Without precomputation or caching, those queries slow, then fail, then OOM. When you need speed, you get complexity.</p>
+<hr>
+<h2 id="From-CPU-to-Revenue-Monitoring-the-Right-Layer">From CPU to Revenue: Monitoring the Right Layer</h2>
+<p>CPU normal. Customers down. We couldn’t see user impact because monitoring was at the wrong layer.</p>
+<p>Monitoring has layers: business risk/value, model/logic, pipeline, service, infrastructure. Closer to business = closer to truth. Closer to infrastructure = closer to noise.</p>
+<p>We were stuck at the infrastructure layer. CPU normal, memory normal, everything looks fine. But users were down. The truth was at the business layer.</p>
+<div class="mermaid">graph TD
+    A[Business Risk/Value Layer&lt;br/&gt;User Impact, Revenue, SLO] --&gt;|Closer to truth| B[Model/Logic Layer&lt;br/&gt;Business Logic, Data Flow]
+    B --&gt; C[Pipeline Layer&lt;br/&gt;Request Flow, Dependency Chain]
+    C --&gt; D[Service Layer&lt;br/&gt;Service Health, Latency]
+    D --&gt;|Closer to noise| E[Infrastructure Layer&lt;br/&gt;CPU, Memory, Network]
+
+    F[02:25 Incident] -.Monitoring location.-&gt; E
+    F -.Truth location.-&gt; A
+
+    style A fill:#90EE90
+    style E fill:#FFB6C1
+    style F fill:#FFD700</div>
+<h3 id="The-cognitive-stack">The cognitive stack</h3>
+<p>Raw Signal &gt; Processed Signal &gt; Risk Interpretation &gt; Decision Interface &gt; Action.</p>
+<p>In our incident:</p>
+<ul>
+<li>Raw signal (CPU, memory): existed</li>
+<li>Processed signal (aggregation): existed</li>
+<li>Risk interpretation (SLO, error budget): <strong>missing</strong></li>
+<li>Decision interface (dashboards answering questions): <strong>missing</strong></li>
+<li>Action (alerts triggering behavior): <strong>missing</strong></li>
+</ul>
+<p>The stack broke at risk interpretation. Without SLOs or error budgets, we couldn’t interpret what signals meant for users, couldn’t answer management’s questions, and couldn’t trigger any action.</p>
+<h3 id="Monitor-value-streams-not-infrastructure">Monitor value streams, not infrastructure</h3>
+<p>Value stream: User request &gt; Service &gt; Dependency &gt; Response &gt; User experience. In our incident, the value stream broke (connection pool exhausted) and we couldn’t see it because we only monitored infrastructure.</p>
+<p>Per-customer SLOs would have shown “Customer X down, others normal” or “all customers affected.” That’s business-layer monitoring.</p>
+<hr>
+<h2 id="Dashboards-That-Support-Decisions">Dashboards That Support Decisions</h2>
+<p>If we had a decision-supporting dashboard at 02:25, it would show user impact, risk level, recommended actions. Not CPU, memory, error rate.</p>
+<p>Dashboards must answer four questions:</p>
+<ol>
+<li>Is the system safe? (Risk assessment)</li>
+<li>Is the situation getting worse? (Trend analysis)</li>
+<li>Do we need action? (Action trigger)</li>
+<li>What action? (Decision support)</li>
+</ol>
+<p>At 02:25, our dashboards answered none of these.</p>
+<p><strong>Tactical monitoring</strong> (real-time, action-bound, decision-focused) is the core. <strong>Exploratory monitoring</strong> (historical, analytical, insight-focused) is secondary. During an incident you need tactical. We had exploratory.</p>
+<p>Design dashboards for incident conditions, not steady state. During incidents you need fast decisions, clear actions, risk assessment. Steady-state value is secondary.</p>
+<hr>
+<h2 id="Why-Engineers-Stop-Looking-at-Dashboards">Why Engineers Stop Looking at Dashboards</h2>
+<p>At 02:40, engineers started SSHing into machines. They bypassed dashboards entirely because dashboards didn’t help.</p>
+<h3 id="Trust-collapse">Trust collapse</h3>
+<p>Monitoring is a trust system. Trust collapse symptoms: too many false positives, a single false negative (missed real incident), data delay, dashboards inconsistent with experience, missing data during incidents.</p>
+<p>We had multiple: dashboards green while users were down, no user impact data, missed the real problem. Once trust collapses, engineers bypass monitoring. It becomes useless.</p>
+<h3 id="Trust-is-engineered-not-declared">Trust is engineered, not declared</h3>
+<ul>
+<li><strong>Trust budget</strong>: allocate error budgets for false positives, false negatives, delay</li>
+<li><strong>Trust transparency</strong>: show data freshness, confidence scores, error rates</li>
+<li><strong>Trust recovery</strong>: acknowledge false positives, fix root causes, communicate improvements</li>
+<li><strong>Trust monitoring</strong>: track mute rate, bypass rate, engineer investigation patterns</li>
+</ul>
+<p>We had none of this. Trust collapsed silently.</p>
+<h3 id="Ownership">Ownership</h3>
+<p>No owner = doesn’t exist. Dashboards existed, but nobody owned them. They decayed. Nobody maintained them. Nobody trusted them.</p>
+<p>Engineers bypass monitoring when it doesn’t help, when it’s unreliable, when it’s slow, or when only senior engineers can interpret it. In our incident, all four applied.</p>
+<hr>
+<h2 id="Risk-Driven-Monitoring">Risk-Driven Monitoring</h2>
+<p>If we’d designed monitoring around risk, we would have monitored connection pool saturation. Instead, we monitored CPU, memory, error rate, because those are easy.</p>
+<p><strong>Start from failure modes.</strong> What can go wrong? Connection pool exhaustion, dependency timeouts, request saturation. What signals indicate these risks? Pool utilization, dependency latency, queue depth. Prioritize by impact and probability. Validate: can we detect this? Do alerts trigger correct actions?</p>
+<p>We skipped all of this. We monitored what was easy, not what mattered. If we’d monitored connection pool saturation, we would have found the problem before users noticed.</p>
+<h3 id="Six-ways-monitoring-dies">Six ways monitoring dies</h3>
+<ol>
+<li><strong>Exists but untrusted</strong>: engineers bypass it (our incident: yes)</li>
+<li><strong>Alert noise collapse</strong>: alert storms, everything muted (our incident: no)</li>
+<li><strong>System fragility</strong>: monitoring crashes with production (our incident: nearly)</li>
+<li><strong>Can’t answer decision questions</strong>: raw metrics, no risk framework (our incident: yes)</li>
+<li><strong>Dies with production</strong>: shared infrastructure, no independence (our incident: close)</li>
+<li><strong>Monitoring diverges from reality</strong>: green dashboards, users down (our incident: yes)</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>Death Mode</th>
+<th>Symptoms</th>
+<th>Root Cause</th>
+<th>Prevention</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Untrusted</td>
+<td>Engineers SSH instead</td>
+<td>Trust collapse, no ownership</td>
+<td>Trust engineering, clear ownership</td>
+</tr>
+<tr>
+<td>Alert noise</td>
+<td>Alert storms, alerts muted</td>
+<td>No filtering, no grouping</td>
+<td>Alert governance, confidence thresholds</td>
+</tr>
+<tr>
+<td>Fragile system</td>
+<td>Prometheus OOM, slow queries</td>
+<td>Coupled with app, shared failure domain</td>
+<td>Independent infra, cardinality governance</td>
+</tr>
+<tr>
+<td>No decision support</td>
+<td>Metrics exist, can’t decide</td>
+<td>Only raw metrics, no risk framework</td>
+<td>Risk-driven design, SLO framework</td>
+</tr>
+<tr>
+<td>Dies with production</td>
+<td>Monitoring crashes too</td>
+<td>Level 0 survivability</td>
+<td>Independent failure domains</td>
+</tr>
+<tr>
+<td>Diverges from reality</td>
+<td>Green but users down</td>
+<td>Wrong SLO, happy path bias</td>
+<td>Real user metrics, correct SLO</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="Where-Will-It-Die">Where Will It Die?</h2>
+<p>Every failure in our incident traces back to one root cause: <strong>monitoring was not designed for organizational decision capability under uncertainty</strong>.</p>
+<p>Trust collapse: engineers stop relying on it. Survivability failure: dies with production. Risk blindness: monitoring wrong things. Decision incapability: can’t answer questions. Control loop broken: no action, no feedback. Cognitive stack incomplete: missing interpretation and decision layers.</p>
+<p><strong>The sole purpose of monitoring systems is to maintain organizational action capability under uncertainty.</strong> Not data visibility. Not debugging. Not metric collection.</p>
+<p>Build decision capability. Not dashboards.</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tech-en/tags/Monitoring-Systems/" rel="tag"># Monitoring Systems</a>
+              <a href="/tech-en/tags/Production-Operations/" rel="tag"># Production Operations</a>
+              <a href="/tech-en/tags/System-Design/" rel="tag"># System Design</a>
+              <a href="/tech-en/tags/Observability/" rel="tag"># Observability</a>
+              <a href="/tech-en/tags/SRE/" rel="tag"># SRE</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/tech-en/2026/02/11/2026-02-11_ai-writing-modeling_en/" rel="prev" title="Writing as Modeling, Not Just Expression">
+                  <i class="fa fa-angle-left"></i> Writing as Modeling, Not Just Expression
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/tech-en/2026/02/11/2026-02-11_production-systems-refuse-to-die_en/" rel="next" title="Production Systems That Refuse to Die">
+                  Production Systems That Refuse to Die <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">Rui Shao</span>
+  </div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+<!-- hexo injector body_end start --><script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>mermaid.initialize({ startOnLoad: true, theme: "default" });</script><!-- hexo injector body_end end --></body>
+</html>

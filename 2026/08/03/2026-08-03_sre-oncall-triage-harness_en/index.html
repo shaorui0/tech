@@ -1,8 +1,425 @@
-<!doctype html>
-<html lang="en"><head><meta charset="utf-8">
-<title>Moved</title>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 8.1.1">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/tech-en/favicon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/tech-en/favicon.svg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/tech-en/favicon.svg">
+  <link rel="mask-icon" href="/tech-en/favicon.svg" color="#222">
+
+<link rel="stylesheet" href="/tech-en/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"shaorui0.github.io","root":"/tech-en/","images":"/tech-en/images","scheme":"Gemini","darkmode":true,"version":"8.27.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}}</script><script src="/tech-en/js/config.js" defer></script>
+
+    <meta name="description" content="A working harness that refactors SRE oncall triage from a human-executed procedure into an agent that investigates on its own while every irreversible action stays behind a deterministic gate. Built o">
+<meta property="og:type" content="article">
+<meta property="og:title" content="An SRE Oncall Triage Harness — Autonomous Investigation, Human-Owned Mutation">
+<meta property="og:url" content="https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_sre-oncall-triage-harness_en/index.html">
+<meta property="og:site_name" content="Tech &amp; AI">
+<meta property="og:description" content="A working harness that refactors SRE oncall triage from a human-executed procedure into an agent that investigates on its own while every irreversible action stays behind a deterministic gate. Built o">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2026-08-02T15:00:00.000Z">
+<meta property="article:modified_time" content="2026-08-03T16:19:14.700Z">
+<meta property="article:author" content="Rui Shao">
+<meta property="article:tag" content="AI Agents">
+<meta property="article:tag" content="AgentOps">
+<meta property="article:tag" content="LLM">
+<meta property="article:tag" content="SRE">
+<meta name="twitter:card" content="summary">
+
+
 <link rel="canonical" href="https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_sre-oncall-triage-harness_en/">
-<meta http-equiv="refresh" content="0; url=https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_sre-oncall-triage-harness_en/">
-<script>location.replace("https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_sre-oncall-triage-harness_en/");</script>
-<style>body{font-family:-apple-system,sans-serif;margin:4rem auto;max-width:32rem;padding:0 1.5rem;line-height:1.6}a{color:#1155cc}</style>
-</head><body><p>The English blog moved to <a href="https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_sre-oncall-triage-harness_en/">its own site</a>.</p></body></html>
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_sre-oncall-triage-harness_en/","path":"2026/08/03/2026-08-03_sre-oncall-triage-harness_en/","title":"An SRE Oncall Triage Harness — Autonomous Investigation, Human-Owned Mutation"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>An SRE Oncall Triage Harness — Autonomous Investigation, Human-Owned Mutation | Tech & AI</title>
+  
+
+
+
+
+
+
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous" defer></script>
+<script src="/tech-en/js/utils.js" defer></script><script src="/tech-en/js/motion.js" defer></script><script src="/tech-en/js/sidebar.js" defer></script><script src="/tech-en/js/next-boot.js" defer></script>
+
+  
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.10.1/mermaid.min.js","integrity":"sha256-BmQmdWDS8X2OTbrwELWK366LV6escyWhHHe0XCTU/Hk="}}</script>
+  <script src="/tech-en/js/third-party/tags/mermaid.js" defer></script>
+
+
+
+
+
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/tech-en/css/noscript.css">
+  </noscript>
+<!-- hexo injector head_end start --><style>
+.article-toc-wrap {
+  margin-bottom: 1.5em;
+  padding: 1em 1.25em;
+  background: #f8f9fa;
+  border-radius: 6px;
+  border-left: 3px solid #ddd;
+}
+.article-toc-wrap .toc-title {
+  font-weight: bold;
+  margin-bottom: 0.5em;
+  font-size: 0.95em;
+  color: #555;
+}
+.article-toc-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.article-toc-list .article-toc-list { padding-left: 1em; margin-top: 0.25em; }
+.article-toc-item { margin: 0.35em 0; }
+.article-toc-link {
+  text-decoration: none;
+  color: #444;
+  font-size: 0.9em;
+}
+.article-toc-link:hover { color: #08c; text-decoration: underline; }
+.article-toc-level-3 .article-toc-link { font-size: 0.85em; }
+.article-toc-level-4 .article-toc-link { font-size: 0.8em; }
+</style><!-- hexo injector head_end end --></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/tech-en/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Tech & AI</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">Systems, Infrastructure, and AI</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="Search" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/tech-en/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-tags"><a href="/tech-en/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li><li class="menu-item menu-item-categories"><a href="/tech-en/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li><li class="menu-item menu-item-archives"><a href="/tech-en/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li><li class="menu-item menu-item-中文"><a href="https://shaorui0.github.io/tech/" rel="section"><i class="fa fa-language fa-fw"></i>中文</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Why"><span class="nav-number">1.</span> <span class="nav-text">Why</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#The-design-four-control-primitives-not-role-play"><span class="nav-number">2.</span> <span class="nav-text">The design: four control primitives, not role-play</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#One-transferable-intuition-this-is-a-Kubernetes-control-plane"><span class="nav-number">3.</span> <span class="nav-text">One transferable intuition: this is a Kubernetes control plane</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Safety-that-actually-lands"><span class="nav-number">4.</span> <span class="nav-text">Safety that actually lands</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Why-it-gets-better-with-use"><span class="nav-number">5.</span> <span class="nav-text">Why it gets better with use</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Takeaways"><span class="nav-number">6.</span> <span class="nav-text">Takeaways</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Rui Shao</p>
+  <div class="site-description" itemprop="description">Rui Shao — writing about systems, infrastructure and AI</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/tech-en/archives/">
+          <span class="site-state-item-count">24</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">38</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/shaorui0" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;shaorui0" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.linkedin.com/in/rui-shao-a21a55194/" title="LinkedIn → https:&#x2F;&#x2F;www.linkedin.com&#x2F;in&#x2F;rui-shao-a21a55194&#x2F;" rel="noopener me" target="_blank"><i class="fab fa-linkedin fa-fw"></i>LinkedIn</a>
+      </span>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_sre-oncall-triage-harness_en/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/tech-en/images/avatar.gif">
+      <meta itemprop="name" content="Rui Shao">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Tech & AI">
+      <meta itemprop="description" content="Rui Shao — writing about systems, infrastructure and AI">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="An SRE Oncall Triage Harness — Autonomous Investigation, Human-Owned Mutation | Tech & AI">
+      <meta itemprop="description" content="A working harness that refactors SRE oncall triage from a human-executed procedure into an agent that investigates on its own while every irreversible action stays behind a deterministic gate. Built on four control primitives — Spec &#x2F; Loop &#x2F; Hook &#x2F; Fork — with the reliability discipline of a Kubernetes control plane wrapped around a non-deterministic reasoning core.">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          An SRE Oncall Triage Harness — Autonomous Investigation, Human-Owned Mutation
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2026-08-03 00:00:00" itemprop="dateCreated datePublished" datetime="2026-08-03T00:00:00+09:00">2026-08-03</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2026-08-04 01:19:14" itemprop="dateModified" datetime="2026-08-04T01:19:14+09:00">2026-08-04</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/tech-en/categories/AI-Agents/" itemprop="url" rel="index"><span itemprop="name">AI Agents</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+            <div class="post-description">A working harness that refactors SRE oncall triage from a human-executed procedure into an agent that investigates on its own while every irreversible action stays behind a deterministic gate. Built on four control primitives — Spec / Loop / Hook / Fork — with the reliability discipline of a Kubernetes control plane wrapped around a non-deterministic reasoning core.</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><nav class="article-toc-wrap" aria-label="Contents"><div class="toc-title">Contents</div><ol class="article-toc-list"><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#Why"><span class="article-toc-text">Why</span></a></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#The-design-four-control-primitives-not-role-play"><span class="article-toc-text">The design: four control primitives, not role-play</span></a></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#One-transferable-intuition-this-is-a-Kubernetes-control-plane"><span class="article-toc-text">One transferable intuition: this is a Kubernetes control plane</span></a></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#Safety-that-actually-lands"><span class="article-toc-text">Safety that actually lands</span></a></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#Why-it-gets-better-with-use"><span class="article-toc-text">Why it gets better with use</span></a></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#Takeaways"><span class="article-toc-text">Takeaways</span></a></li></ol></nav>
+<blockquote>
+<p>Also in Chinese: <a href="https://shaorui0.github.io/tech/2026/08/03/2026-08-03_sre-oncall-triage-harness_zh/">中文版</a></p>
+</blockquote>
+<h2 id="Why">Why</h2>
+<p>In an oncall investigation the main agent’s real job is judgment: is this a false alarm, where is the root cause, what to query next, do we escalate. Judgment needs a clear context window. But a single raw range query can come back at 30K tokens, and a slice of logs is worse. If the main agent pulls that data itself, then by the time it reaches the phase where the hard calls happen, its context is drowned in raw numbers and its judgment is spent.</p>
+<p>That is the first-principles constraint the whole system is built on: context is scarce RAM, not an infinite disk. Whoever occupies it should pay for the occupancy. One iron rule follows directly — the main agent keeps only navigation, judgment, and command generation; all raw-data fetching is pushed down to a subagent that returns a structured summary of no more than 500 tokens. This is not an optimization. It is an architectural constraint.</p>
+<p>I built this harness to hold that line under real oncall load, and the design below is a chain of consequences from that one constraint.</p>
+<h2 id="The-design-four-control-primitives-not-role-play">The design: four control primitives, not role-play</h2>
+<p>Most “multi-agent” frameworks do role-play: a PM agent, an engineer agent, a QA agent. That is skeuomorphism — copying a human org chart onto agents, intuitive but without engineering meaning. What actually carries weight is four control primitives:</p>
+<div class="mermaid">flowchart TD
+    SPEC[&quot;SPEC · declarative intent&lt;br/&gt;a persistent file states the desired end-state&lt;br/&gt;must include machine-checkable acceptance criteria&lt;br/&gt;diffable · reviewable · recoverable after context compaction&quot;]
+    LOOP[&quot;LOOP · convergence loop&lt;br/&gt;observe → compare to Spec → act → verify&lt;br/&gt;the tighter the criteria, the more autonomous the loop&quot;]
+    HOOK[&quot;HOOK · admission control&lt;br/&gt;audit records evidence / deny hard-blocks / HITL waits for a human&lt;br/&gt;red-team review is a hook too&quot;]
+    FORK[&quot;FORK · context isolation&lt;br/&gt;fork for isolation, not for role-play&lt;br/&gt;fork only when isolation gain &gt; briefing + merge cost&quot;]
+
+    SPEC -- &quot;defines the convergence target&quot; --&gt; LOOP
+    HOOK -. &quot;inserted at key loop nodes&quot; .-&gt; LOOP
+    LOOP -- &quot;spawn when isolation is needed&quot; --&gt; FORK
+    FORK -- &quot;results merge back into the main loop&quot; --&gt; LOOP
+    LOOP -- &quot;all criteria pass → end-state&quot; --&gt; DONE((&quot;✓&quot;))</div>
+<p>Three design decisions do most of the work.</p>
+<p><strong>Subagent isolation.</strong> The main agent inherits the strongest model and only judges; raw VictoriaMetrics/Loki queries and Slack reads are dispatched to a subagent that returns at most 500 tokens — a max value with its timestamp, a step-jump flag, a baseline ratio. This is the capacity-bound and attention-bound case for Fork made concrete: a 30K-token query is isolated into a fresh window so the main context never sees it. The anti-pattern is the main agent running the query itself, pulling back 200 data points, and arriving at the decisive phase already token-exhausted.</p>
+<p><strong>Phase lock.</strong> Karpathy described a classic agent failure: see a deploy record, hallucinate a root cause — swept off by “what changed recently” before the symptom is even understood. I designed that failure mode out with a state machine. A <code>phase:</code> field at the top of the plan file physically restricts what the main agent can read: in Phase A it cannot read deploy history at all, so it cannot confabulate one. The gate to the next phase is an explicit precondition, not a suggestion.</p>
+<div class="mermaid">stateDiagram-v2
+    [*] --&gt; A : plan.md sets phase A
+    A : Phase A · Investigator
+    A : OK debug-trees / patterns / references, MCP read-only
+    A : NO runbook bodies / full cases / deploy history
+    B : Phase B · Decider
+    B : OK unlocks full cases / deploy history / runbook README
+    B : NO runbook command bodies (.sh / .yaml)
+    C : Phase C · Operator
+    C : OK unlocks full runbook content, drafts INTENT commands
+    C : still subject to the Mutation Approval Gate
+
+    A --&gt; B : root-cause hypothesis non-empty and &gt;=1 hypothesis verified
+    B --&gt; C : user explicitly confirms the root cause
+    C --&gt; [*] : commands generated then await approval</div>
+<p><strong>The red line.</strong> Models hallucinate. That is a premise, not a defect, so system safety can never rest on “the model will comply.” Judgment — false alarm or not, where the root cause is — goes to the model. Every irreversible operation (delete, scale, drain, IAM change) goes to a deterministic shell hook that hard-blocks. No amount of hallucination gets past an <code>exit 2</code>. This turns safety from “hope the model behaves” into “it’s fine if the model misbehaves.”</p>
+<h2 id="One-transferable-intuition-this-is-a-Kubernetes-control-plane">One transferable intuition: this is a Kubernetes control plane</h2>
+<p>For an SRE none of this is new — it is the Kubernetes control-plane pattern moved inside the agent. Spec is the desired-state manifest; Loop is the controller’s reconcile loop; Hook is the admission webhook; Fork is pod-level isolation plus an independent auditor. The proposition underneath: we are not replacing SREs with AI. We are using decades of reliability engineering to constrain and operate a non-deterministic reasoning core.</p>
+<h2 id="Safety-that-actually-lands">Safety that actually lands</h2>
+<p>A single mutating command has to clear four gates before it reaches production; any one of them stops it:</p>
+<div class="mermaid">flowchart TD
+    GEN[&quot;main agent generates a command (Phase C)&lt;br/&gt;# INTENT: intent line&lt;br/&gt;scale deploy ... (generalized, no cluster context)&quot;] --&gt; U{&quot;Gate 1 · Skill layer&lt;br/&gt;explicit user approval?&quot;}
+    U -- &quot;no approval&quot; --&gt; STAY[&quot;command stays in report.md · zero auto-execution&quot;]
+    U -- &quot;approve / go&quot; --&gt; PERM{&quot;Gate 2 · settings.json permissions&quot;}
+    PERM -- &quot;deny list hit&quot; --&gt; D1[&quot;rejected&quot;]
+    PERM -- &quot;allow / ask passes&quot; --&gt; GATE{&quot;Gate 3 · k8s-gate.sh (PreToolUse hook)&quot;}
+    GATE -- &quot;hard-block list or PROD + mutating&quot; --&gt; D2[&quot;exit 2 · prints the command for a human to run&quot;]
+    GATE -- &quot;pass (DEV / dry-run / read-only)&quot; --&gt; PRE[&quot;audit-pre.sh records phase=pre + INTENT&quot;]
+    PRE --&gt; RUN[&quot;Bash executes&quot;]
+    RUN --&gt; POST[&quot;audit-log.sh records phase=post result&quot;]
+    POST --&gt; VF{&quot;Gate 4 · mandatory verification&lt;br/&gt;rollout status / get / helm status&quot;}
+    VF -- &quot;verification fails or ambiguous&quot; --&gt; HALT[&quot;stop and report, no further changes&quot;]
+    VF -- &quot;verification passes&quot; --&gt; OK[&quot;done&quot;]</div>
+<p>Gate 1 is the skill layer: absent approval, the command just sits in the report. Gate 2 is a static allow/deny list — fastest, coarsest. Gate 3 is the deterministic executor: six shell hooks that understand cluster-alias-to-environment grading and fail closed — an unclassified alias is treated as production. This is the layer the model cannot route around, and it is where the red line is actually enforced. Gate 4 is mandatory post-verification. Two of the hooks even nest a second model call (<code>claude -p</code>) to review the current model’s plan at the moment of approval — AI reviewing AI, the red-team hook mounted exactly at Spec-freeze time.</p>
+<h2 id="Why-it-gets-better-with-use">Why it gets better with use</h2>
+<p>The compounding is not “save the report.” It is a delta judgment: against 130+ existing knowledge files, what did this investigation actually learn that is <em>new</em>? Matches update an existing file; a new root-cause path creates a new case; a new signal updates the routing table. Three anti-rot rules keep it clean: record only the delta, promote AI-written knowledge from <code>draft</code> to <code>stable</code> only after human review, and keep every entry traceable via <code>derived_from</code> back to the triage report. The knowledge base today spans 34+ cases, 21+ runbooks, and 15+ cards, and the next alert’s fast path retrieves straight into it.</p>
+<p>And every real oncall is an eval run. <code>verify.py</code> gates single-investigation quality with an exit code — required sections present, evidence chain per conclusion, no over-assertion in the Slack response — while <code>slo.py</code> tracks pass-rate trends across investigations and exposes decay in the skill itself. The system is therefore not a static tool but a closed loop that improves as it is used.</p>
+<h2 id="Takeaways">Takeaways</h2>
+<ul>
+<li>The binding constraint of an agent system is the context window, not the model. Treat context as RAM and the isolation architecture designs itself: judgment on the main agent, raw data on subagents behind a 500-token contract.</li>
+<li>Safety belongs in deterministic code, not in the prompt. Let the model judge; let a shell hook that returns <code>exit 2</code> own every irreversible action. Then hallucination stops being a safety risk.</li>
+<li>This is the concrete evidence for a larger thesis I hold elsewhere on this site: in the agent era, the SRE’s job is to be the reliable outer shell around a non-deterministic core.</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tech-en/tags/SRE/" rel="tag"># SRE</a>
+              <a href="/tech-en/tags/AI-Agents/" rel="tag"># AI Agents</a>
+              <a href="/tech-en/tags/AgentOps/" rel="tag"># AgentOps</a>
+              <a href="/tech-en/tags/LLM/" rel="tag"># LLM</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/tech-en/2026/08/03/2026-08-03_the-p100-that-was-exactly-one-second_en/" rel="prev" title="The P100 that was exactly 1.00 seconds">
+                  <i class="fa fa-angle-left"></i> The P100 that was exactly 1.00 seconds
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/tech-en/2026/08/03/2026-08-03_the-os-fallacy_en/" rel="next" title="The OS Fallacy: Why Stronger Models Make Orchestration Matter More, Not Less">
+                  The OS Fallacy: Why Stronger Models Make Orchestration Matter More, Not Less <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">Rui Shao</span>
+  </div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+<!-- hexo injector body_end start --><script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>mermaid.initialize({ startOnLoad: true, theme: "default" });</script><!-- hexo injector body_end end --></body>
+</html>

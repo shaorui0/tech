@@ -1,8 +1,376 @@
-<!doctype html>
-<html lang="en"><head><meta charset="utf-8">
-<title>Moved</title>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 8.1.1">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/tech-en/favicon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/tech-en/favicon.svg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/tech-en/favicon.svg">
+  <link rel="mask-icon" href="/tech-en/favicon.svg" color="#222">
+
+<link rel="stylesheet" href="/tech-en/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"shaorui0.github.io","root":"/tech-en/","images":"/tech-en/images","scheme":"Gemini","darkmode":true,"version":"8.27.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}}</script><script src="/tech-en/js/config.js" defer></script>
+
+    <meta name="description" content="What changed, and what still needs an engineer">
+<meta property="og:type" content="article">
+<meta property="og:title" content="SRE in the Age of AI Agents">
+<meta property="og:url" content="https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_sre-in-the-age-of-ai-agents_en/index.html">
+<meta property="og:site_name" content="Tech &amp; AI">
+<meta property="og:description" content="What changed, and what still needs an engineer">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2026-08-02T15:00:00.000Z">
+<meta property="article:modified_time" content="2026-08-03T16:19:14.705Z">
+<meta property="article:author" content="Rui Shao">
+<meta property="article:tag" content="AI Agents">
+<meta property="article:tag" content="AgentOps">
+<meta property="article:tag" content="LLM">
+<meta property="article:tag" content="SRE">
+<meta name="twitter:card" content="summary">
+
+
 <link rel="canonical" href="https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_sre-in-the-age-of-ai-agents_en/">
-<meta http-equiv="refresh" content="0; url=https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_sre-in-the-age-of-ai-agents_en/">
-<script>location.replace("https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_sre-in-the-age-of-ai-agents_en/");</script>
-<style>body{font-family:-apple-system,sans-serif;margin:4rem auto;max-width:32rem;padding:0 1.5rem;line-height:1.6}a{color:#1155cc}</style>
-</head><body><p>The English blog moved to <a href="https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_sre-in-the-age-of-ai-agents_en/">its own site</a>.</p></body></html>
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_sre-in-the-age-of-ai-agents_en/","path":"2026/08/03/2026-08-03_sre-in-the-age-of-ai-agents_en/","title":"SRE in the Age of AI Agents"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>SRE in the Age of AI Agents | Tech & AI</title>
+  
+
+
+
+
+
+
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous" defer></script>
+<script src="/tech-en/js/utils.js" defer></script><script src="/tech-en/js/motion.js" defer></script><script src="/tech-en/js/sidebar.js" defer></script><script src="/tech-en/js/next-boot.js" defer></script>
+
+  
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.10.1/mermaid.min.js","integrity":"sha256-BmQmdWDS8X2OTbrwELWK366LV6escyWhHHe0XCTU/Hk="}}</script>
+  <script src="/tech-en/js/third-party/tags/mermaid.js" defer></script>
+
+
+
+
+
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/tech-en/css/noscript.css">
+  </noscript>
+<!-- hexo injector head_end start --><style>
+.article-toc-wrap {
+  margin-bottom: 1.5em;
+  padding: 1em 1.25em;
+  background: #f8f9fa;
+  border-radius: 6px;
+  border-left: 3px solid #ddd;
+}
+.article-toc-wrap .toc-title {
+  font-weight: bold;
+  margin-bottom: 0.5em;
+  font-size: 0.95em;
+  color: #555;
+}
+.article-toc-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.article-toc-list .article-toc-list { padding-left: 1em; margin-top: 0.25em; }
+.article-toc-item { margin: 0.35em 0; }
+.article-toc-link {
+  text-decoration: none;
+  color: #444;
+  font-size: 0.9em;
+}
+.article-toc-link:hover { color: #08c; text-decoration: underline; }
+.article-toc-level-3 .article-toc-link { font-size: 0.85em; }
+.article-toc-level-4 .article-toc-link { font-size: 0.8em; }
+</style><!-- hexo injector head_end end --></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/tech-en/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Tech & AI</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">Systems, Infrastructure, and AI</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="Search" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/tech-en/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-tags"><a href="/tech-en/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li><li class="menu-item menu-item-categories"><a href="/tech-en/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li><li class="menu-item menu-item-archives"><a href="/tech-en/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li><li class="menu-item menu-item-中文"><a href="https://shaorui0.github.io/tech/" rel="section"><i class="fa fa-language fa-fw"></i>中文</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#What-has-changed"><span class="nav-number">1.</span> <span class="nav-text">What has changed</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#What-still-needs-an-engineer"><span class="nav-number">2.</span> <span class="nav-text">What still needs an engineer</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Rui Shao</p>
+  <div class="site-description" itemprop="description">Rui Shao — writing about systems, infrastructure and AI</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/tech-en/archives/">
+          <span class="site-state-item-count">24</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">38</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/shaorui0" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;shaorui0" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.linkedin.com/in/rui-shao-a21a55194/" title="LinkedIn → https:&#x2F;&#x2F;www.linkedin.com&#x2F;in&#x2F;rui-shao-a21a55194&#x2F;" rel="noopener me" target="_blank"><i class="fab fa-linkedin fa-fw"></i>LinkedIn</a>
+      </span>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_sre-in-the-age-of-ai-agents_en/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/tech-en/images/avatar.gif">
+      <meta itemprop="name" content="Rui Shao">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Tech & AI">
+      <meta itemprop="description" content="Rui Shao — writing about systems, infrastructure and AI">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="SRE in the Age of AI Agents | Tech & AI">
+      <meta itemprop="description" content="What changed, and what still needs an engineer">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          SRE in the Age of AI Agents
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2026-08-03 00:00:00" itemprop="dateCreated datePublished" datetime="2026-08-03T00:00:00+09:00">2026-08-03</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2026-08-04 01:19:14" itemprop="dateModified" datetime="2026-08-04T01:19:14+09:00">2026-08-04</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/tech-en/categories/AI-Agents/" itemprop="url" rel="index"><span itemprop="name">AI Agents</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+            <div class="post-description">What changed, and what still needs an engineer</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><nav class="article-toc-wrap" aria-label="Contents"><div class="toc-title">Contents</div><ol class="article-toc-list"><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#What-has-changed"><span class="article-toc-text">What has changed</span></a></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#What-still-needs-an-engineer"><span class="article-toc-text">What still needs an engineer</span></a></li></ol></nav>
+<blockquote>
+<p>Also in Chinese: <a href="https://shaorui0.github.io/tech/2026/08/03/2026-08-03_sre-in-the-age-of-ai-agents_zh/">中文版</a></p>
+</blockquote>
+<p>Strip SRE down to first principles and it is one job: operating the loop between what a system should be doing and what it is actually doing. Detect the gap, explain it, close it, keep it closed. AI agents have not changed that definition at all. What they have changed is who performs which part of the loop. I say this not as a forecast but as a description of my working week: agents run my production forensics, an agent harness runs my oncall triage, and the evidence behind this resume was itself distilled by an agent pipeline. This page is what the shift looks like from inside it.</p>
+<h2 id="What-has-changed">What has changed</h2>
+<p><strong>The execution layer of oncall has moved to agents.</strong> When a compaction score on a distributed storage system pinned at ~4,500 and refused to move, I did not investigate serially. I fanned out three read-only agents in parallel: one enumerating logs, one walking the tablet-metadata endpoints, one inspecting the catalog recycle bin. All three converged on the same orphaned tablet from an already-dropped table, structurally excluded from scheduling. One chain of reasoning can be led astray; three independent evidence chains pointing at the same object is a verdict. That fan-out-and-converge pattern is now my default forensics posture, not an experiment.</p>
+<p>The same shift is institutionalized in my oncall triage harness. An agent picks up an alert and investigates autonomously, but inside a structure I designed: stage-locked phases it cannot skip, and conclusions that must cite evidence, a query result, a log line, a file and line number. Mutations are never auto-executed; every state change is proposed, and a human approves each one. The agent does the legwork that used to consume the first thirty minutes of every page.</p>
+<p><strong>Knowledge changed shape.</strong> A runbook written for humans is narrative. What compounds for an agent is the discriminator: a cheap check that splits the root-cause candidate set in half. Recording the same dead end ten times as a story yields nothing; recording it once as “if A is normal, prune this entire branch” turns a past investigation into future routing. My triage knowledge base is organized around this unit, decision trees ordered by which checks are cheap and which are expensive, because answers rot as infrastructure changes but probe order barely does.</p>
+<p><strong>The human’s position moved, and so did the leverage.</strong> I spend my time designing harnesses and adjudicating their output, not executing steps. The result is reach: the evidence base of this resume was produced by a re-runnable mining pipeline that distilled 82 working sessions into structured highlights with provenance, then into a dossier. One person plus a harness now owns a surface that used to need several.</p>
+<h2 id="What-still-needs-an-engineer">What still needs an engineer</h2>
+<p>Start from one distinction. A Kubernetes controller is deterministic, so it needs no guardrail. An agent is a probabilistic controller, so a policy layer is a production prerequisite, not an option. Most of the engineering that remains human falls out of that fact.</p>
+<p><strong>Intent and constraint definition.</strong> Someone has to write the Spec, the desired end state with machine-checkable acceptance criteria, and place the Hooks: audit hooks that record evidence, deny hooks that hard-block irreversible actions, human-in-the-loop hooks that pause for approval. This is admission control for decisions, and it cannot be delegated to the thing being admitted. Constraints are the source of safety; the model is the source of capability. Confusing the two is how agents end up helpful and dangerous at once.</p>
+<p><strong>Mutation sovereignty.</strong> My harness enforces a strict read/write asymmetry: agents are excellent at reading and diagnosing, and structurally dangerous at writing. All the compounding value lives on the diagnostic side, so that side runs wide open. The write side is proposal-only, because blast radius is a business judgment and because agents fail silently: a hallucinated conclusion returns the equivalent of HTTP 200. You cannot budget what you cannot detect, and automating mutation on top of undetected error is not speed, it is laundering error with speed.</p>
+<p><strong>Eval as the measurement system.</strong> An agent without eval is not operable; you are shipping vibes. Per-step reliability compounds badly, a 95% step success rate is roughly 36% over twenty steps, so the SRE toolkit transfers with modification: task completion rate and convergence time as the first SLIs, an eval dataset with expected outcomes run on every change, and human review treated as a way to spend error budget on the irreversible tier rather than a default everywhere. A reviewer who approves two hundred times a day approves nothing. When the budget burns, autonomy should contract automatically.</p>
+<p><strong>Platform primitives.</strong> Agent systems need exactly what production systems need: a reconcile loop that compares state against Spec, observability over decisions and not just outputs, and explicit convergence criteria. My working summary is three imperatives: constrain it, see it, make it converge.</p>
+<p><strong>Final judgment.</strong> The rule in my harness, agent emits evidence and the human decides policy, is the same principle I argued in database-engine work, where the engine emits estimates and the caller decides routing policy. Mechanism can be shared, delegated, even upstreamed. Policy encodes your risk appetite and your accountability, and it stays with the engineer whose name is on the pager. Two lines of my career, storage engines and agent operations, converge on exactly this sentence.</p>
+<p>That is the internal logic of the path from SRE to AI infrastructure. Not a career change: the same loop, desired state against actual state, closed safely, in its next form.</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tech-en/tags/SRE/" rel="tag"># SRE</a>
+              <a href="/tech-en/tags/AI-Agents/" rel="tag"># AI Agents</a>
+              <a href="/tech-en/tags/AgentOps/" rel="tag"># AgentOps</a>
+              <a href="/tech-en/tags/LLM/" rel="tag"># LLM</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/tech-en/2026/08/03/2026-08-03_the-os-fallacy_en/" rel="prev" title="The OS Fallacy: Why Stronger Models Make Orchestration Matter More, Not Less">
+                  <i class="fa fa-angle-left"></i> The OS Fallacy: Why Stronger Models Make Orchestration Matter More, Not Less
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/tech-en/2026/08/03/2026-08-03_restoring-5b-rows-without-touching-prod_en/" rel="next" title="Restoring 5.2 billion rows without touching prod">
+                  Restoring 5.2 billion rows without touching prod <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">Rui Shao</span>
+  </div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+<!-- hexo injector body_end start --><script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>mermaid.initialize({ startOnLoad: true, theme: "default" });</script><!-- hexo injector body_end end --></body>
+</html>
