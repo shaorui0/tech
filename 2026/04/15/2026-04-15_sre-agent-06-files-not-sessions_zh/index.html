@@ -28,7 +28,7 @@
 <meta property="og:description" content="状态：大纲 核心论点 Agent 之间的通信应该通过持久化文件，不是共享 session。文件是 git-tracked、可 diff、可 audit、异步的；session 是 volatile、不可 inspect、时间耦合、不可恢复的。这是 Unix 哲学在 agent 时代的自然延伸。Plan file 的三重身份（执行计划 + RBAC 策略 + audit log）是这个原则的极端体现">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2026-04-14T15:00:00.000Z">
-<meta property="article:modified_time" content="2026-08-10T13:22:35.445Z">
+<meta property="article:modified_time" content="2026-08-10T13:55:01.464Z">
 <meta property="article:author" content="Rui Shao">
 <meta property="article:tag" content="AI Agent">
 <meta property="article:tag" content="SRE">
@@ -178,7 +178,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/tech/archives/">
-          <span class="site-state-item-count">42</span>
+          <span class="site-state-item-count">43</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -189,7 +189,7 @@
       </div>
       <div class="site-state-item site-state-tags">
           <a href="/tech/tags/">
-        <span class="site-state-item-count">66</span>
+        <span class="site-state-item-count">67</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -260,7 +260,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-08-10 22:22:35" itemprop="dateModified" datetime="2026-08-10T22:22:35+09:00">2026-08-10</time>
+      <time title="修改时间：2026-08-10 22:55:01" itemprop="dateModified" datetime="2026-08-10T22:55:01+09:00">2026-08-10</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -357,9 +357,9 @@
 
     <footer class="post-footer">
           <div class="post-tags">
+              <a href="/tech/tags/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/" rel="tag"># 系统设计</a>
               <a href="/tech/tags/SRE/" rel="tag"># SRE</a>
               <a href="/tech/tags/AI-Agent/" rel="tag"># AI Agent</a>
-              <a href="/tech/tags/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/" rel="tag"># 系统设计</a>
               <a href="/tech/tags/Unix/" rel="tag"># Unix</a>
               <a href="/tech/tags/%E6%8C%81%E4%B9%85%E5%8C%96/" rel="tag"># 持久化</a>
           </div>
@@ -368,13 +368,13 @@
 
           <div class="post-nav">
             <div class="post-nav-item">
-                <a href="/tech/2026/04/15/2026-04-15_sre-agent-08-prompt-to-skill_zh/" rel="prev" title="SRE Agent 设计笔记 08：从 Prompt 到 Skill">
-                  <i class="fa fa-angle-left"></i> SRE Agent 设计笔记 08：从 Prompt 到 Skill
+                <a href="/tech/2026/04/15/2026-04-15_sre-agent-11-parallel-fanout_zh/" rel="prev" title="SRE Agent 设计笔记 11：Agent 的并行化：从序贯 Debug Tree 到 Fan-out Investigation">
+                  <i class="fa fa-angle-left"></i> SRE Agent 设计笔记 11：Agent 的并行化：从序贯 Debug Tree 到 Fan-out Investigation
                 </a>
             </div>
             <div class="post-nav-item">
-                <a href="/tech/2026/04/15/2026-04-15_sre-agent-03-evidence-before-tools_zh/" rel="next" title="SRE Agent 设计笔记 03：证据先于工具">
-                  SRE Agent 设计笔记 03：证据先于工具 <i class="fa fa-angle-right"></i>
+                <a href="/tech/2026/04/15/2026-04-15_sre-agent-10-context-engineering_zh/" rel="next" title="SRE Agent 设计笔记 10：Context Engineering 的实践：知识分层与加载策略">
+                  SRE Agent 设计笔记 10：Context Engineering 的实践：知识分层与加载策略 <i class="fa fa-angle-right"></i>
                 </a>
             </div>
           </div>

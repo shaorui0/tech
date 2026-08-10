@@ -170,7 +170,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/tech/archives/">
-          <span class="site-state-item-count">42</span>
+          <span class="site-state-item-count">43</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -181,7 +181,7 @@
       </div>
       <div class="site-state-item site-state-tags">
           <a href="/tech/tags/">
-        <span class="site-state-item-count">66</span>
+        <span class="site-state-item-count">67</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -307,7 +307,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://shaorui0.github.io/tech/2026/08/03/2026-08-03_an-audit-of-my-own-radar_zh/">
+    <link itemprop="mainEntityOfPage" href="https://shaorui0.github.io/tech/2026/08/03/2026-08-03_kubernetes-upgrade-engineering_zh/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/tech/images/avatar.gif">
@@ -325,7 +325,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/tech/2026/08/03/2026-08-03_an-audit-of-my-own-radar_zh/" class="post-title-link" itemprop="url">我当前做了什么，匹配什么能力</a>
+          <a href="/tech/2026/08/03/2026-08-03_kubernetes-upgrade-engineering_zh/" class="post-title-link" itemprop="url">生产 Kubernetes 升级工程：50 集群，1.24 → 1.29，零事故</a>
         </h2>
 
         <div class="post-meta-container">
@@ -351,7 +351,7 @@
       </span>
       <span class="post-meta-item-text">分类于</span>
         <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/tech/categories/%E8%A7%86%E8%A7%92/" itemprop="url" rel="index"><span itemprop="name">视角</span></a>
+          <a href="/tech/categories/%E7%94%9F%E4%BA%A7%E5%B7%A5%E7%A8%8B/" itemprop="url" rel="index"><span itemprop="name">生产工程</span></a>
         </span>
     </span>
 
@@ -365,10 +365,10 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <p>九个分数如何从证据密度推导、每个分数意味着什么，以及一份独立交叉验证雷达形状的行为记录。</p>
+          <p>用 Upgrade Safety System（check → plan → apply + evidence）把 18-21 小时、需要两人结对的手工升级压缩为 6-8 小时单人操作，并在两套生产集群上以零客户可感知停机完成执行。</p>
           <!--noindex-->
             <div class="post-button">
-              <a class="btn" href="/tech/2026/08/03/2026-08-03_an-audit-of-my-own-radar_zh/">
+              <a class="btn" href="/tech/2026/08/03/2026-08-03_kubernetes-upgrade-engineering_zh/">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -583,6 +583,98 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://shaorui0.github.io/tech/2026/08/03/2026-08-03_refused-is-not-timeout_zh/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/tech/images/avatar.gif">
+      <meta itemprop="name" content="Rui Shao">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Tech & AI · 中文">
+      <meta itemprop="description" content="Rui Shao 的技术博客（中文）— 系统、基础设施与 AI">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content=" | Tech & AI · 中文">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/tech/2026/08/03/2026-08-03_refused-is-not-timeout_zh/" class="post-title-link" itemprop="url">refused 不是 timeout</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2026-08-03 00:00:00" itemprop="dateCreated datePublished" datetime="2026-08-03T00:00:00+09:00">2026-08-03</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2026-08-10 22:22:35" itemprop="dateModified" datetime="2026-08-10T22:22:35+09:00">2026-08-10</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/tech/categories/%E4%BA%8B%E6%95%85%E5%A4%8D%E7%9B%98/" itemprop="url" rel="index"><span itemprop="name">事故复盘</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>两个词把搜索空间砍半；走完八跳找到两个根因。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/tech/2026/08/03/2026-08-03_refused-is-not-timeout_zh/">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
     <link itemprop="mainEntityOfPage" href="https://shaorui0.github.io/tech/2026/08/03/2026-08-03_sre-in-the-age-of-ai-agents_zh/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -767,7 +859,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://shaorui0.github.io/tech/2026/08/03/2026-08-03_the-p100-that-was-exactly-one-second_zh/">
+    <link itemprop="mainEntityOfPage" href="https://shaorui0.github.io/tech/2026/08/03/2026-08-03_the-os-fallacy_zh/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/tech/images/avatar.gif">
@@ -785,7 +877,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/tech/2026/08/03/2026-08-03_the-p100-that-was-exactly-one-second_zh/" class="post-title-link" itemprop="url">恰好 1.00 秒的 P100</a>
+          <a href="/tech/2026/08/03/2026-08-03_the-os-fallacy_zh/" class="post-title-link" itemprop="url">「操作系统谬误」：为什么模型越强，orchestration 反而越重要</a>
         </h2>
 
         <div class="post-meta-container">
@@ -811,7 +903,7 @@
       </span>
       <span class="post-meta-item-text">分类于</span>
         <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/tech/categories/%E4%BA%8B%E6%95%85%E5%A4%8D%E7%9B%98/" itemprop="url" rel="index"><span itemprop="name">事故复盘</span></a>
+          <a href="/tech/categories/AI-Agent/" itemprop="url" rel="index"><span itemprop="name">AI Agent</span></a>
         </span>
     </span>
 
@@ -825,10 +917,10 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <p>整数尾延迟是人为常量：一个周期性尖刺，追到藏在限流插件里的缓存超时。</p>
+          <p>「模型变强，所以 orchestration 层会消失」——这等于说「CPU 变快，所以操作系统会消失」。CPU 确实杀死了内存覆盖技术和手工 DMA，但进程管理、权限控制、设备驱动不仅没消失，反而更重要了。orchestration 也不是在消亡，是在三处重新分配。附一条可检验的吸收判别式。</p>
           <!--noindex-->
             <div class="post-button">
-              <a class="btn" href="/tech/2026/08/03/2026-08-03_the-p100-that-was-exactly-one-second_zh/">
+              <a class="btn" href="/tech/2026/08/03/2026-08-03_the-os-fallacy_zh/">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -859,7 +951,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://shaorui0.github.io/tech/2026/08/03/2026-08-03_what-knows-jenkins-actually-tests_zh/">
+    <link itemprop="mainEntityOfPage" href="https://shaorui0.github.io/tech/2026/08/03/2026-08-03_what-i-know-i-cant-do-yet_zh/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/tech/images/avatar.gif">
@@ -877,99 +969,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/tech/2026/08/03/2026-08-03_what-knows-jenkins-actually-tests_zh/" class="post-title-link" itemprop="url">「SRE 熟悉 Jenkins」到底是什么能力</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2026-08-03 00:00:00" itemprop="dateCreated datePublished" datetime="2026-08-03T00:00:00+09:00">2026-08-03</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-08-10 22:22:35" itemprop="dateModified" datetime="2026-08-10T22:22:35+09:00">2026-08-10</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/tech/categories/%E7%94%9F%E4%BA%A7%E5%B7%A5%E7%A8%8B/" itemprop="url" rel="index"><span itemprop="name">生产工程</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>「熟悉 Jenkins」写在无数 JD 里，但会写 pipeline 脚本不是那个能力。真正的能力是把交付流水线当生产系统对待：流程幂等、job 状态可观测、配置进代码，并且知道自动化本身什么时候会变成新的熵源。落地素材来自一次真实的 Jenkins 迁移，和其中 diagnose 与 fix 脚本的配对。</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/tech/2026/08/03/2026-08-03_what-knows-jenkins-actually-tests_zh/">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://shaorui0.github.io/tech/2026/08/03/2026-08-03_what-i-understand-sre-to-require_zh/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/tech/images/avatar.gif">
-      <meta itemprop="name" content="Rui Shao">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Tech & AI · 中文">
-      <meta itemprop="description" content="Rui Shao 的技术博客（中文）— 系统、基础设施与 AI">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content=" | Tech & AI · 中文">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/tech/2026/08/03/2026-08-03_what-i-understand-sre-to-require_zh/" class="post-title-link" itemprop="url">我所理解的 SRE 需要的能力</a>
+          <a href="/tech/2026/08/03/2026-08-03_what-i-know-i-cant-do-yet_zh/" class="post-title-link" itemprop="url">接下来应该做什么</a>
         </h2>
 
         <div class="post-meta-container">
@@ -1009,10 +1009,10 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <p>雷达为什么是九个轴：一个按问题类别而不是工具清单构建的能力模型，以及护城河到底在哪里。</p>
+          <p>雷达上的 target 虚线是承诺，不是装饰：三个按优先级排列的缺口，每个都带一条可检验的补齐定义。</p>
           <!--noindex-->
             <div class="post-button">
-              <a class="btn" href="/tech/2026/08/03/2026-08-03_what-i-understand-sre-to-require_zh/">
+              <a class="btn" href="/tech/2026/08/03/2026-08-03_what-i-know-i-cant-do-yet_zh/">
                 阅读全文 &raquo;
               </a>
             </div>
