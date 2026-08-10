@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 8.1.1">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/tech/favicon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/tech/favicon.svg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/tech/favicon.svg">
+  <link rel="mask-icon" href="/tech/favicon.svg" color="#222">
+
+<link rel="stylesheet" href="/tech/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"shaorui0.github.io","root":"/tech/","images":"/tech/images","scheme":"Gemini","darkmode":true,"version":"8.27.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/tech/js/config.js" defer></script>
+
+    <meta name="description" content="从 context-infrastructure 这个 repo 本身的三层记忆架构和路由表说起，到一套生产 oncall skill 的四条硬约束，再到从 gstack 批判性抄来的取舍，最后是一次对自己系统的六层诚实体检。这篇讲怎么用，不讲为什么。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="如何用 Claude Code：模型是 CPU，Harness 是操作系统，Context 是内存页">
+<meta property="og:url" content="https://shaorui0.github.io/tech/2026/08/04/2026-08-04_how-i-use-claude-code-context-engineering-and-harness_zh/index.html">
+<meta property="og:site_name" content="Tech &amp; AI · 中文">
+<meta property="og:description" content="从 context-infrastructure 这个 repo 本身的三层记忆架构和路由表说起，到一套生产 oncall skill 的四条硬约束，再到从 gstack 批判性抄来的取舍，最后是一次对自己系统的六层诚实体检。这篇讲怎么用，不讲为什么。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-08-03T15:00:00.000Z">
+<meta property="article:modified_time" content="2026-08-04T07:37:49.533Z">
+<meta property="article:author" content="Rui Shao">
+<meta property="article:tag" content="AI Agent">
+<meta property="article:tag" content="Claude Code">
+<meta property="article:tag" content="Context Engineering">
+<meta property="article:tag" content="Harness Engineering">
+<meta property="article:tag" content="系统设计">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://shaorui0.github.io/tech/2026/08/04/2026-08-04_how-i-use-claude-code-context-engineering-and-harness_zh/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://shaorui0.github.io/tech/2026/08/04/2026-08-04_how-i-use-claude-code-context-engineering-and-harness_zh/","path":"2026/08/04/2026-08-04_how-i-use-claude-code-context-engineering-and-harness_zh/","title":"如何用 Claude Code：模型是 CPU，Harness 是操作系统，Context 是内存页"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>如何用 Claude Code：模型是 CPU，Harness 是操作系统，Context 是内存页 | Tech & AI · 中文</title>
+  
+
+
+
+
+
+
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous" defer></script>
+<script src="/tech/js/utils.js" defer></script><script src="/tech/js/motion.js" defer></script><script src="/tech/js/sidebar.js" defer></script><script src="/tech/js/next-boot.js" defer></script>
+
+  
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.10.1/mermaid.min.js","integrity":"sha256-BmQmdWDS8X2OTbrwELWK366LV6escyWhHHe0XCTU/Hk="}}</script>
+  <script src="/tech/js/third-party/tags/mermaid.js" defer></script>
+
+
+
+
+
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/tech/css/noscript.css">
+  </noscript>
+<!-- hexo injector head_end start --><style>
+.article-toc-wrap {
+  margin-bottom: 1.5em;
+  padding: 1em 1.25em;
+  background: #f8f9fa;
+  border-radius: 6px;
+  border-left: 3px solid #ddd;
+}
+.article-toc-wrap .toc-title {
+  font-weight: bold;
+  margin-bottom: 0.5em;
+  font-size: 0.95em;
+  color: #555;
+}
+.article-toc-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.article-toc-list .article-toc-list { padding-left: 1em; margin-top: 0.25em; }
+.article-toc-item { margin: 0.35em 0; }
+.article-toc-link {
+  text-decoration: none;
+  color: #444;
+  font-size: 0.9em;
+}
+.article-toc-link:hover { color: #08c; text-decoration: underline; }
+.article-toc-level-3 .article-toc-link { font-size: 0.85em; }
+.article-toc-level-4 .article-toc-link { font-size: 0.8em; }
+</style><!-- hexo injector head_end end --></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/tech/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Tech & AI · 中文</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">系统、基础设施与 AI</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/tech/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-tags"><a href="/tech/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/tech/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/tech/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li><li class="menu-item menu-item-english"><a href="https://shaorui0.github.io/tech-en/" rel="section"><i class="fa fa-language fa-fw"></i>English</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%88%E8%AF%B4%E6%B8%85%E6%A5%9A%E8%BF%99%E7%AF%87%E8%A6%81%E5%9B%9E%E7%AD%94%E4%BB%80%E4%B9%88"><span class="nav-number">1.</span> <span class="nav-text">先说清楚这篇要回答什么</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%88%91%E6%AF%8F%E6%AC%A1%E6%89%93%E5%BC%80%E4%BB%BB%E5%8A%A1%E5%89%8D%E5%81%9A%E7%9A%84%E4%B8%80%E4%BB%B6%E4%BA%8B"><span class="nav-number">2.</span> <span class="nav-text">我每次打开任务前做的一件事</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%AA%E5%81%9A%E5%88%B0%E8%BF%99%E4%B8%80%E5%B1%82%E8%BF%98%E4%B8%8D%E5%A4%9F"><span class="nav-number">3.</span> <span class="nav-text">只做到这一层还不够</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9B%9B%E6%9D%A1%E7%A1%AC%E7%BA%A6%E6%9D%9F%EF%BC%8C%E5%92%8C%E5%AE%83%E4%BB%AC%E7%9A%84%E4%BE%9D%E8%B5%96%E9%A1%BA%E5%BA%8F"><span class="nav-number">4.</span> <span class="nav-text">四条硬约束，和它们的依赖顺序</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%BF%99%E5%A5%97%E8%BE%B9%E7%95%8C%E6%84%9F%E8%A7%89%E4%B8%8D%E9%99%8C%E7%94%9F"><span class="nav-number">5.</span> <span class="nav-text">这套边界感觉不陌生</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80%E6%AC%A1%E8%AF%9A%E5%AE%9E%E7%9A%84%E8%87%AA%E6%88%91%E4%BD%93%E6%A3%80"><span class="nav-number">6.</span> <span class="nav-text">一次诚实的自我体检</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Rui Shao</p>
+  <div class="site-description" itemprop="description">Rui Shao 的技术博客（中文）— 系统、基础设施与 AI</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/tech/archives/">
+          <span class="site-state-item-count">41</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/tech/categories/">
+        <span class="site-state-item-count">13</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tech/tags/">
+        <span class="site-state-item-count">66</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/shaorui0" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;shaorui0" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.linkedin.com/in/rui-shao-a21a55194/" title="LinkedIn → https:&#x2F;&#x2F;www.linkedin.com&#x2F;in&#x2F;rui-shao-a21a55194&#x2F;" rel="noopener me" target="_blank"><i class="fab fa-linkedin fa-fw"></i>LinkedIn</a>
+      </span>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://shaorui0.github.io/tech/2026/08/04/2026-08-04_how-i-use-claude-code-context-engineering-and-harness_zh/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/tech/images/avatar.gif">
+      <meta itemprop="name" content="Rui Shao">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Tech & AI · 中文">
+      <meta itemprop="description" content="Rui Shao 的技术博客（中文）— 系统、基础设施与 AI">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="如何用 Claude Code：模型是 CPU，Harness 是操作系统，Context 是内存页 | Tech & AI · 中文">
+      <meta itemprop="description" content="从 context-infrastructure 这个 repo 本身的三层记忆架构和路由表说起，到一套生产 oncall skill 的四条硬约束，再到从 gstack 批判性抄来的取舍，最后是一次对自己系统的六层诚实体检。这篇讲怎么用，不讲为什么。">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          如何用 Claude Code：模型是 CPU，Harness 是操作系统，Context 是内存页
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2026-08-04 00:00:00 / 修改时间：16:37:49" itemprop="dateCreated datePublished" datetime="2026-08-04T00:00:00+09:00">2026-08-04</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/tech/categories/AI-Agent-%E5%AE%9E%E8%B7%B5%E7%AC%94%E8%AE%B0/" itemprop="url" rel="index"><span itemprop="name">AI Agent 实践笔记</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+            <div class="post-description">从 context-infrastructure 这个 repo 本身的三层记忆架构和路由表说起，到一套生产 oncall skill 的四条硬约束，再到从 gstack 批判性抄来的取舍，最后是一次对自己系统的六层诚实体检。这篇讲怎么用，不讲为什么。</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><nav class="article-toc-wrap" aria-label="文章目录"><div class="toc-title">文章目录</div><ol class="article-toc-list"><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#%E5%85%88%E8%AF%B4%E6%B8%85%E6%A5%9A%E8%BF%99%E7%AF%87%E8%A6%81%E5%9B%9E%E7%AD%94%E4%BB%80%E4%B9%88"><span class="article-toc-text">先说清楚这篇要回答什么</span></a></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#%E6%88%91%E6%AF%8F%E6%AC%A1%E6%89%93%E5%BC%80%E4%BB%BB%E5%8A%A1%E5%89%8D%E5%81%9A%E7%9A%84%E4%B8%80%E4%BB%B6%E4%BA%8B"><span class="article-toc-text">我每次打开任务前做的一件事</span></a></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#%E5%8F%AA%E5%81%9A%E5%88%B0%E8%BF%99%E4%B8%80%E5%B1%82%E8%BF%98%E4%B8%8D%E5%A4%9F"><span class="article-toc-text">只做到这一层还不够</span></a></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#%E5%9B%9B%E6%9D%A1%E7%A1%AC%E7%BA%A6%E6%9D%9F%EF%BC%8C%E5%92%8C%E5%AE%83%E4%BB%AC%E7%9A%84%E4%BE%9D%E8%B5%96%E9%A1%BA%E5%BA%8F"><span class="article-toc-text">四条硬约束，和它们的依赖顺序</span></a></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#%E8%BF%99%E5%A5%97%E8%BE%B9%E7%95%8C%E6%84%9F%E8%A7%89%E4%B8%8D%E9%99%8C%E7%94%9F"><span class="article-toc-text">这套边界感觉不陌生</span></a></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#%E4%B8%80%E6%AC%A1%E8%AF%9A%E5%AE%9E%E7%9A%84%E8%87%AA%E6%88%91%E4%BD%93%E6%A3%80"><span class="article-toc-text">一次诚实的自我体检</span></a></li></ol></nav>
+<h2 id="先说清楚这篇要回答什么">先说清楚这篇要回答什么</h2>
+<p>已经写过一个十一篇的系列，讲 SRE 和 agent 之间的同构性，讲 Spec/Loop/Hook/Fork 四个控制论原语。那个系列的语言是抽象层的为什么。这篇不重复那些内容，只回答一个更朴素的问题：把我自己天天在用的 <code>context-infrastructure</code> 这个 repo 摊开来看，我到底在怎么用 Claude Code。</p>
+<h2 id="我每次打开任务前做的一件事">我每次打开任务前做的一件事</h2>
+<p>任何任务开始之前，我不是直接开始干活，是先让 agent 读四个文件。<code>SOUL.md</code> 定义它要扮演的角色和底层逻辑，<code>USER.md</code> 记录我是谁、我的技术兴趣和沟通偏好，<code>WORKSPACE.md</code> 是整个 repo 的目录路由表，<code>COMMUNICATION.md</code> 规定语言风格和一套我自己写的 agent 交互原则。四个文件加起来几千 token，session 一启动就全局加载，成本固定且低。这是我理解如何用 Claude Code 的第一层：不是每次重新自我介绍，是把自我介绍的成本一次性摊销进一份能被反复加载的文档里。</p>
+<p>这四个文件是我给自己的记忆系统分的最上层，几乎不变，被动加载。剩下两层是动态的。中间一层是一个纯 append 的日志文件，每天由一个后台 agent 扫过去二十四小时的文件变动，写进去一条带优先级的观察：高优先级是方法论和硬约束，中优先级是项目决策，低优先级是任务流水。这个文件默认不整篇加载，agent 按关键词或按最近几天检索，只拉真正相关的那几条。最下面一层是每周跑一次的蒸馏：过期的低优先级条目删掉，同主题的中优先级条目合并，反复出现的高优先级条目晋升成一条正式的 skill 或 axiom，写进 <code>rules/</code> 目录，从此变成最上层的一部分。</p>
+<p>这套结构解决的问题很具体。一次对话的 context window 是有限资源，但我积累的经验不是。如果每次都想着这次要不要把过去半年的教训塞进 prompt，答案永远是不行。所以我把记住什么这件事拆成三种不同的生命周期：几乎不变的、每天增长但很快过期的、被反复验证后才值得永久保留的。Agent 不需要一次性看到全部，它需要知道去哪里拉，拉多少。</p>
+<p>这也是为什么 <code>rules/skills/INDEX.md</code> 只放一行摘要和触发关键词，具体执行步骤留在各自的文件里，agent 判断用得到某个 skill 时再去读。每个 skill 前面还标一个符号，勾表示十五分钟内能配置好开始用，齿轮表示需要额外配置，这个符号本身就是一次 context 压缩，把这东西值不值得我现在读的判断外置出去，省掉一次探索性阅读。<a target="_blank" rel="noopener" href="http://CLAUDE.md">CLAUDE.md</a> 里有一条明文规定：找文件先查 <code>WORKSPACE.md</code>，再搜索。效果是把一次可能要几十次工具调用的目录探索，压成一次文件读取。这次会话我处理博客仓库缺一篇文章这件事之前，第一件事就是查 <code>WORKSPACE.md</code> 定位到具体路径，不是打开终端满仓库 <code>find</code>。</p>
+<h2 id="只做到这一层还不够">只做到这一层还不够</h2>
+<p>以上都是 context engineering：管理模型在单次推理时眼前看到的那个世界。真正让我确信这层不够用的，是自己那套 SRE oncall triage skill 跑了大半年之后暴露出的问题。调查阶段的 agent 提前看到了操作命令模板，会一边查一边规划修复方案，一个典型的过早假设。主 agent 直接调原始的监控和日志查询，一次尾延迟调查能吃掉三万 token 的原始输出，context 被污染之后，后面所有判断都建立在一个已经变形的认知基础上。这些问题不是 context 里塞的东西不对，是整个执行流程本身没有边界。</p>
+<p>需要区分的第二个概念是 harness engineering。Context engineering 管的是单次推理时模型眼前的世界，harness engineering 管的是跨越整个 agent 生命周期的世界：状态怎么持久化，工具怎么授权，循环什么时候该停，多个 agent 之间怎么隔离。可以把模型看成一个 CPU，harness 是操作系统，context 是当前进程占用的那一页内存。CPU 变快了不代表不需要操作系统调度进程、管理权限、隔离故障，模型变强同样不代表可以跳过 harness 直接把任务扔给它。</p>
+<p>这条边界能解释一个常见的误判。有人看到模型能处理的上下文越来越长、越来越准，就断言编排这层要消失了。真正在被模型吸收的是 context engineering 层里那些能压缩成更好的下一个 token 预测的技巧：思维链被推理模型内置，输出解析被结构化输出取代，few-shot 模板被零样本能力取代。Harness engineering 层几乎没被触及，它管的是模型之外的东西：物理世界的读写、信任边界、跨会话的时间维度、多 agent 之间的协调、成本。这些都不是更好的下一个 token 能解决的问题。</p>
+<h2 id="四条硬约束，和它们的依赖顺序">四条硬约束，和它们的依赖顺序</h2>
+<p>想清楚这条边界之后，我给 oncall skill 加了四条硬约束，都是 harness 层面的工作。第一条把调查过程切成三个阶段，调查者、决策者、操作员，阶段之间用文件级的门控而不是提示词里的提醒来隔离，调查阶段的 agent 物理上读不到操作命令模板。第二条要求每条发现必须挂一行具体证据，一段查询的返回值加时间戳，或者一个历史 case 的具体引用，不满足就把置信度强制压低，措辞也被迫从确定变成候选。第三条给假设证伪设一个硬刹车，连续三次假设被推翻必须停下来升级，不能继续在错误方向上深挖。第四条不让主 agent 直接碰原始的监测数据，所有查询都派给一个子 agent，只让它返回一段几百 token 的结构化摘要。</p>
+<p>这四条不是坐在桌前凭空设计出来的，是照着别人的做法批判性抄来的。今年年中 gstack 那套 Claude Code skill 套件很火的时候，我派了几个子 agent 调研了一晚上，结论是九成不适合我的场景，但有四件事必须立刻抄，抄的正好是上面这四条，各自对应一种失败模式：过早假设、幻觉结论、在错误方向上死循环、context 被污染。真正有意思的是画完依赖图才看出来的一条：子 agent 隔离必须先做，阶段门控才有意义。如果主 agent 已经被三万 token 的原始数据污染过，再告诉它现在切换到下一阶段解锁更多信息，它脑子里残留的上一阶段记忆还在那里，只是假装没看到。上下文压缩不会给 agent 一次真正的白板，只有从一开始就不让它接触污染源才行。</p>
+<p>同样重要的是我没抄的三件事。没抄角色扮演，把 agent 包装成某个身份对 SRE 场景没有意义，我需要的是调查者、决策者、操作员之间的阶段切换，不是让它假装自己是谁。没抄命令数量的扩张，那套工具从最初六个 skill 涨到二十多个，是一路用下来攒出来的结果，不是先验设计，被这类数字震慑、觉得自己也该配齐二十几个 skill，方向已经错了。也没抄把代码产出速度当作衡量标准，oncall triage 的成功指标是平均修复时间和误判率，不是一天写了多少行。判断该抄什么的方法本身值得说一句：一套工具真正的创新点，往往不在它自己发明了什么新机制，是它怎么把更基础层的现成机制拼装起来解一个具体问题。把抄来的东西按这条过一遍，能省掉大量无效模仿。</p>
+<h2 id="这套边界感觉不陌生">这套边界感觉不陌生</h2>
+<p>Hooks 的拦截点、决策能力、可扩展规则，和 Kubernetes 的 admission webhook 几乎是同一种工程模式，权限配置对应 RBAC，会话状态对应 etcd 里持久化的对象状态。这不是巧合，是同一套三十年 infra 工程经验被复用到了新的载体上。当然不能照抄：Kubernetes 的 controller 是确定性的，agent 是概率性的，可能不收敛甚至发散；Kubernetes 的状态可以精确观测，agent 的状态是 context、文件、外部系统和模型内部黑箱混在一起的模糊状态；Kubernetes 是标准的持续 reconcile，主流 agent 目前还是一次性跑完就结束，这是还没被填满的空间。但差异不改变一个基本判断：任何一个 Kubernetes 早期已经解决过的工程问题，大概率会在 agent 工程里以新的形态重新出现一次，解法可以直接搬，不用从零探索。</p>
+<h2 id="一次诚实的自我体检">一次诚实的自我体检</h2>
+<p>把 agent 工作流拆成六层，能看得更清楚：spec 定义目标，boundary 划边界，workflow 组织怎么做，memory 管跨会话状态，verification 检查产出对不对，observability 看得见系统在做什么。逐层对照 <code>context-infrastructure</code> 这个 repo：</p>
+<table>
+<thead>
+<tr>
+<th>层</th>
+<th>现状</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Spec</td>
+<td>厚，<code>WORKSPACE.md</code>、<code>AGENTS.md</code>、几十个 skill 文件</td>
+</tr>
+<tr>
+<td>Workflow</td>
+<td>厚，大量 skill 和 subagent 编排模式</td>
+</tr>
+<tr>
+<td>Memory</td>
+<td>厚，三层记忆池加上每周的观察和蒸馏</td>
+</tr>
+<tr>
+<td>Boundary</td>
+<td>中等，有 mutation approval gate，但覆盖不全</td>
+</tr>
+<tr>
+<td>Verification</td>
+<td>薄，缺一套系统性的 review subagent 或 eval suite</td>
+</tr>
+<tr>
+<td>Observability</td>
+<td>薄，缺 agent 走偏率、skill 成功率这类可度量指标</td>
+</tr>
+</tbody>
+</table>
+<p>这张表比任何我写了多少个 skill 的产出型自夸都更有用，它直接指出下一步该往哪投。不是每层都值得同等投入，值不值得投，看四个具体条件：任务重复频率高，该投 skill 和 workflow；误操作代价高，该投 hook 和 boundary；任务跨会话，该投 memory；输出质量难判断，该投 verification；多 agent 协作，该投 observability。复杂度本身没有意义，减少了多少认知负担才是唯一的衡量标准。按这条看，我在 verification 和 observability 上明显投入不足。这不是一句抽象的自我批评，是一条具体的施工清单：下一次改这套系统，先补一套能自动判断 agent 输出对不对的东西，再补一套能看清 agent 什么时候开始走偏的东西，不是再写一个新 skill。</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tech/tags/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/" rel="tag"># 系统设计</a>
+              <a href="/tech/tags/AI-Agent/" rel="tag"># AI Agent</a>
+              <a href="/tech/tags/Harness-Engineering/" rel="tag"># Harness Engineering</a>
+              <a href="/tech/tags/Context-Engineering/" rel="tag"># Context Engineering</a>
+              <a href="/tech/tags/Claude-Code/" rel="tag"># Claude Code</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/tech/2026/08/03/2026-08-03_alert-governance_zh/" rel="prev" title="告警治理：把 pager 从噪声源治回决策信号">
+                  <i class="fa fa-angle-left"></i> 告警治理：把 pager 从噪声源治回决策信号
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/tech/2026/08/10/2026-08-10_all-metrics-green-but-queries-slow_zh/" rel="next" title="查询很慢，但所有指标都是绿的">
+                  查询很慢，但所有指标都是绿的 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">Rui Shao</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+<!-- hexo injector body_end start --><script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>mermaid.initialize({ startOnLoad: true, theme: "default" });</script><!-- hexo injector body_end end --></body>
+</html>

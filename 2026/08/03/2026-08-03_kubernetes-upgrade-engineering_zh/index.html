@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 8.1.1">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/tech/favicon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/tech/favicon.svg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/tech/favicon.svg">
+  <link rel="mask-icon" href="/tech/favicon.svg" color="#222">
+
+<link rel="stylesheet" href="/tech/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"shaorui0.github.io","root":"/tech/","images":"/tech/images","scheme":"Gemini","darkmode":true,"version":"8.27.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/tech/js/config.js" defer></script>
+
+    <meta name="description" content="用 Upgrade Safety System（check → plan → apply + evidence）把 18-21 小时、需要两人结对的手工升级压缩为 6-8 小时单人操作，并在两套生产集群上以零客户可感知停机完成执行。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="生产 Kubernetes 升级工程：50 集群，1.24 → 1.29，零事故">
+<meta property="og:url" content="https://shaorui0.github.io/tech/2026/08/03/2026-08-03_kubernetes-upgrade-engineering_zh/index.html">
+<meta property="og:site_name" content="Tech &amp; AI · 中文">
+<meta property="og:description" content="用 Upgrade Safety System（check → plan → apply + evidence）把 18-21 小时、需要两人结对的手工升级压缩为 6-8 小时单人操作，并在两套生产集群上以零客户可感知停机完成执行。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-08-02T15:00:00.000Z">
+<meta property="article:modified_time" content="2026-08-03T16:19:14.694Z">
+<meta property="article:author" content="Rui Shao">
+<meta property="article:tag" content="CI&#x2F;CD">
+<meta property="article:tag" content="Kubernetes">
+<meta property="article:tag" content="SRE">
+<meta property="article:tag" content="基础设施即代码">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://shaorui0.github.io/tech/2026/08/03/2026-08-03_kubernetes-upgrade-engineering_zh/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://shaorui0.github.io/tech/2026/08/03/2026-08-03_kubernetes-upgrade-engineering_zh/","path":"2026/08/03/2026-08-03_kubernetes-upgrade-engineering_zh/","title":"生产 Kubernetes 升级工程：50 集群，1.24 → 1.29，零事故"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>生产 Kubernetes 升级工程：50 集群，1.24 → 1.29，零事故 | Tech & AI · 中文</title>
+  
+
+
+
+
+
+
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous" defer></script>
+<script src="/tech/js/utils.js" defer></script><script src="/tech/js/motion.js" defer></script><script src="/tech/js/sidebar.js" defer></script><script src="/tech/js/next-boot.js" defer></script>
+
+  
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.10.1/mermaid.min.js","integrity":"sha256-BmQmdWDS8X2OTbrwELWK366LV6escyWhHHe0XCTU/Hk="}}</script>
+  <script src="/tech/js/third-party/tags/mermaid.js" defer></script>
+
+
+
+
+
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/tech/css/noscript.css">
+  </noscript>
+<!-- hexo injector head_end start --><style>
+.article-toc-wrap {
+  margin-bottom: 1.5em;
+  padding: 1em 1.25em;
+  background: #f8f9fa;
+  border-radius: 6px;
+  border-left: 3px solid #ddd;
+}
+.article-toc-wrap .toc-title {
+  font-weight: bold;
+  margin-bottom: 0.5em;
+  font-size: 0.95em;
+  color: #555;
+}
+.article-toc-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.article-toc-list .article-toc-list { padding-left: 1em; margin-top: 0.25em; }
+.article-toc-item { margin: 0.35em 0; }
+.article-toc-link {
+  text-decoration: none;
+  color: #444;
+  font-size: 0.9em;
+}
+.article-toc-link:hover { color: #08c; text-decoration: underline; }
+.article-toc-level-3 .article-toc-link { font-size: 0.85em; }
+.article-toc-level-4 .article-toc-link { font-size: 0.8em; }
+</style><!-- hexo injector head_end end --></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/tech/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Tech & AI · 中文</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">系统、基础设施与 AI</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/tech/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-tags"><a href="/tech/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/tech/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/tech/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li><li class="menu-item menu-item-english"><a href="https://shaorui0.github.io/tech-en/" rel="section"><i class="fa fa-language fa-fw"></i>English</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E5%81%9A"><span class="nav-number">1.</span> <span class="nav-text">为什么做</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%8E%E4%B9%88%E5%81%9A%EF%BC%9AUpgrade-Safety-System"><span class="nav-number">2.</span> <span class="nav-text">怎么做：Upgrade Safety System</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%9A%BE%E7%82%B9"><span class="nav-number">3.</span> <span class="nav-text">难点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%94%9F%E4%BA%A7%E6%89%A7%E8%A1%8C"><span class="nav-number">4.</span> <span class="nav-text">生产执行</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Takeaway"><span class="nav-number">5.</span> <span class="nav-text">Takeaway</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Rui Shao</p>
+  <div class="site-description" itemprop="description">Rui Shao 的技术博客（中文）— 系统、基础设施与 AI</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/tech/archives/">
+          <span class="site-state-item-count">41</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/tech/categories/">
+        <span class="site-state-item-count">13</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tech/tags/">
+        <span class="site-state-item-count">66</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/shaorui0" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;shaorui0" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.linkedin.com/in/rui-shao-a21a55194/" title="LinkedIn → https:&#x2F;&#x2F;www.linkedin.com&#x2F;in&#x2F;rui-shao-a21a55194&#x2F;" rel="noopener me" target="_blank"><i class="fab fa-linkedin fa-fw"></i>LinkedIn</a>
+      </span>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://shaorui0.github.io/tech/2026/08/03/2026-08-03_kubernetes-upgrade-engineering_zh/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/tech/images/avatar.gif">
+      <meta itemprop="name" content="Rui Shao">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Tech & AI · 中文">
+      <meta itemprop="description" content="Rui Shao 的技术博客（中文）— 系统、基础设施与 AI">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="生产 Kubernetes 升级工程：50 集群，1.24 → 1.29，零事故 | Tech & AI · 中文">
+      <meta itemprop="description" content="用 Upgrade Safety System（check → plan → apply + evidence）把 18-21 小时、需要两人结对的手工升级压缩为 6-8 小时单人操作，并在两套生产集群上以零客户可感知停机完成执行。">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          生产 Kubernetes 升级工程：50 集群，1.24 → 1.29，零事故
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2026-08-03 00:00:00" itemprop="dateCreated datePublished" datetime="2026-08-03T00:00:00+09:00">2026-08-03</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2026-08-04 01:19:14" itemprop="dateModified" datetime="2026-08-04T01:19:14+09:00">2026-08-04</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/tech/categories/%E7%94%9F%E4%BA%A7%E5%B7%A5%E7%A8%8B/" itemprop="url" rel="index"><span itemprop="name">生产工程</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+            <div class="post-description">用 Upgrade Safety System（check → plan → apply + evidence）把 18-21 小时、需要两人结对的手工升级压缩为 6-8 小时单人操作，并在两套生产集群上以零客户可感知停机完成执行。</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><nav class="article-toc-wrap" aria-label="文章目录"><div class="toc-title">文章目录</div><ol class="article-toc-list"><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E5%81%9A"><span class="article-toc-text">为什么做</span></a></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#%E6%80%8E%E4%B9%88%E5%81%9A%EF%BC%9AUpgrade-Safety-System"><span class="article-toc-text">怎么做：Upgrade Safety System</span></a></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#%E9%9A%BE%E7%82%B9"><span class="article-toc-text">难点</span></a></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#%E7%94%9F%E4%BA%A7%E6%89%A7%E8%A1%8C"><span class="article-toc-text">生产执行</span></a></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#Takeaway"><span class="article-toc-text">Takeaway</span></a></li></ol></nav>
+<blockquote>
+<p>英文版：<a href="https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_kubernetes-upgrade-engineering_en/">English</a></p>
+</blockquote>
+<h2 id="为什么做">为什么做</h2>
+<p>Kubernetes 1.24 即将脱离支持窗口，每落后一个 minor 版本，CVE 暴露面和合规风险都在累积。集群规模是 50 个 AWS 上的自管理集群：kubeadm control plane 加 ASG worker。存量升级方式完全无法规模化：单集群 18-21 小时纯手工操作，且必须两人结对，因为真正的风险模型只存在于资深工程师的脑子里。再乘上逐 minor 跳版的约束（kubeadm 一次只能升一个 minor，1.24 到 1.29 意味着每个中间版本都要走一遍，每一跳都覆盖 control plane、worker、addon 三层），手工执行在数学上就不成立。</p>
+<p>决定整个项目走向的一次重新定义：根本问题不是「手动还是自动」，而是系统可解释性缺失。在任何一步，没人能回答「我凭什么确信现在可以进入下一步」。经验是隐式的，证据是散落的，事后连复盘都无从做起。</p>
+<h2 id="怎么做：Upgrade-Safety-System">怎么做：Upgrade Safety System</h2>
+<p>系统是一条三段式流水线：<code>check → plan(dry-run) → apply + evidence</code>。实现为 Python CLI，编排 Ansible、boto3 和 kubectl，所有 stdout/stderr 全量落入 evidence 存储。</p>
+<p><strong>check</strong> 把健康基线显式化。etcd quorum 查三件事：member list（奇数个成员且全部在线）、raft index lag（follower 落后 leader 超过 1000 直接 fail，quorum 名义存在不代表复制健康）、leader 唯一性。node Ready 数、kube-system pod 状态、外部活跃告警同样走门禁，fail 条件全部写成规则而不是临场判断。任何变更之前，etcd snapshot 是强制动作。</p>
+<p><strong>plan</strong> 是真正的 dry-run，不是一份文档。master 侧跑 <code>kubeadm upgrade plan</code> 加 <code>ansible --check --diff</code>；worker 侧做 AMI diff（kubelet 必须等于目标版本）和 Launch Template diff（只允许 AMI ID 变化）。blast radius 在执行前用 quorum math 量化：3 台 master 恰好容忍 1 台不可用，<code>serial: 1</code> 保证每次只动一台，最坏情况被限定在单节点。</p>
+<p><strong>apply</strong> 按严格顺序执行，逐层设门。control plane 原地升级，逐台 master 推进，每台人工确认。worker 走不可变替换：新 AMI、更新 Launch Template、ASG Instance Refresh 按 20% batch 滚动，失败即暂停。addon 按依赖顺序：先 AWS cloud-controller-manager（CCM 不健康会让新 worker 卡在 <code>uninitialized</code> taint 上），再 CNI（<code>maxUnavailable: 1</code> 滚动，升级后用跨节点 pod 连通性验证），最后 Cluster Autoscaler（drain 一个节点、观察 scale-out 成功即验证通过）。post-verify 重跑完整 check，与升级前 baseline 做 diff。</p>
+<p>每一步都留证据：结构化 JSON 健康快照、plan diff、完整执行日志，以及记录每步 completed / in-progress / pending 的状态文件。中途中断可从状态恢复，幂等步骤直接重跑。</p>
+<p>集群推进顺序：dev → preprod → prod 金丝雀 → 其余 prod → 管理集群最后（blast radius 最大）。任何一个集群失败，全局暂停，人工批准后才能继续。</p>
+<p>效率路径：18-21 小时两人结对，降到 6-8 小时单人加系统；自动化路线图（外部告警门控、synthetic health check、金丝雀通过后自动放行）目标是单集群 3-4 小时，预期降幅 60-80%。</p>
+<div class="mermaid">flowchart LR
+  C[&quot;check&lt;br/&gt;etcd quorum · raft lag · snapshot&quot;] --&gt; P[&quot;plan&lt;br/&gt;kubeadm dry-run · AMI/LT diff&quot;]
+  P --&gt; G{&quot;人工闸门&quot;}
+  G --&gt;|批准| A[&quot;apply&lt;br/&gt;control plane 串行&quot;]
+  A --&gt; W[&quot;worker&lt;br/&gt;ASG instance refresh · 20% 批次&quot;]
+  W --&gt; V[&quot;verify&lt;br/&gt;版本 × 健康 对照 baseline&quot;]
+  V -.-&gt;|回归| R[&quot;回滚&lt;br/&gt;已知良好 LT / AMI&quot;]</div>
+<h2 id="难点">难点</h2>
+<p><strong>1. API deprecation 是独立问题线。</strong> 每个 minor 版本都有 API 移除，典型案例是 1.25 移除 PodSecurityPolicy。日志和监控类 DaemonSet 合法地需要 privileged 权限，namespace 若被草率打上 <code>enforce: restricted</code> 的 Pod Security Admission 标签，这些组件会被直接拦截。解法是流程化：升级前完成存量 workload 扫描与迁移，PSA 先以 warn/audit 模式观察，确认零违规后才切 enforce，infra namespace 显式保持 privileged。version skew policy（kubelet 允许落后 apiserver 两个 minor）保证了 control plane 先行、worker 跟随的顺序在机制上天然安全。</p>
+<p><strong>2. 有状态工作负载与驱逐顺序。</strong> drain 承载数据库 pod（Kafka、MySQL、YugabyteDB、ClickHouse）的节点，是升级最容易伤到租户的地方。做法是提前测绘数据库节点分布，在每个波次中排在最前，逐节点推进，每个服务验证通过才走下一个。PDB 在 dark cluster 上依然诚实：违规不会伤害用户，但依然会卡住 drain，处理方式是等 PDB 满足或显式调低 <code>minAvailable</code>，绝不强制驱逐。保护是分层的：PDB 管主动中断，HPA 管负载，readiness probe 管滚动更新；不覆盖的场景（硬件故障、应用自身 bug）明确列出，靠多 AZ 布局兜底，而不是假装不存在。</p>
+<p><strong>3. 集群异构性不靠英雄主义。</strong> 50 个集群必然漂移。不靠人脑记差异，而是按 <code>cluster_type</code> 分类（workload / management / dev-staging），残余例外用 per-cluster feature flag 表达，例如已知驱逐慢的集群把 drain timeout 从默认 300 秒调到 600 秒。drift 不追求消灭，而是在每次升级前的 check baseline 里变得可见、可决策；flag 数量增长本身被当作分类失准的信号。</p>
+<p><strong>4. 让「零事故」成为可验证的声明。</strong> 零事故只有在事前约定的标准下才有意义。每道门禁都归结为版本 × 健康四象限的判定（目标版本且健康则继续，旧版本且健康则重跑，任何不健康则人工介入）；post-verify 对比的是落盘的 baseline 而不是工程师的记忆；check 结果与外部监控交叉验证，防御「baseline 本身就是错的」这一失效模式。验证范围覆盖业务层正确性，不止 infra 健康。</p>
+<p><strong>5. 回滚按层设计，触发条件事前声明。</strong> etcd snapshot 恢复的是数据，不是二进制：所以 control plane 回滚等于 snapshot 恢复加二进制降级；worker 回滚等于停止 Instance Refresh 并回退 Launch Template；addon 回滚等于 <code>kubectl rollout undo</code>。触发条件在执行前写死：master 升级失败、超过 50% pod 非 Running、关键服务不可达、告警洪水。升级中 Raft leader 转移是预期行为（选举 1-2 秒内完成），真正的危险是成员起不来，而这恰好被 <code>serial: 1</code> 加 snapshot 门禁框住。</p>
+<h2 id="生产执行">生产执行</h2>
+<p>两套生产集群（two production fleets，覆盖 master、control-plane 组件、worker）全部完成升级，零客户可感知停机，零回滚。支撑模式是双集群流量前置切换：流量全部切到对侧集群，暂停跨集群复制，升级已变 dark 的一侧，恢复复制并等待 lag 降回阈值以下，按 checklist 验证后再把流量切回。在这个模式下，worker 的 20% batch 不再是保护用户的机制，而是节奏控制机制：足够小，出现异常能快速暂停。人工签核保留在四个位置：check、plan、每一台 master、最终 post-verify。</p>
+<h2 id="Takeaway">Takeaway</h2>
+<ul>
+<li>升级难的不是知道做什么，而是用证据证明「现在可以做下一步」。evidence chain 把隐式的资深经验转化为任何人都能操作的显式门禁。</li>
+<li>blast radius 是设计输入而不是结果：quorum math、<code>serial: 1</code>、20% batch 在执行开始前就给最坏情况封了顶。</li>
+<li>沉淀下来的不是工具。checklist 与 evidence 模式在项目结束后外溢为日常 infra health check，成为可复用的安全标准。</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tech/tags/SRE/" rel="tag"># SRE</a>
+              <a href="/tech/tags/Kubernetes/" rel="tag"># Kubernetes</a>
+              <a href="/tech/tags/CI-CD/" rel="tag"># CI/CD</a>
+              <a href="/tech/tags/%E5%9F%BA%E7%A1%80%E8%AE%BE%E6%96%BD%E5%8D%B3%E4%BB%A3%E7%A0%81/" rel="tag"># 基础设施即代码</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/tech/2026/08/03/2026-08-03_compiling-a-document-into-a-control-loop_zh/" rel="prev" title="把一份文档编译成 control loop：面向 5G vRAN 裸金属的 machine-level 配置收敛控制器">
+                  <i class="fa fa-angle-left"></i> 把一份文档编译成 control loop：面向 5G vRAN 裸金属的 machine-level 配置收敛控制器
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/tech/2026/08/03/2026-08-03_an-audit-of-my-own-radar_zh/" rel="next" title="我当前做了什么，匹配什么能力">
+                  我当前做了什么，匹配什么能力 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">Rui Shao</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+<!-- hexo injector body_end start --><script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>mermaid.initialize({ startOnLoad: true, theme: "default" });</script><!-- hexo injector body_end end --></body>
+</html>

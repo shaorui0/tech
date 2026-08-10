@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 8.1.1">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/tech/favicon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/tech/favicon.svg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/tech/favicon.svg">
+  <link rel="mask-icon" href="/tech/favicon.svg" color="#222">
+
+<link rel="stylesheet" href="/tech/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"shaorui0.github.io","root":"/tech/","images":"/tech/images","scheme":"Gemini","darkmode":true,"version":"8.27.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/tech/js/config.js" defer></script>
+
+    <meta name="description" content="「熟悉 Jenkins」写在无数 JD 里，但会写 pipeline 脚本不是那个能力。真正的能力是把交付流水线当生产系统对待：流程幂等、job 状态可观测、配置进代码，并且知道自动化本身什么时候会变成新的熵源。落地素材来自一次真实的 Jenkins 迁移，和其中 diagnose 与 fix 脚本的配对。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="「SRE 熟悉 Jenkins」到底是什么能力">
+<meta property="og:url" content="https://shaorui0.github.io/tech/2026/08/03/2026-08-03_what-knows-jenkins-actually-tests_zh/index.html">
+<meta property="og:site_name" content="Tech &amp; AI · 中文">
+<meta property="og:description" content="「熟悉 Jenkins」写在无数 JD 里，但会写 pipeline 脚本不是那个能力。真正的能力是把交付流水线当生产系统对待：流程幂等、job 状态可观测、配置进代码，并且知道自动化本身什么时候会变成新的熵源。落地素材来自一次真实的 Jenkins 迁移，和其中 diagnose 与 fix 脚本的配对。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-08-02T15:00:00.000Z">
+<meta property="article:modified_time" content="2026-08-03T16:19:14.699Z">
+<meta property="article:author" content="Rui Shao">
+<meta property="article:tag" content="CI&#x2F;CD">
+<meta property="article:tag" content="Kubernetes">
+<meta property="article:tag" content="SRE">
+<meta property="article:tag" content="基础设施即代码">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://shaorui0.github.io/tech/2026/08/03/2026-08-03_what-knows-jenkins-actually-tests_zh/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://shaorui0.github.io/tech/2026/08/03/2026-08-03_what-knows-jenkins-actually-tests_zh/","path":"2026/08/03/2026-08-03_what-knows-jenkins-actually-tests_zh/","title":"「SRE 熟悉 Jenkins」到底是什么能力"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>「SRE 熟悉 Jenkins」到底是什么能力 | Tech & AI · 中文</title>
+  
+
+
+
+
+
+
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous" defer></script>
+<script src="/tech/js/utils.js" defer></script><script src="/tech/js/motion.js" defer></script><script src="/tech/js/sidebar.js" defer></script><script src="/tech/js/next-boot.js" defer></script>
+
+  
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.10.1/mermaid.min.js","integrity":"sha256-BmQmdWDS8X2OTbrwELWK366LV6escyWhHHe0XCTU/Hk="}}</script>
+  <script src="/tech/js/third-party/tags/mermaid.js" defer></script>
+
+
+
+
+
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/tech/css/noscript.css">
+  </noscript>
+<!-- hexo injector head_end start --><style>
+.article-toc-wrap {
+  margin-bottom: 1.5em;
+  padding: 1em 1.25em;
+  background: #f8f9fa;
+  border-radius: 6px;
+  border-left: 3px solid #ddd;
+}
+.article-toc-wrap .toc-title {
+  font-weight: bold;
+  margin-bottom: 0.5em;
+  font-size: 0.95em;
+  color: #555;
+}
+.article-toc-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.article-toc-list .article-toc-list { padding-left: 1em; margin-top: 0.25em; }
+.article-toc-item { margin: 0.35em 0; }
+.article-toc-link {
+  text-decoration: none;
+  color: #444;
+  font-size: 0.9em;
+}
+.article-toc-link:hover { color: #08c; text-decoration: underline; }
+.article-toc-level-3 .article-toc-link { font-size: 0.85em; }
+.article-toc-level-4 .article-toc-link { font-size: 0.8em; }
+</style><!-- hexo injector head_end end --></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/tech/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Tech & AI · 中文</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">系统、基础设施与 AI</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/tech/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-tags"><a href="/tech/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/tech/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/tech/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li><li class="menu-item menu-item-english"><a href="https://shaorui0.github.io/tech-en/" rel="section"><i class="fa fa-language fa-fw"></i>English</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Why"><span class="nav-number">1.</span> <span class="nav-text">Why</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#CI-CD-%E6%98%AF%E7%94%9F%E4%BA%A7%E7%B3%BB%E7%BB%9F"><span class="nav-number">2.</span> <span class="nav-text">CI&#x2F;CD 是生产系统</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%89%E4%B8%AA%E5%88%A4%E6%8D%AE%EF%BC%9A%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8%E8%80%85%E5%92%8C%E7%B3%BB%E7%BB%9F%E8%BF%90%E7%BB%B4%E8%80%85%E7%9A%84%E5%88%86%E7%95%8C"><span class="nav-number">3.</span> <span class="nav-text">三个判据：工具使用者和系统运维者的分界</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B5%81%E7%A8%8B%E5%B9%82%E7%AD%89%E3%80%81%E5%8F%AF%E9%87%8D%E5%85%A5"><span class="nav-number">3.1.</span> <span class="nav-text">流程幂等、可重入</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%8A%B6%E6%80%81%E5%8F%AF%E8%A7%82%E6%B5%8B%E3%80%81%E5%8F%AF%E8%AF%8A%E6%96%AD"><span class="nav-number">3.2.</span> <span class="nav-text">状态可观测、可诊断</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%85%8D%E7%BD%AE%E5%8D%B3%E4%BB%A3%E7%A0%81"><span class="nav-number">3.3.</span> <span class="nav-text">配置即代码</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%87%AA%E5%8A%A8%E5%8C%96%E6%9C%AC%E8%BA%AB%E6%88%90%E4%B8%BA%E7%86%B5%E7%9A%84%E6%97%B6%E5%88%BB"><span class="nav-number">4.</span> <span class="nav-text">自动化本身成为熵的时刻</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Takeaways"><span class="nav-number">5.</span> <span class="nav-text">Takeaways</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Rui Shao</p>
+  <div class="site-description" itemprop="description">Rui Shao 的技术博客（中文）— 系统、基础设施与 AI</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/tech/archives/">
+          <span class="site-state-item-count">41</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/tech/categories/">
+        <span class="site-state-item-count">13</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tech/tags/">
+        <span class="site-state-item-count">66</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/shaorui0" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;shaorui0" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.linkedin.com/in/rui-shao-a21a55194/" title="LinkedIn → https:&#x2F;&#x2F;www.linkedin.com&#x2F;in&#x2F;rui-shao-a21a55194&#x2F;" rel="noopener me" target="_blank"><i class="fab fa-linkedin fa-fw"></i>LinkedIn</a>
+      </span>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://shaorui0.github.io/tech/2026/08/03/2026-08-03_what-knows-jenkins-actually-tests_zh/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/tech/images/avatar.gif">
+      <meta itemprop="name" content="Rui Shao">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Tech & AI · 中文">
+      <meta itemprop="description" content="Rui Shao 的技术博客（中文）— 系统、基础设施与 AI">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="「SRE 熟悉 Jenkins」到底是什么能力 | Tech & AI · 中文">
+      <meta itemprop="description" content="「熟悉 Jenkins」写在无数 JD 里，但会写 pipeline 脚本不是那个能力。真正的能力是把交付流水线当生产系统对待：流程幂等、job 状态可观测、配置进代码，并且知道自动化本身什么时候会变成新的熵源。落地素材来自一次真实的 Jenkins 迁移，和其中 diagnose 与 fix 脚本的配对。">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          「SRE 熟悉 Jenkins」到底是什么能力
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2026-08-03 00:00:00" itemprop="dateCreated datePublished" datetime="2026-08-03T00:00:00+09:00">2026-08-03</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2026-08-04 01:19:14" itemprop="dateModified" datetime="2026-08-04T01:19:14+09:00">2026-08-04</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/tech/categories/%E7%94%9F%E4%BA%A7%E5%B7%A5%E7%A8%8B/" itemprop="url" rel="index"><span itemprop="name">生产工程</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+            <div class="post-description">「熟悉 Jenkins」写在无数 JD 里，但会写 pipeline 脚本不是那个能力。真正的能力是把交付流水线当生产系统对待：流程幂等、job 状态可观测、配置进代码，并且知道自动化本身什么时候会变成新的熵源。落地素材来自一次真实的 Jenkins 迁移，和其中 diagnose 与 fix 脚本的配对。</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><nav class="article-toc-wrap" aria-label="文章目录"><div class="toc-title">文章目录</div><ol class="article-toc-list"><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#Why"><span class="article-toc-text">Why</span></a></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#CI-CD-%E6%98%AF%E7%94%9F%E4%BA%A7%E7%B3%BB%E7%BB%9F"><span class="article-toc-text">CI&#x2F;CD 是生产系统</span></a></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#%E4%B8%89%E4%B8%AA%E5%88%A4%E6%8D%AE%EF%BC%9A%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8%E8%80%85%E5%92%8C%E7%B3%BB%E7%BB%9F%E8%BF%90%E7%BB%B4%E8%80%85%E7%9A%84%E5%88%86%E7%95%8C"><span class="article-toc-text">三个判据：工具使用者和系统运维者的分界</span></a><ol class="article-toc-child"><li class="article-toc-item article-toc-level-3"><a class="article-toc-link" href="#%E6%B5%81%E7%A8%8B%E5%B9%82%E7%AD%89%E3%80%81%E5%8F%AF%E9%87%8D%E5%85%A5"><span class="article-toc-text">流程幂等、可重入</span></a></li><li class="article-toc-item article-toc-level-3"><a class="article-toc-link" href="#%E7%8A%B6%E6%80%81%E5%8F%AF%E8%A7%82%E6%B5%8B%E3%80%81%E5%8F%AF%E8%AF%8A%E6%96%AD"><span class="article-toc-text">状态可观测、可诊断</span></a></li><li class="article-toc-item article-toc-level-3"><a class="article-toc-link" href="#%E9%85%8D%E7%BD%AE%E5%8D%B3%E4%BB%A3%E7%A0%81"><span class="article-toc-text">配置即代码</span></a></li></ol></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#%E8%87%AA%E5%8A%A8%E5%8C%96%E6%9C%AC%E8%BA%AB%E6%88%90%E4%B8%BA%E7%86%B5%E7%9A%84%E6%97%B6%E5%88%BB"><span class="article-toc-text">自动化本身成为熵的时刻</span></a></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#Takeaways"><span class="article-toc-text">Takeaways</span></a></li></ol></nav>
+<blockquote>
+<p>英文版：<a href="https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_what-knows-jenkins-actually-tests_en/">English</a></p>
+</blockquote>
+<h2 id="Why">Why</h2>
+<p>「熟悉 Jenkins」写在无数 SRE 的 JD 里，通常被读成一个工具声明：会用 UI，会写 Jenkinsfile，会接 webhook。这个读法只是入场券，不是这行字真正想考察的东西。SRE 的读法从另一个问题出发：这条流水线是所有变更进入生产环境的必经之路，那么它凌晨两点卡死了怎么办，部署到一半挂了怎么办，最糟的情况，它静默地做错了事还报绿，怎么办？</p>
+<p>我有机会用一次真实事件检验自己的答案：一次 Jenkins 迁移。把一套安装在环境之间搬家，等于对它体内每一条隐含假设做全量审计。迁移中浮出水面的故障，EOL 的基础系统、失联的上游制品仓库、只活在运行中 pod 里的状态，正是这篇文章判据的全部素材来源。</p>
+<h2 id="CI-CD-是生产系统">CI/CD 是生产系统</h2>
+<p>先说方法论主张，因为其余一切由它推出：绝大多数线上事故由变更引起，所以交付流水线是 SRE 手里可靠性杠杆最高的一个面，也是头号事故源。这一条我持有的是立场，不是中立观察。</p>
+<p>三个推论随之落地。流水线值得拥有自己的 SLI，成功率、时长、排队时间，和任何面向用户的服务一样；不测量，流水线的退化就不可见，直到它挡住一次发布。它值得做故障模式分析：每个 stage 挂在一半会发生什么，操作者能不能看出来。它还值得一个容量视角：build agent、依赖缓存、制品仓库都是有自己故障模式的生产依赖，不是背景板。</p>
+<p>对 Jenkins 还有一个结构性事实。声明式的 reconcile 天生 idempotent，命令式的 Jenkins pipeline 天生不是：模型里没有任何东西保证一个 job 跑两遍收敛到同一状态。这不是回避 Jenkins 的理由，恰恰是「熟悉 Jenkins」成为一项可靠性工程能力的原因：工具不给你的幂等性，要靠你自己构造出来。</p>
+<h2 id="三个判据：工具使用者和系统运维者的分界">三个判据：工具使用者和系统运维者的分界</h2>
+<h3 id="流程幂等、可重入">流程幂等、可重入</h3>
+<p>迁移期间，agent 镜像构建在两条独立战线上同时失败：Debian Buster 基础镜像 EOL，apt 仓库整体搬进了 archive；与此同时，若干传递依赖所在的上游 Maven 镜像仓库直接失联。Maven 解析失败，编译失败，Docker 构建跟着失败，一个烂根引发三级连锁。</p>
+<p>我为此写的修复脚本遵循同一个形状：先设卫（guard），再备份，然后收敛，最后验证。apt 修复脚本先确认自己确实运行在 Buster 系统上，否则直接空操作退出；对现有配置做带时间戳的备份；然后整体覆写配置，而不是逐行打补丁。覆写到已知良好状态是收敛的：第二次运行产生和第一次相同的终态，跑两遍是安全的，断在中间也没有代价，从头重跑即可。依赖修复脚本的结尾是一个显式的 verify 函数，断言制品此刻确实存在，而不是假设成功。反例就是那种追加行、或假设初始状态干净的修复脚本：跑两遍，一个事故变成两个。</p>
+<h3 id="状态可观测、可诊断">状态可观测、可诊断</h3>
+<p>同一个 repo 里，每个 fix 脚本配对一个 diagnose 脚本：只读，采集事实（系统版本、源清单、一次 dry-run 更新、对已知 EOL 代号的告警），不改变任何东西。诊断作为独立于修复的 artifact 存在，本身就是要点：它把「先确认故障模式，再动手改变系统」固化成了结构，而不是依赖纪律。</p>
+<div class="mermaid">flowchart LR
+  D[&quot;diagnose-*.sh&lt;br/&gt;只读，采集事实&quot;] --&gt; C{&quot;根因&lt;br/&gt;确认？&quot;}
+  C -- &quot;否&quot; --&gt; D
+  C -- &quot;是&quot; --&gt; F[&quot;fix-*.sh&lt;br/&gt;带卫、收敛&quot;]
+  F --&gt; V[&quot;verify 步骤&lt;br/&gt;断言终态&quot;]
+  V -- &quot;失败&quot; --&gt; D
+  V -- &quot;通过&quot; --&gt; R[&quot;重跑 pipeline&quot;]</div>
+<p>第二个案例是我做的一个小工具，起因是 Jenkins 藏起了自己的状态：UI 一次只给你看一个 job、一个 build、一组参数。工具通过 JSON API 把 job 状态、最近五次 build、参数和 commit ID 聚合到一页，同时覆盖迁移前后两套 Jenkins 环境，并支持用上一次成功 build 的参数一键 replay。它不大，但体现了判据本身：job 状态应该是可提取的数据，而不是靠翻页面拼出来的印象。至于完整的 pipeline SLI 上 dashboard，那是我衡量一套成熟设施的标准，在这里作为判据陈述，不声称这个 repo 已经做到。</p>
+<h3 id="配置即代码">配置即代码</h3>
+<p>这个 repo 里的交付逻辑，约 275 个 pipeline 定义文件加一套可复用步骤的 shared library，全部活在 git 里：可 review，可 diff，以及决定性的一点，可迁移。这次迁移本身就是对这个属性的审计。在 repo 里的东西全部干净地搬了过去；只活在运行中系统里的东西，上游早已死掉的缓存制品、agent pod 里手工调过的 Maven 配置，全部在迁移时刻以故障的形式浮出水面。这就是 pipeline-as-code 和「点 UI 攒出来的雪花 Jenkins」在运维意义上的差别：雪花在定义上不可恢复。把同一判据延伸到 Jenkins 本体，也就是用 JCasC 管理 controller 配置，是我对任何一套自己拥有的 Jenkins 会采用的标准。</p>
+<h2 id="自动化本身成为熵的时刻">自动化本身成为熵的时刻</h2>
+<p>论点自身要求的反面：自动化不是目的，程度更高也不是单调更好。</p>
+<p>迁移留下了一个干净的标本。上游仓库陆续失联的那段时间，构建用的 Jenkinsfile 长出了一批 workaround stage：元数据修复、依赖调试、直接下载兜底。等制品被正式迁移到位之后，这些 stage 全部变成死代码：遮蔽信号，拖长构建，并且保证会迷惑下一个读 pipeline 的人。文档化的修复动作里有一条就是删掉它们。自动化的老化方式和告警规则一模一样：每一段都编码着会静默过期的假设，而一条没人看的自动化路径会在无人察觉中腐化；人工闸门里至少有一个会察觉异常的人。</p>
+<p>自动化还会打开新的故障面：凭据集中在流水线够得着的地方，插件供应链，以及脚本本身的腐化。所以我把生产 release 流程里那个人工 review 与 approval 环节读作设计决策而非缺陷：对低频且爆炸半径大的操作，一道有意保留的人工闸门往往是更可靠的那个组件。我为之辩护的排序是：一个逻辑上站得住的流程，可证明能跑、可被观测、可以恢复，胜过一个自动化程度拉满的流程。高频且可逆的，自动化；低频且不可逆的，设闸。</p>
+<h2 id="Takeaways">Takeaways</h2>
+<ul>
+<li>「熟悉 Jenkins」应该读作「能把一条交付流水线当生产系统来拥有」：它的故障模式、它的状态、它的恢复路径，而不是它的语法。</li>
+<li>幂等是其余一切的前提。一个不能安全重跑的流程，就是一个不能自动化、不能重试、不能交接给下一个 oncall 的流程。</li>
+<li>自动化程度不是指标，它是一笔带着自身熵的交易。可运行、可观测、可恢复在前，配得上的部分再自动化。</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tech/tags/SRE/" rel="tag"># SRE</a>
+              <a href="/tech/tags/Kubernetes/" rel="tag"># Kubernetes</a>
+              <a href="/tech/tags/CI-CD/" rel="tag"># CI/CD</a>
+              <a href="/tech/tags/%E5%9F%BA%E7%A1%80%E8%AE%BE%E6%96%BD%E5%8D%B3%E4%BB%A3%E7%A0%81/" rel="tag"># 基础设施即代码</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/tech/2026/08/03/2026-08-03_zombie-system-tables-subsecond-oom_zh/" rel="prev" title="僵尸系统表：30 秒采集看不见的亚秒级 OOM">
+                  <i class="fa fa-angle-left"></i> 僵尸系统表：30 秒采集看不见的亚秒级 OOM
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/tech/2026/08/03/2026-08-03_what-i-understand-sre-to-require_zh/" rel="next" title="我所理解的 SRE 需要的能力">
+                  我所理解的 SRE 需要的能力 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">Rui Shao</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+<!-- hexo injector body_end start --><script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>mermaid.initialize({ startOnLoad: true, theme: "default" });</script><!-- hexo injector body_end end --></body>
+</html>

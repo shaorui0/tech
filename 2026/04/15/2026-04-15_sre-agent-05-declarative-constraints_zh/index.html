@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 8.1.1">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/tech/favicon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/tech/favicon.svg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/tech/favicon.svg">
+  <link rel="mask-icon" href="/tech/favicon.svg" color="#222">
+
+<link rel="stylesheet" href="/tech/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"shaorui0.github.io","root":"/tech/","images":"/tech/images","scheme":"Gemini","darkmode":true,"version":"8.27.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/tech/js/config.js" defer></script>
+
+    <meta name="description" content="状态：大纲 核心论点 约束 agent 行为有两条路径：命令式（规定步骤顺序）和声明式（定义终态条件）。命令式约束容易被绕过，声明式约束让 agent 自己找路径收敛。K8s 的核心设计哲学（Desired State YAML &gt; kubectl imperative）在 agent 约束设计中同样适用。集群分级是声明式约束的实例：按 failure cost 分级，hook 根据等级做语">
+<meta property="og:type" content="article">
+<meta property="og:title" content="SRE Agent 设计笔记 05：声明式约束与集群分级">
+<meta property="og:url" content="https://shaorui0.github.io/tech/2026/04/15/2026-04-15_sre-agent-05-declarative-constraints_zh/index.html">
+<meta property="og:site_name" content="Tech &amp; AI · 中文">
+<meta property="og:description" content="状态：大纲 核心论点 约束 agent 行为有两条路径：命令式（规定步骤顺序）和声明式（定义终态条件）。命令式约束容易被绕过，声明式约束让 agent 自己找路径收敛。K8s 的核心设计哲学（Desired State YAML &gt; kubectl imperative）在 agent 约束设计中同样适用。集群分级是声明式约束的实例：按 failure cost 分级，hook 根据等级做语">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-04-14T15:00:00.000Z">
+<meta property="article:modified_time" content="2026-04-15T12:24:04.896Z">
+<meta property="article:author" content="Rui Shao">
+<meta property="article:tag" content="AI Agent">
+<meta property="article:tag" content="Kubernetes">
+<meta property="article:tag" content="SRE">
+<meta property="article:tag" content="安全">
+<meta property="article:tag" content="系统设计">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://shaorui0.github.io/tech/2026/04/15/2026-04-15_sre-agent-05-declarative-constraints_zh/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://shaorui0.github.io/tech/2026/04/15/2026-04-15_sre-agent-05-declarative-constraints_zh/","path":"2026/04/15/2026-04-15_sre-agent-05-declarative-constraints_zh/","title":"SRE Agent 设计笔记 05：声明式约束与集群分级"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>SRE Agent 设计笔记 05：声明式约束与集群分级 | Tech & AI · 中文</title>
+  
+
+
+
+
+
+
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous" defer></script>
+<script src="/tech/js/utils.js" defer></script><script src="/tech/js/motion.js" defer></script><script src="/tech/js/sidebar.js" defer></script><script src="/tech/js/next-boot.js" defer></script>
+
+  
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.10.1/mermaid.min.js","integrity":"sha256-BmQmdWDS8X2OTbrwELWK366LV6escyWhHHe0XCTU/Hk="}}</script>
+  <script src="/tech/js/third-party/tags/mermaid.js" defer></script>
+
+
+
+
+
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/tech/css/noscript.css">
+  </noscript>
+<!-- hexo injector head_end start --><style>
+.article-toc-wrap {
+  margin-bottom: 1.5em;
+  padding: 1em 1.25em;
+  background: #f8f9fa;
+  border-radius: 6px;
+  border-left: 3px solid #ddd;
+}
+.article-toc-wrap .toc-title {
+  font-weight: bold;
+  margin-bottom: 0.5em;
+  font-size: 0.95em;
+  color: #555;
+}
+.article-toc-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.article-toc-list .article-toc-list { padding-left: 1em; margin-top: 0.25em; }
+.article-toc-item { margin: 0.35em 0; }
+.article-toc-link {
+  text-decoration: none;
+  color: #444;
+  font-size: 0.9em;
+}
+.article-toc-link:hover { color: #08c; text-decoration: underline; }
+.article-toc-level-3 .article-toc-link { font-size: 0.85em; }
+.article-toc-level-4 .article-toc-link { font-size: 0.8em; }
+</style><!-- hexo injector head_end end --></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/tech/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Tech & AI · 中文</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">系统、基础设施与 AI</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/tech/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-tags"><a href="/tech/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/tech/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/tech/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li><li class="menu-item menu-item-english"><a href="https://shaorui0.github.io/tech-en/" rel="section"><i class="fa fa-language fa-fw"></i>English</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%8A%B6%E6%80%81%EF%BC%9A%E5%A4%A7%E7%BA%B2"><span class="nav-number">1.</span> <span class="nav-text">状态：大纲</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A0%B8%E5%BF%83%E8%AE%BA%E7%82%B9"><span class="nav-number">2.</span> <span class="nav-text">核心论点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A4%A7%E7%BA%B2"><span class="nav-number">3.</span> <span class="nav-text">大纲</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E5%91%BD%E4%BB%A4%E5%BC%8F%E7%BA%A6%E6%9D%9F%E7%9A%84%E5%B1%80%E9%99%90"><span class="nav-number">3.1.</span> <span class="nav-text">1. 命令式约束的局限</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E5%A3%B0%E6%98%8E%E5%BC%8F%E7%BA%A6%E6%9D%9F%E7%9A%84%E4%BC%98%E5%8A%BF"><span class="nav-number">3.2.</span> <span class="nav-text">2. 声明式约束的优势</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-Spec-%E4%B8%AD%E7%9A%84-acceptance-criteria-%E5%BF%85%E9%A1%BB-machine-verifiable"><span class="nav-number">3.3.</span> <span class="nav-text">3. Spec 中的 acceptance criteria 必须 machine-verifiable</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-%E9%9B%86%E7%BE%A4%E6%8C%89-Failure-Cost-%E5%88%86%E7%BA%A7"><span class="nav-number">3.4.</span> <span class="nav-text">4. 集群按 Failure Cost 分级</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-Permission-Mode-%E6%98%AF%E9%98%B6%E6%AE%B5%E6%80%A7%E5%88%87%E6%8D%A2"><span class="nav-number">3.5.</span> <span class="nav-text">5. Permission Mode 是阶段性切换</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-Mutating-%E6%93%8D%E4%BD%9C%E5%90%8E%E7%9A%84%E5%BC%BA%E5%88%B6%E9%AA%8C%E8%AF%81"><span class="nav-number">3.6.</span> <span class="nav-text">6. Mutating 操作后的强制验证</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%B6%B5%E7%9B%96%E7%9A%84-Topic"><span class="nav-number">4.</span> <span class="nav-text">涵盖的 Topic</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%BA%90%E6%96%87%E4%BB%B6%E5%BC%95%E7%94%A8"><span class="nav-number">5.</span> <span class="nav-text">源文件引用</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Rui Shao</p>
+  <div class="site-description" itemprop="description">Rui Shao 的技术博客（中文）— 系统、基础设施与 AI</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/tech/archives/">
+          <span class="site-state-item-count">41</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/tech/categories/">
+        <span class="site-state-item-count">13</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tech/tags/">
+        <span class="site-state-item-count">66</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/shaorui0" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;shaorui0" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.linkedin.com/in/rui-shao-a21a55194/" title="LinkedIn → https:&#x2F;&#x2F;www.linkedin.com&#x2F;in&#x2F;rui-shao-a21a55194&#x2F;" rel="noopener me" target="_blank"><i class="fab fa-linkedin fa-fw"></i>LinkedIn</a>
+      </span>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://shaorui0.github.io/tech/2026/04/15/2026-04-15_sre-agent-05-declarative-constraints_zh/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/tech/images/avatar.gif">
+      <meta itemprop="name" content="Rui Shao">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Tech & AI · 中文">
+      <meta itemprop="description" content="Rui Shao 的技术博客（中文）— 系统、基础设施与 AI">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="SRE Agent 设计笔记 05：声明式约束与集群分级 | Tech & AI · 中文">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          SRE Agent 设计笔记 05：声明式约束与集群分级
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2026-04-15 00:00:00 / 修改时间：21:24:04" itemprop="dateCreated datePublished" datetime="2026-04-15T00:00:00+09:00">2026-04-15</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/tech/categories/SRE-Agent-%E8%AE%BE%E8%AE%A1%E7%AC%94%E8%AE%B0/" itemprop="url" rel="index"><span itemprop="name">SRE Agent 设计笔记</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><nav class="article-toc-wrap" aria-label="文章目录"><div class="toc-title">文章目录</div><ol class="article-toc-list"><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#%E7%8A%B6%E6%80%81%EF%BC%9A%E5%A4%A7%E7%BA%B2"><span class="article-toc-text">状态：大纲</span></a></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#%E6%A0%B8%E5%BF%83%E8%AE%BA%E7%82%B9"><span class="article-toc-text">核心论点</span></a></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#%E5%A4%A7%E7%BA%B2"><span class="article-toc-text">大纲</span></a><ol class="article-toc-child"><li class="article-toc-item article-toc-level-3"><a class="article-toc-link" href="#1-%E5%91%BD%E4%BB%A4%E5%BC%8F%E7%BA%A6%E6%9D%9F%E7%9A%84%E5%B1%80%E9%99%90"><span class="article-toc-text">1. 命令式约束的局限</span></a></li><li class="article-toc-item article-toc-level-3"><a class="article-toc-link" href="#2-%E5%A3%B0%E6%98%8E%E5%BC%8F%E7%BA%A6%E6%9D%9F%E7%9A%84%E4%BC%98%E5%8A%BF"><span class="article-toc-text">2. 声明式约束的优势</span></a></li><li class="article-toc-item article-toc-level-3"><a class="article-toc-link" href="#3-Spec-%E4%B8%AD%E7%9A%84-acceptance-criteria-%E5%BF%85%E9%A1%BB-machine-verifiable"><span class="article-toc-text">3. Spec 中的 acceptance criteria 必须 machine-verifiable</span></a></li><li class="article-toc-item article-toc-level-3"><a class="article-toc-link" href="#4-%E9%9B%86%E7%BE%A4%E6%8C%89-Failure-Cost-%E5%88%86%E7%BA%A7"><span class="article-toc-text">4. 集群按 Failure Cost 分级</span></a></li><li class="article-toc-item article-toc-level-3"><a class="article-toc-link" href="#5-Permission-Mode-%E6%98%AF%E9%98%B6%E6%AE%B5%E6%80%A7%E5%88%87%E6%8D%A2"><span class="article-toc-text">5. Permission Mode 是阶段性切换</span></a></li><li class="article-toc-item article-toc-level-3"><a class="article-toc-link" href="#6-Mutating-%E6%93%8D%E4%BD%9C%E5%90%8E%E7%9A%84%E5%BC%BA%E5%88%B6%E9%AA%8C%E8%AF%81"><span class="article-toc-text">6. Mutating 操作后的强制验证</span></a></li></ol></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#%E6%B6%B5%E7%9B%96%E7%9A%84-Topic"><span class="article-toc-text">涵盖的 Topic</span></a></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#%E6%BA%90%E6%96%87%E4%BB%B6%E5%BC%95%E7%94%A8"><span class="article-toc-text">源文件引用</span></a></li></ol></nav>
+<h2 id="状态：大纲">状态：大纲</h2>
+<h2 id="核心论点">核心论点</h2>
+<p>约束 agent 行为有两条路径：命令式（规定步骤顺序）和声明式（定义终态条件）。命令式约束容易被绕过，声明式约束让 agent 自己找路径收敛。K8s 的核心设计哲学（Desired State YAML &gt; kubectl imperative）在 agent 约束设计中同样适用。集群分级是声明式约束的实例：按 failure cost 分级，hook 根据等级做语义门控。</p>
+<h2 id="大纲">大纲</h2>
+<h3 id="1-命令式约束的局限">1. 命令式约束的局限</h3>
+<ul>
+<li>「coding 之后必须 compile，compile 之后必须 test」</li>
+<li>像 checklist 一样规定步骤</li>
+<li>Agent 和人类一样会找 workaround：如果目标是「完成任务」而约束是过程性的，它有动机跳过对结果无贡献的步骤</li>
+<li>更根本的问题：命令式约束把路径固定了，agent 失去了用更好路径达成目标的自由度</li>
+</ul>
+<h3 id="2-声明式约束的优势">2. 声明式约束的优势</h3>
+<ul>
+<li>「Done = 编译通过 + 测试通过 + lint clean」</li>
+<li>只定义终态，agent 自己找路径</li>
+<li>可以先写测试再写代码，也可以反过来</li>
+<li>K8s 的核心哲学：声明 Desired State，controller 自己 reconcile</li>
+</ul>
+<h3 id="3-Spec-中的-acceptance-criteria-必须-machine-verifiable">3. Spec 中的 acceptance criteria 必须 machine-verifiable</h3>
+<ul>
+<li>「写好代码」≠ 合格终止条件</li>
+<li>「代码编译通过 + 单测通过 + lint 无警告」= 合格</li>
+<li>过去的过程约束（Rules、Scripts、baselines）转化为 Loop 内的验证检查点</li>
+<li>这把命令式流程转变为声明式终态</li>
+</ul>
+<h3 id="4-集群按-Failure-Cost-分级">4. 集群按 Failure Cost 分级</h3>
+<p>为什么不按 RBAC verb（get/list/patch/delete）分级：</p>
+<ul>
+<li>verb 不包含语义：<code>delete pod</code> 和 <code>delete namespace</code> 都是 delete，但后果差几个数量级</li>
+<li>按 failure cost 分级才能匹配实际风险</li>
+</ul>
+<p>分级表：</p>
+<table>
+<thead>
+<tr>
+<th>集群类型</th>
+<th>读操作</th>
+<th>写操作</th>
+<th>删除资源</th>
+<th>删除 namespace</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Dev/Preprod</td>
+<td>自由</td>
+<td>确认</td>
+<td>确认</td>
+<td>阻断</td>
+</tr>
+<tr>
+<td>Prod</td>
+<td>自由</td>
+<td>警告+确认</td>
+<td>阻断</td>
+<td>阻断</td>
+</tr>
+<tr>
+<td>PCI</td>
+<td>自由</td>
+<td>阻断</td>
+<td>阻断</td>
+<td>阻断</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>Hook 做语义门控：读 cluster tier → 匹配操作类型 → 决定 allow/confirm/deny</li>
+<li>新增集群只需加一行分级，不需要改 hook 逻辑</li>
+</ul>
+<h3 id="5-Permission-Mode-是阶段性切换">5. Permission Mode 是阶段性切换</h3>
+<ul>
+<li>Claude Code 六种权限模式不应「选一个一直用」</li>
+<li>调研阶段 → Default（只读）</li>
+<li>执行阶段 → allowlist（预授权操作集）</li>
+<li>本地开发 → acceptEdits</li>
+<li>类比 K8s：不同 workload 绑定不同 ServiceAccount</li>
+</ul>
+<h3 id="6-Mutating-操作后的强制验证">6. Mutating 操作后的强制验证</h3>
+<ul>
+<li><code>kubectl scale</code> → <code>kubectl rollout status</code> + <code>kubectl get</code></li>
+<li><code>helm upgrade</code> → <code>helm status</code> + <code>kubectl get pods</code></li>
+<li>验证失败或结果不明确 → 停下来报告，不继续</li>
+<li>当前：<a target="_blank" rel="noopener" href="http://CLAUDE.md">CLAUDE.md</a> 规则 + 人工抽查；下一步：写进 PostToolUse hook</li>
+</ul>
+<h2 id="涵盖的-Topic">涵盖的 Topic</h2>
+<ul>
+<li>Topic 9: 声明式约束 vs 命令式约束</li>
+<li>Topic 7: 集群按 failure cost 分级</li>
+</ul>
+<h2 id="源文件引用">源文件引用</h2>
+<ul>
+<li><code>contexts/thought_review/agentic_control_theory_primitives_20260413.md</code> — 声明式 &gt; 命令式的完整论证，acceptance criteria 必须 machine-verifiable</li>
+<li><code>contexts/thought_review/agent_k8s_safety_infra_2026-03-28.md</code> — 集群分级表，permission mode 阶段切换，强制验证设计，hook exit code 语义</li>
+<li><code>contexts/thought_review/agentic_ai_controllability_design_20260329.md</code> — Scope Declaration，执行合约（execution contract）</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tech/tags/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/" rel="tag"># 系统设计</a>
+              <a href="/tech/tags/SRE/" rel="tag"># SRE</a>
+              <a href="/tech/tags/AI-Agent/" rel="tag"># AI Agent</a>
+              <a href="/tech/tags/Kubernetes/" rel="tag"># Kubernetes</a>
+              <a href="/tech/tags/%E5%AE%89%E5%85%A8/" rel="tag"># 安全</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/tech/2026/04/15/2026-04-15_sre-agent-06-files-not-sessions_zh/" rel="prev" title="SRE Agent 设计笔记 06：Agent 通信介质是文件，不是 Session">
+                  <i class="fa fa-angle-left"></i> SRE Agent 设计笔记 06：Agent 通信介质是文件，不是 Session
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/tech/2026/04/15/2026-04-15_sre-agent-04-intent-convention_zh/" rel="next" title="SRE Agent 设计笔记 04：INTENT Convention 与 Untrusted Input">
+                  SRE Agent 设计笔记 04：INTENT Convention 与 Untrusted Input <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">Rui Shao</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+<!-- hexo injector body_end start --><script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>mermaid.initialize({ startOnLoad: true, theme: "default" });</script><!-- hexo injector body_end end --></body>
+</html>

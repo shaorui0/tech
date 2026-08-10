@@ -1,169 +1,169 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
-  <title>Tech &amp; AI</title>
-  <link href="https://shaorui0.github.io/tech-en/tech-en/atom.xml" rel="self"/>
-  <link href="https://shaorui0.github.io/tech-en/tech-en/"/>
-  <updated>2026-08-03T16:19:14.697Z</updated>
-  <id>https://shaorui0.github.io/tech-en/tech-en/</id>
+  <title>Tech &amp; AI · 中文</title>
+  <link href="https://shaorui0.github.io/tech/tech/atom.xml" rel="self"/>
+  <link href="https://shaorui0.github.io/tech/tech/"/>
+  <updated>2026-08-10T12:30:14.367Z</updated>
+  <id>https://shaorui0.github.io/tech/tech/</id>
   <author><name>Rui Shao</name></author>
   <entry>
-    <title>Alert Governance: Turning the Pager from Noise Back into Decision Signal</title>
-    <link href="https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_alert-governance_en/"/>
-    <id>https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_alert-governance_en/</id>
-    <updated>2026-08-03T16:19:14.697Z</updated>
-    <published>2026-08-02T15:00:00.000Z</published>
-    <content type="html"><![CDATA[<p>Also in Chinese: 中文版 Why By the time this became a project, the pager had stopped being evidence of anything. The baseline: 367 alert rules carried the label that routes to OpsGenie, spread across 30 rule files, and OpsGenie was absorbing roughly 960 alerts a day — about 85% of…</p>]]></content>
+    <title>查询很慢，但所有指标都是绿的</title>
+    <link href="https://shaorui0.github.io/tech/2026/08/10/2026-08-10_all-metrics-green-but-queries-slow_zh/"/>
+    <id>https://shaorui0.github.io/tech/2026/08/10/2026-08-10_all-metrics-green-but-queries-slow_zh/</id>
+    <updated>2026-08-10T12:30:14.367Z</updated>
+    <published>2026-08-09T15:00:00.000Z</published>
+    <content type="html"><![CDATA[<p>一个所有指标都正常的慢查询 那张表 4.0 TB，55 亿行，3727 列，存算分离，数据在对象存储上，八个 BE 每个挂 1.3 TB 本地 NVMe 做 file cache。一条最朴素的点查，按业务事件 ID 取十行，跑了 144 秒。 第一反应当然是对象存储慢。于是我把同一个 ID 反复查，让缓存暖起来。暖之后仍然要 1.12 秒。这一次的现场是：缓存全命中，远程读次数为零，CPU 不高，内存不高，对象存储带宽用了不到 1%。 手上那套以主机资源为中心的 dashboard，在这个故障面前一片绿。 真因跟存储没有关系。事件 ID…</p>]]></content>
   </entry>
   <entry>
-    <title>An audit of my own radar</title>
-    <link href="https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_an-audit-of-my-own-radar_en/"/>
-    <id>https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_an-audit-of-my-own-radar_en/</id>
-    <updated>2026-08-03T16:19:14.703Z</updated>
-    <published>2026-08-02T15:00:00.000Z</published>
-    <content type="html"><![CDATA[<p>Also in Chinese: 中文版 How the scores are produced The method comes first, because without it the numbers are noise. Each depth score on the radar is derived from evidence density: the count and depth of flagship artifacts (incident write-ups with quoted evidence, measured results…</p>]]></content>
+    <title>如何用 Claude Code：模型是 CPU，Harness 是操作系统，Context 是内存页</title>
+    <link href="https://shaorui0.github.io/tech/2026/08/04/2026-08-04_how-i-use-claude-code-context-engineering-and-harness_zh/"/>
+    <id>https://shaorui0.github.io/tech/2026/08/04/2026-08-04_how-i-use-claude-code-context-engineering-and-harness_zh/</id>
+    <updated>2026-08-04T07:37:49.533Z</updated>
+    <published>2026-08-03T15:00:00.000Z</published>
+    <content type="html"><![CDATA[<p>先说清楚这篇要回答什么 已经写过一个十一篇的系列，讲 SRE 和 agent 之间的同构性，讲 Spec&#x2F;Loop&#x2F;Hook&#x2F;Fork 四个控制论原语。那个系列的语言是抽象层的为什么。这篇不重复那些内容，只回答一个更朴素的问题：把我自己天天在用的 context-infrastructure 这个 repo 摊开来看，我到底在怎么用 Claude Code。 我每次打开任务前做的一件事 任何任务开始之前，我不是直接开始干活，是先让 agent 读四个文件。SOUL.md 定义它要扮演的角色和底层逻辑，USER.md…</p>]]></content>
   </entry>
   <entry>
-    <title>Designing the Elastic Compute Tier: Discrete Capacity, One Write Primitive, Readiness That Cannot Lie</title>
-    <link href="https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_designing-the-elastic-compute-tier_en/"/>
-    <id>https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_designing-the-elastic-compute-tier_en/</id>
-    <updated>2026-08-03T16:19:14.697Z</updated>
-    <published>2026-08-02T15:00:00.000Z</published>
-    <content type="html"><![CDATA[<p>Also in Chinese: 中文版 The architecture, as five decisions The pool itself is unremarkable; the design is in what it refuses to do. Five decisions carry the whole thing. 1 — Physical isolation, not a workload class. The heavy tail does not get a priority label inside the serving…</p>]]></content>
-  </entry>
-  <entry>
-    <title>Compiling a Document into a Control Loop: A Machine-Level Configuration Reconciler for 5G vRAN Bare Metal</title>
-    <link href="https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_compiling-a-document-into-a-control-loop_en/"/>
-    <id>https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_compiling-a-document-into-a-control-loop_en/</id>
-    <updated>2026-08-03T16:19:14.701Z</updated>
-    <published>2026-08-02T15:00:00.000Z</published>
-    <content type="html"><![CDATA[<p>Also in Chinese: 中文版 What it was, and why Kubernetes runs a reconcile loop over containers: declare a desired state, observe the actual state, converge the difference, repeat. This project pushed that philosophy one layer down, onto the bare-metal hardware that carries real-time…</p>]]></content>
-  </entry>
-  <entry>
-    <title>Engine-Level Query Routing: EXPLAIN ROUTE PLAN</title>
-    <link href="https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_engine-level-query-routing_en/"/>
-    <id>https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_engine-level-query-routing_en/</id>
-    <updated>2026-08-03T16:19:14.695Z</updated>
-    <published>2026-08-02T15:00:00.000Z</published>
-    <content type="html"><![CDATA[<p>Also in Chinese: 中文版 Why the decision has to happen before execution After the migration consolidated serving and analytics onto one Apache Doris deployment, fewer than 1% of queries were heavy — but a single misplaced heavy query could starve the shared light pool. Reactive…</p>]]></content>
-  </entry>
-  <entry>
-    <title>Production Kubernetes Upgrade Engineering: 50 Clusters, 1.24 → 1.29, Zero Incidents</title>
-    <link href="https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_kubernetes-upgrade-engineering_en/"/>
-    <id>https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_kubernetes-upgrade-engineering_en/</id>
-    <updated>2026-08-03T16:19:14.694Z</updated>
-    <published>2026-08-02T15:00:00.000Z</published>
-    <content type="html"><![CDATA[<p>Also in Chinese: 中文版 Why Kubernetes 1.24 was aging out of support; every unsupported minor compounds CVE exposure and compliance risk. The fleet was 50 self-managed clusters on AWS — kubeadm control planes, ASG-backed workers — and the existing practice did not scale: a single…</p>]]></content>
-  </entry>
-  <entry>
-    <title>Fan-Out Is the Floor: Two Targeted Optimizations for Query Shapes Nobody Controls</title>
-    <link href="https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_fan-out-is-the-floor_en/"/>
-    <id>https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_fan-out-is-the-floor_en/</id>
-    <updated>2026-08-03T16:19:14.696Z</updated>
-    <published>2026-08-02T15:00:00.000Z</published>
-    <content type="html"><![CDATA[<p>Also in Chinese: 中文版 Where this sits The analytics platform was rebuilt in three layers, and they solve different kinds of problem. Migration replaced the substrate: off ClickHouse onto Apache Doris with compute-storage separation. Not because Doris was faster — ClickHouse still…</p>]]></content>
-  </entry>
-  <entry>
-    <title>Rebuilding a 5-billion-row event store, down to the engine</title>
-    <link href="https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_rebuilding-a-5b-row-event-store_en/"/>
-    <id>https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_rebuilding-a-5b-row-event-store_en/</id>
-    <updated>2026-08-03T16:19:14.690Z</updated>
-    <published>2026-08-02T15:00:00.000Z</published>
-    <content type="html"><![CDATA[<p>Also in Chinese: 中文版 The one-paragraph version Our fraud-analytics event layer serves two increasingly conflicting workloads: millisecond point lookups on the serving path, and a growing stream of unpredictable ad-hoc analytics — increasingly generated by AI-agent-facing product…</p>]]></content>
-  </entry>
-  <entry>
-    <title>Refused is not timeout</title>
-    <link href="https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_refused-is-not-timeout_en/"/>
-    <id>https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_refused-is-not-timeout_en/</id>
-    <updated>2026-08-03T16:19:14.692Z</updated>
-    <published>2026-08-02T15:00:00.000Z</published>
-    <content type="html"><![CDATA[<p>Also in Chinese: 中文版 Symptom External connections to a database service failed instantly with connection refused. Instantly is the clue: refused means the packet arrived and nothing was listening — fast and deterministic. Timeout means a listener exists but is not answering. The…</p>]]></content>
-  </entry>
-  <entry>
-    <title>Replacing Prometheus Federation: Rebuilding a Multi-Tenant Monitoring Platform</title>
-    <link href="https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_replacing-prometheus-federation_en/"/>
-    <id>https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_replacing-prometheus-federation_en/</id>
-    <updated>2026-08-03T16:19:14.693Z</updated>
-    <published>2026-08-02T15:00:00.000Z</published>
-    <content type="html"><![CDATA[<p>Also in Chinese: 中文版 Why The global Prometheus at the top of our federation topology was OOMing two to three times a week. Its head block carried 1.2M series and cost 5–10 GB of memory to maintain; every crash-restart cycle left holes in the data, and those holes paged on-call…</p>]]></content>
-  </entry>
-  <entry>
-    <title>Order of operations under fire</title>
-    <link href="https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_order-of-operations-under-fire_en/"/>
-    <id>https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_order-of-operations-under-fire_en/</id>
-    <updated>2026-08-03T16:19:14.691Z</updated>
-    <published>2026-08-02T15:00:00.000Z</published>
-    <content type="html"><![CDATA[<p>Also in Chinese: 中文版 Symptom One tenant’s query rate spiked far above baseline. Serving latency rose, error rates climbed on the dependency chain, and asynchronous recomputation began competing with the message queue and the database for the same headroom. The sequence, and why…</p>]]></content>
-  </entry>
-  <entry>
-    <title>Restoring 5.2 billion rows without touching prod</title>
-    <link href="https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_restoring-5b-rows-without-touching-prod_en/"/>
-    <id>https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_restoring-5b-rows-without-touching-prod_en/</id>
-    <updated>2026-08-03T16:19:14.692Z</updated>
-    <published>2026-08-02T15:00:00.000Z</published>
-    <content type="html"><![CDATA[<p>Also in Chinese: 中文版 Correcting the premise The initial plan assumed rows expired by the database’s TTL could be recovered from the live volume. That assumption was wrong, and proving it wrong was the first deliverable: this engine’s TTL delete physically unlinks the data parts,…</p>]]></content>
-  </entry>
-  <entry>
-    <title>SRE in the Age of AI Agents</title>
-    <link href="https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_sre-in-the-age-of-ai-agents_en/"/>
-    <id>https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_sre-in-the-age-of-ai-agents_en/</id>
-    <updated>2026-08-03T16:19:14.705Z</updated>
-    <published>2026-08-02T15:00:00.000Z</published>
-    <content type="html"><![CDATA[<p>Also in Chinese: 中文版 Strip SRE down to first principles and it is one job: operating the loop between what a system should be doing and what it is actually doing. Detect the gap, explain it, close it, keep it closed. AI agents have not changed that definition at all. What they…</p>]]></content>
-  </entry>
-  <entry>
-    <title>The OS Fallacy: Why Stronger Models Make Orchestration Matter More, Not Less</title>
-    <link href="https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_the-os-fallacy_en/"/>
-    <id>https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_the-os-fallacy_en/</id>
-    <updated>2026-08-03T16:20:02.889Z</updated>
-    <published>2026-08-02T15:00:00.000Z</published>
-    <content type="html"><![CDATA[<p>Also in Chinese: 中文版 An argument I keep running into It goes roughly like this. The engineering layer around agentic coding — context trimming, orchestration frameworks, external rule systems — exists only to route around the model’s current weaknesses. Once reasoning models get…</p>]]></content>
-  </entry>
-  <entry>
-    <title>An SRE Oncall Triage Harness — Autonomous Investigation, Human-Owned Mutation</title>
-    <link href="https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_sre-oncall-triage-harness_en/"/>
-    <id>https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_sre-oncall-triage-harness_en/</id>
-    <updated>2026-08-03T16:19:14.700Z</updated>
-    <published>2026-08-02T15:00:00.000Z</published>
-    <content type="html"><![CDATA[<p>Also in Chinese: 中文版 Why In an oncall investigation the main agent’s real job is judgment: is this a false alarm, where is the root cause, what to query next, do we escalate. Judgment needs a clear context window. But a single raw range query can come back at 30K tokens, and a…</p>]]></content>
-  </entry>
-  <entry>
-    <title>The P100 that was exactly 1.00 seconds</title>
-    <link href="https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_the-p100-that-was-exactly-one-second_en/"/>
-    <id>https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_the-p100-that-was-exactly-one-second_en/</id>
-    <updated>2026-08-03T16:19:14.691Z</updated>
-    <published>2026-08-02T15:00:00.000Z</published>
-    <content type="html"><![CDATA[<p>Also in Chinese: 中文版 Symptom One tenant’s detection API showed P100 pinned at exactly 1.00 s, spiking every 5–10 minutes. P50 through P95 stayed at a healthy 1–2 ms. Several tenants sharing the same ingress layer were affected in the same windows. Nothing was down; something was…</p>]]></content>
-  </entry>
-  <entry>
-    <title>What I know I can&apos;t do yet</title>
-    <link href="https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_what-i-know-i-cant-do-yet_en/"/>
-    <id>https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_what-i-know-i-cant-do-yet_en/</id>
-    <updated>2026-08-03T16:19:14.704Z</updated>
-    <published>2026-08-02T15:00:00.000Z</published>
-    <content type="html"><![CDATA[<p>Also in Chinese: 中文版 The resume tells you what I can do. This page tells you what I know I cannot do yet. The dashed target line on the radar is a commitment with acceptance criteria, not a decorative outer ring — and the rule for this page is that every gap below carries a…</p>]]></content>
-  </entry>
-  <entry>
-    <title>What I understand SRE to require</title>
-    <link href="https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_what-i-understand-sre-to-require_en/"/>
-    <id>https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_what-i-understand-sre-to-require_en/</id>
-    <updated>2026-08-03T16:19:14.703Z</updated>
-    <published>2026-08-02T15:00:00.000Z</published>
-    <content type="html"><![CDATA[<p>Also in Chinese: 中文版 From tool inventories to problem classes There are two ways to slice SRE skill. The first is by tools: Kubernetes, Terraform, Prometheus, a cloud provider. That is the entry-level view, and its weakness is immediate — kubectl apply is a commodity. The second…</p>]]></content>
-  </entry>
-  <entry>
-    <title>Zombie System Tables: the Sub-Second OOM That 30-Second Monitoring Could Not See</title>
-    <link href="https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_zombie-system-tables-subsecond-oom_en/"/>
-    <id>https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_zombie-system-tables-subsecond-oom_en/</id>
-    <updated>2026-08-03T16:19:14.702Z</updated>
-    <published>2026-08-02T15:00:00.000Z</published>
-    <content type="html"><![CDATA[<p>Also in Chinese: 中文版 Symptoms: the alert fires three systems away from the cause The visible signal was Kafka consumer lag: a downstream ingestion consumer group’s lag rising monotonically across multiple tenants at once, with no traffic spike to explain it. The consumer itself…</p>]]></content>
-  </entry>
-  <entry>
-    <title>&quot;Knows Jenkins&quot;: What That Line Actually Tests in an SRE</title>
-    <link href="https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_what-knows-jenkins-actually-tests_en/"/>
-    <id>https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_what-knows-jenkins-actually-tests_en/</id>
+    <title>告警治理：把 pager 从噪声源治回决策信号</title>
+    <link href="https://shaorui0.github.io/tech/2026/08/03/2026-08-03_alert-governance_zh/"/>
+    <id>https://shaorui0.github.io/tech/2026/08/03/2026-08-03_alert-governance_zh/</id>
     <updated>2026-08-03T16:19:14.698Z</updated>
     <published>2026-08-02T15:00:00.000Z</published>
-    <content type="html"><![CDATA[<p>Also in Chinese: 中文版 Why “Familiar with Jenkins” appears in countless SRE job descriptions, usually read as a tool claim: navigate the UI, write a Jenkinsfile, wire a webhook. That is table stakes, not what the line should test. The SRE reading starts elsewhere: the pipeline is…</p>]]></content>
+    <content type="html"><![CDATA[<p>英文版：English Why 立项的时候，这个 pager 已经不能作为任何事情的证据了。Phase 0 的量化 baseline 说明了问题：367 条 alert rule 打着进 OpsGenie 的路由 label，散落在 30 个规则文件里；全局 OpsGenie channel 每天吞下约 960 条告警，其中约 85% 是 P3，原因很简单，不写 priority 时 P3 就是默认值。仅 infra 团队的 OpsGenie channel 就以每小时约 12 条的速率运行，一天约 290 条。 细看比总量更糟。一条 for: 0m…</p>]]></content>
+  </entry>
+  <entry>
+    <title>引擎级查询路由：EXPLAIN ROUTE PLAN</title>
+    <link href="https://shaorui0.github.io/tech/2026/08/03/2026-08-03_engine-level-query-routing_zh/"/>
+    <id>https://shaorui0.github.io/tech/2026/08/03/2026-08-03_engine-level-query-routing_zh/</id>
+    <updated>2026-08-03T16:19:14.695Z</updated>
+    <published>2026-08-02T15:00:00.000Z</published>
+    <content type="html"><![CDATA[<p>英文版：English 为什么判定必须发生在执行之前 迁移把 serving 和分析收敛到同一套 Apache Doris 平台之后，重查询占比不到 1%，但一条被误放进共享轻查询池的重查询足以拖垮整个池子。事后弹性救不了这个场景：计算池扩容是分钟级操作，内存打爆是秒级事件。路由判定唯一安全的位置是 plan time，即任何 backend 碰到数据之前。 第一个问题是：原生 Doris 暴露的信号够不够。我搭了一条闭环可行性流水线（SQL 输入，解析 EXPLAIN 输出并分类，再真实执行作为 ground truth），套件 52 条…</p>]]></content>
+  </entry>
+  <entry>
+    <title>弹性计算层是怎么设计的：离散容量、一个写原语、不会骗人的 readiness</title>
+    <link href="https://shaorui0.github.io/tech/2026/08/03/2026-08-03_designing-the-elastic-compute-tier_zh/"/>
+    <id>https://shaorui0.github.io/tech/2026/08/03/2026-08-03_designing-the-elastic-compute-tier_zh/</id>
+    <updated>2026-08-03T16:19:14.697Z</updated>
+    <published>2026-08-02T15:00:00.000Z</published>
+    <content type="html"><![CDATA[<p>英文版：English 这个架构，就是五个决策 池子本身平平无奇，设计全在它拒绝做什么上。五个决策撑起整件事。 1 — 用物理隔离，不用负载分级。 重查询尾部拿到的不是 serving 池里的一个优先级标签，而是自己的 compute group。存算分离让这件事变得便宜（shared-nothing 下不会）：tablet 在 S3 上，所以一个池就是一个元数据构造。在线把池从 2 个 BE 扩到 4 个，零数据移动 —— 归属重平衡成 131&#x2F;128&#x2F;128&#x2F;125，纯元数据操作。于是隔离在这里是最便宜的原语，而内存隔离恰好是 serving…</p>]]></content>
+  </entry>
+  <entry>
+    <title>我当前做了什么，匹配什么能力</title>
+    <link href="https://shaorui0.github.io/tech/2026/08/03/2026-08-03_an-audit-of-my-own-radar_zh/"/>
+    <id>https://shaorui0.github.io/tech/2026/08/03/2026-08-03_an-audit-of-my-own-radar_zh/</id>
+    <updated>2026-08-03T16:19:14.704Z</updated>
+    <published>2026-08-02T15:00:00.000Z</published>
+    <content type="html"><![CDATA[<p>英文版：English 分数是怎么产生的 方法放在最前面，因为没有方法，数字就是噪音。雷达上每个 depth 分数都由证据密度推导：旗舰 artifact 的数量与深度（带证据引用的事故复盘、经受住重测的实测结果）、从工作中沉淀出的方法论体量（runbook、debug tree、固化的规则），以及是否存在公开可验证之物。它明确不是自评。 原因是：自评分数对读者没有信息量。自评在人与人之间没有校准，夸大的激励是结构性的，而且当你不同意时无处可查。一个由认证过的迁移支撑的 82 是可以审计的声明；一个由自信支撑的 82…</p>]]></content>
+  </entry>
+  <entry>
+    <title>生产 Kubernetes 升级工程：50 集群，1.24 → 1.29，零事故</title>
+    <link href="https://shaorui0.github.io/tech/2026/08/03/2026-08-03_kubernetes-upgrade-engineering_zh/"/>
+    <id>https://shaorui0.github.io/tech/2026/08/03/2026-08-03_kubernetes-upgrade-engineering_zh/</id>
+    <updated>2026-08-03T16:19:14.694Z</updated>
+    <published>2026-08-02T15:00:00.000Z</published>
+    <content type="html"><![CDATA[<p>英文版：English 为什么做 Kubernetes 1.24 即将脱离支持窗口，每落后一个 minor 版本，CVE 暴露面和合规风险都在累积。集群规模是 50 个 AWS 上的自管理集群：kubeadm control plane 加 ASG worker。存量升级方式完全无法规模化：单集群 18-21 小时纯手工操作，且必须两人结对，因为真正的风险模型只存在于资深工程师的脑子里。再乘上逐 minor 跳版的约束（kubeadm 一次只能升一个 minor，1.24 到 1.29 意味着每个中间版本都要走一遍，每一跳都覆盖 control…</p>]]></content>
+  </entry>
+  <entry>
+    <title>把一份文档编译成 control loop：面向 5G vRAN 裸金属的 machine-level 配置收敛控制器</title>
+    <link href="https://shaorui0.github.io/tech/2026/08/03/2026-08-03_compiling-a-document-into-a-control-loop_zh/"/>
+    <id>https://shaorui0.github.io/tech/2026/08/03/2026-08-03_compiling-a-document-into-a-control-loop_zh/</id>
+    <updated>2026-08-03T16:19:14.701Z</updated>
+    <published>2026-08-02T15:00:00.000Z</published>
+    <content type="html"><![CDATA[<p>英文版：English 这是什么，以及为什么做 Kubernetes 在容器上跑一个 reconcile loop：声明 desired state，观察 actual state，收敛差异，循环往复。这个项目把同一套哲学向下推了一层，落到承载 5G vRAN 实时无线流量的裸金属硬件上。 Intel 的 5G 云化（cloud-ification）把无线接入网的 L1&#x2F;L2 从专用芯片搬到通用 Xeon 服务器加标准 NIC 加软件（FlexRAN 参考架构）上。这套软件能不能跑出认证性能，完全取决于底层硬件、固件、内核是否被精确调到 Intel…</p>]]></content>
+  </entry>
+  <entry>
+    <title>扇出是地板：两个针对「没人能控制的查询形态」的定向优化</title>
+    <link href="https://shaorui0.github.io/tech/2026/08/03/2026-08-03_fan-out-is-the-floor_zh/"/>
+    <id>https://shaorui0.github.io/tech/2026/08/03/2026-08-03_fan-out-is-the-floor_zh/</id>
+    <updated>2026-08-03T16:19:14.696Z</updated>
+    <published>2026-08-02T15:00:00.000Z</published>
+    <content type="html"><![CDATA[<p>英文版：English 这篇在整体里的位置 分析平台的重建分三层，而三层解决的问题性质不同。 迁移层换掉了地基：从 ClickHouse 换到存算分离的 Apache Doris。不是因为 Doris 更快 —— ClickHouse 当时还更快 —— 而是因为 ClickHouse 快的那个前提条件失效了。它的性能依赖排序键和事先对查询形态建模，而当越来越大比例的查询由 AI agent 产生时，没有人能事先知道形态。 弹性计算层在上面建了控制面：执行前评估每条查询的成本、在 plan 期判定它 heavy 还是 light、给重尾一个物理隔离的…</p>]]></content>
+  </entry>
+  <entry>
+    <title>火线上的操作顺序</title>
+    <link href="https://shaorui0.github.io/tech/2026/08/03/2026-08-03_order-of-operations-under-fire_zh/"/>
+    <id>https://shaorui0.github.io/tech/2026/08/03/2026-08-03_order-of-operations-under-fire_zh/</id>
+    <updated>2026-08-03T16:19:14.691Z</updated>
+    <published>2026-08-02T15:00:00.000Z</published>
+    <content type="html"><![CDATA[<p>英文版：English 症状 一个租户的查询量冲到基线之上很远。serving 延迟上升，依赖链错误率攀升，异步重算开始和消息队列、数据库争夺同一份余量。 顺序，以及为什么不能重排 **先止血。**把流量 50&#x2F;50 切到第二个集群。秒级可逆，为下游所有环节买到余量，不改变任何行为。 **再卸载非关键负载。**动态降级非关键的异步重算：运行时配置把它限流到零，不用重启。系统继续履行主契约，后台工作让路。 **最后带上限扩容。**serving 与异步池在显式上限下扩容；消息队列分区翻倍；数据库垂直扩 2 倍。…</p>]]></content>
+  </entry>
+  <entry>
+    <title>refused 不是 timeout</title>
+    <link href="https://shaorui0.github.io/tech/2026/08/03/2026-08-03_refused-is-not-timeout_zh/"/>
+    <id>https://shaorui0.github.io/tech/2026/08/03/2026-08-03_refused-is-not-timeout_zh/</id>
+    <updated>2026-08-03T16:19:14.692Z</updated>
+    <published>2026-08-02T15:00:00.000Z</published>
+    <content type="html"><![CDATA[<p>英文版：English 症状 外部连接数据库服务瞬间失败，报 connection refused。「瞬间」就是线索：refused 意味着包到了、没人在听，快速且确定。timeout 意味着有监听者但不应答。两个词指向栈的不同半边，混为一谈会浪费掉第一个小时。 逐跳走，停在第一个失败处 链路有八跳：client → DNS → 负载均衡 → NodePort → ingress → Service → Endpoints → pod。方法毫无花哨：按序核实每一跳确实在监听或解析，停在第一个失败的跳。在这类事故上，它找到过两个不同的根因：…</p>]]></content>
+  </entry>
+  <entry>
+    <title>替换 Prometheus Federation：一个多租户监控平台的重建</title>
+    <link href="https://shaorui0.github.io/tech/2026/08/03/2026-08-03_replacing-prometheus-federation_zh/"/>
+    <id>https://shaorui0.github.io/tech/2026/08/03/2026-08-03_replacing-prometheus-federation_zh/</id>
+    <updated>2026-08-03T16:19:14.693Z</updated>
+    <published>2026-08-02T15:00:00.000Z</published>
+    <content type="html"><![CDATA[<p>英文版：English Why Federation 拓扑顶端的 global Prometheus 每周 OOM 两到三次。它的 head block 维护着 1.2M series，占用 5 到 10 GB 内存；每次崩溃重启都会在数据上留下空洞，而这些空洞会以&quot;不存在的故障&quot;的形式把 oncall 从床上叫醒。这是可靠性的一半。另一半是延迟，而且是结构性的：Federation 叠加了两层 scrape 周期，集群本地 15s 加全局层 30s，全局视图最多滞后现实 45 秒。P0 发生时，被 page 的人看到的是过去。…</p>]]></content>
+  </entry>
+  <entry>
+    <title>重构一个 50 亿行的事件存储：一路做到引擎里</title>
+    <link href="https://shaorui0.github.io/tech/2026/08/03/2026-08-03_rebuilding-a-5b-row-event-store_zh/"/>
+    <id>https://shaorui0.github.io/tech/2026/08/03/2026-08-03_rebuilding-a-5b-row-event-store_zh/</id>
+    <updated>2026-08-03T16:19:14.690Z</updated>
+    <published>2026-08-02T15:00:00.000Z</published>
+    <content type="html"><![CDATA[<p>英文版：English 一段话版本 我们的反欺诈事件层要同时服务两种日益冲突的负载：serving 路径上的毫秒级点查，和越来越多由面向 AI agent 的产品功能（而不是人类分析师）产生的不可预测 ad-hoc 分析。旧的 ClickHouse shared-nothing 层对第二种负载既不能隔离也不能弹性扩容：一条重查询能饿死共享池，我们实测过一条 SELECT * LIMIT 10 排在 bulk insert 后面，墙钟等了 61 秒、CPU 只用了 60 毫秒。我做的不是一次迁移。我把这一层重建在存算分离上（Apache Doris…</p>]]></content>
+  </entry>
+  <entry>
+    <title>一个 SRE Oncall Triage Harness：agent 自主调查，mutation 主权归人</title>
+    <link href="https://shaorui0.github.io/tech/2026/08/03/2026-08-03_sre-oncall-triage-harness_zh/"/>
+    <id>https://shaorui0.github.io/tech/2026/08/03/2026-08-03_sre-oncall-triage-harness_zh/</id>
+    <updated>2026-08-03T16:19:14.700Z</updated>
+    <published>2026-08-02T15:00:00.000Z</published>
+    <content type="html"><![CDATA[<p>英文版：English Why 一次 oncall 调查里，主 agent 真正要做的是判断：这是不是假警报、根因在哪、下一步查什么、要不要升级。判断需要一个清醒的 context 窗口。可是一次 raw range query 回来可能就是 30K token，一段日志更多。如果主 agent 自己去拉这些数据，等它走到需要下关键判断的阶段，context 已经被原始数字淹没，判断力也被榨干了。 这就是全系统建立其上的第一性约束：context 是稀缺的 RAM，不是无限的硬盘。谁占用它，谁就该为占用付出代价。由此直接推出一条铁律，主 agent…</p>]]></content>
+  </entry>
+  <entry>
+    <title>恰好 1.00 秒的 P100</title>
+    <link href="https://shaorui0.github.io/tech/2026/08/03/2026-08-03_the-p100-that-was-exactly-one-second_zh/"/>
+    <id>https://shaorui0.github.io/tech/2026/08/03/2026-08-03_the-p100-that-was-exactly-one-second_zh/</id>
+    <updated>2026-08-03T16:19:14.691Z</updated>
+    <published>2026-08-02T15:00:00.000Z</published>
+    <content type="html"><![CDATA[<p>英文版：English 症状 某租户的检测 API 的 P100 钉在恰好 1.00 秒，每 5–10 分钟尖一次。P50 到 P95 保持健康的 1–2 毫秒。共享同一 ingress 层的几个租户在相同窗口受影响。没有任何东西宕机；某个东西在周期性地从最慢的请求身上偷走恰好一秒。 调查 三条线并行：访问日志与错误日志交叉比对、ingress 层配置全量审计（全局配置 → 渲染后的服务配置 → 每路由注解）、pod 级指标。 第一个转折：慢请求的 upstream_response_time 完全正常（20–30…</p>]]></content>
+  </entry>
+  <entry>
+    <title>接下来应该做什么</title>
+    <link href="https://shaorui0.github.io/tech/2026/08/03/2026-08-03_what-i-know-i-cant-do-yet_zh/"/>
+    <id>https://shaorui0.github.io/tech/2026/08/03/2026-08-03_what-i-know-i-cant-do-yet_zh/</id>
+    <updated>2026-08-03T16:19:14.705Z</updated>
+    <published>2026-08-02T15:00:00.000Z</published>
+    <content type="html"><![CDATA[<p>英文版：English 简历告诉你我会什么。这一页告诉你我知道自己还不会什么。雷达上的 target 虚线是带验收标准的承诺，不是装饰性的外圈。这一页的规则是：下面每一个缺口都必须挂一条可检验的「补上」定义。没有这条规则，这类页面会退化成励志文案。 优先级一：安全合规的传统面（40 → 65） **现状缺口。**我的安全工作是真实的，但是单侧的：它在 AI agent 这个前沿，包括默认拒绝的工具网关、写入 attestation、按爆炸半径分级的执行闸门。传统面（作为架构学科的 IAM 设计、SOC 2 类的审计框架）在我的记录里缺席，雷达上的 40…</p>]]></content>
+  </entry>
+  <entry>
+    <title>AI agent 时代的 SRE</title>
+    <link href="https://shaorui0.github.io/tech/2026/08/03/2026-08-03_sre-in-the-age-of-ai-agents_zh/"/>
+    <id>https://shaorui0.github.io/tech/2026/08/03/2026-08-03_sre-in-the-age-of-ai-agents_zh/</id>
+    <updated>2026-08-03T16:19:14.706Z</updated>
+    <published>2026-08-02T15:00:00.000Z</published>
+    <content type="html"><![CDATA[<p>英文版：English 把 SRE 还原到第一性原理，它就是一件事：运营「系统应该做什么」与「实际在做什么」之间的回路。发现偏差，解释偏差，收敛偏差，并让它保持收敛。AI agent 没有改变这个定义，改变的是回路里谁干什么。这不是预测，是我工作周的实况：agent 在跑我的生产取证，一套 agent harness 在跑我的 oncall triage，这份简历背后的证据本身也是由 agent 流水线蒸馏出来的。这一页写的是从内部看到的这场变化。 发展到今天，变了什么 oncall 的执行层交给了 agent。 一次分布式存储系统的…</p>]]></content>
+  </entry>
+  <entry>
+    <title>我所理解的 SRE 需要的能力</title>
+    <link href="https://shaorui0.github.io/tech/2026/08/03/2026-08-03_what-i-understand-sre-to-require_zh/"/>
+    <id>https://shaorui0.github.io/tech/2026/08/03/2026-08-03_what-i-understand-sre-to-require_zh/</id>
+    <updated>2026-08-03T16:19:14.703Z</updated>
+    <published>2026-08-02T15:00:00.000Z</published>
+    <content type="html"><![CDATA[<p>英文版：English 从工具清单到问题类别 切分 SRE 技能有两种方式。第一种按工具切：Kubernetes、Terraform、Prometheus、某家云。这是入门视角，弱点一眼可见：kubectl apply 是大宗商品，谁都会。第二种按问题类别切：哪几类故障我能在时间压力下端到端搞定。本站的雷达就建立在第二种视角上。 我判断「精通」的标准很具体：**抽象泄漏时，你能不能往下钻？**会部署一个服务是入门。把一个卡在 Pending 的 pod 沿着调度约束、allocatable 的算术、节点状态一层层追下去，或者把一次 OOM…</p>]]></content>
+  </entry>
+  <entry>
+    <title>「SRE 熟悉 Jenkins」到底是什么能力</title>
+    <link href="https://shaorui0.github.io/tech/2026/08/03/2026-08-03_what-knows-jenkins-actually-tests_zh/"/>
+    <id>https://shaorui0.github.io/tech/2026/08/03/2026-08-03_what-knows-jenkins-actually-tests_zh/</id>
+    <updated>2026-08-03T16:19:14.699Z</updated>
+    <published>2026-08-02T15:00:00.000Z</published>
+    <content type="html"><![CDATA[<p>英文版：English Why 「熟悉 Jenkins」写在无数 SRE 的 JD 里，通常被读成一个工具声明：会用 UI，会写 Jenkinsfile，会接 webhook。这个读法只是入场券，不是这行字真正想考察的东西。SRE 的读法从另一个问题出发：这条流水线是所有变更进入生产环境的必经之路，那么它凌晨两点卡死了怎么办，部署到一半挂了怎么办，最糟的情况，它静默地做错了事还报绿，怎么办？ 我有机会用一次真实事件检验自己的答案：一次 Jenkins 迁移。把一套安装在环境之间搬家，等于对它体内每一条隐含假设做全量审计。迁移中浮出水面的故障，EOL…</p>]]></content>
+  </entry>
+  <entry>
+    <title>僵尸系统表：30 秒采集看不见的亚秒级 OOM</title>
+    <link href="https://shaorui0.github.io/tech/2026/08/03/2026-08-03_zombie-system-tables-subsecond-oom_zh/"/>
+    <id>https://shaorui0.github.io/tech/2026/08/03/2026-08-03_zombie-system-tables-subsecond-oom_zh/</id>
+    <updated>2026-08-03T16:19:14.702Z</updated>
+    <published>2026-08-02T15:00:00.000Z</published>
+    <content type="html"><![CDATA[<p>英文版：English 症状：告警与真因隔着三个系统 可见信号是 Kafka 消费积压：下游摄取服务的 consumer group 在多个租户上同时出现单调上涨的 lag，却没有任何流量尖峰可以解释。消费者看起来像肇事者，实际是受害者：它向 ClickHouse 的写入被 Code 241 MEMORY_LIMIT_EXCEEDED 拒绝，每个失败批次触发 30 秒 sleep 加 rebalance 的重试循环，同一批数据反复撞上同一个失败。表象与真因之间的距离是这次事故的核心特征：告警指向 Kafka，根因在 ClickHouse…</p>]]></content>
   </entry>
 </feed>

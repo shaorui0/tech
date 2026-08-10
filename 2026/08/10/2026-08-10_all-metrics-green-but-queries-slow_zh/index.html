@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 8.1.1">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/tech/favicon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/tech/favicon.svg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/tech/favicon.svg">
+  <link rel="mask-icon" href="/tech/favicon.svg" color="#222">
+
+<link rel="stylesheet" href="/tech/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"shaorui0.github.io","root":"/tech/","images":"/tech/images","scheme":"Gemini","darkmode":true,"version":"8.27.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/tech/js/config.js" defer></script>
+
+    <meta name="description" content="一次 4 TB 宽表点查调查：暖缓存、零远程读，仍要 1.12 秒，CPU 内存带宽全部正常。分析型数据库的一等指标是每条查询的扇出，不是主机资源水位。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="查询很慢，但所有指标都是绿的">
+<meta property="og:url" content="https://shaorui0.github.io/tech/2026/08/10/2026-08-10_all-metrics-green-but-queries-slow_zh/index.html">
+<meta property="og:site_name" content="Tech &amp; AI · 中文">
+<meta property="og:description" content="一次 4 TB 宽表点查调查：暖缓存、零远程读，仍要 1.12 秒，CPU 内存带宽全部正常。分析型数据库的一等指标是每条查询的扇出，不是主机资源水位。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-08-09T15:00:00.000Z">
+<meta property="article:modified_time" content="2026-08-10T12:30:14.367Z">
+<meta property="article:author" content="Rui Shao">
+<meta property="article:tag" content="Doris">
+<meta property="article:tag" content="SRE">
+<meta property="article:tag" content="可观测性">
+<meta property="article:tag" content="数据库">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://shaorui0.github.io/tech/2026/08/10/2026-08-10_all-metrics-green-but-queries-slow_zh/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://shaorui0.github.io/tech/2026/08/10/2026-08-10_all-metrics-green-but-queries-slow_zh/","path":"2026/08/10/2026-08-10_all-metrics-green-but-queries-slow_zh/","title":"查询很慢，但所有指标都是绿的"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>查询很慢，但所有指标都是绿的 | Tech & AI · 中文</title>
+  
+
+
+
+
+
+
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous" defer></script>
+<script src="/tech/js/utils.js" defer></script><script src="/tech/js/motion.js" defer></script><script src="/tech/js/sidebar.js" defer></script><script src="/tech/js/next-boot.js" defer></script>
+
+  
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.10.1/mermaid.min.js","integrity":"sha256-BmQmdWDS8X2OTbrwELWK366LV6escyWhHHe0XCTU/Hk="}}</script>
+  <script src="/tech/js/third-party/tags/mermaid.js" defer></script>
+
+
+
+
+
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/tech/css/noscript.css">
+  </noscript>
+<!-- hexo injector head_end start --><style>
+.article-toc-wrap {
+  margin-bottom: 1.5em;
+  padding: 1em 1.25em;
+  background: #f8f9fa;
+  border-radius: 6px;
+  border-left: 3px solid #ddd;
+}
+.article-toc-wrap .toc-title {
+  font-weight: bold;
+  margin-bottom: 0.5em;
+  font-size: 0.95em;
+  color: #555;
+}
+.article-toc-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.article-toc-list .article-toc-list { padding-left: 1em; margin-top: 0.25em; }
+.article-toc-item { margin: 0.35em 0; }
+.article-toc-link {
+  text-decoration: none;
+  color: #444;
+  font-size: 0.9em;
+}
+.article-toc-link:hover { color: #08c; text-decoration: underline; }
+.article-toc-level-3 .article-toc-link { font-size: 0.85em; }
+.article-toc-level-4 .article-toc-link { font-size: 0.8em; }
+</style><!-- hexo injector head_end end --></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/tech/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Tech & AI · 中文</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">系统、基础设施与 AI</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/tech/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-tags"><a href="/tech/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/tech/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/tech/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li><li class="menu-item menu-item-english"><a href="https://shaorui0.github.io/tech-en/" rel="section"><i class="fa fa-language fa-fw"></i>English</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80%E4%B8%AA%E6%89%80%E6%9C%89%E6%8C%87%E6%A0%87%E9%83%BD%E6%AD%A3%E5%B8%B8%E7%9A%84%E6%85%A2%E6%9F%A5%E8%AF%A2"><span class="nav-number">1.</span> <span class="nav-text">一个所有指标都正常的慢查询</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%AC%AC%E4%B8%80%E5%88%86%E9%92%9F%EF%BC%9A%E6%88%91%E6%89%BF%E8%AF%BA%E7%9A%84%E4%B8%9C%E8%A5%BF%E5%9D%8F%E4%BA%86%E6%B2%A1%E6%9C%89"><span class="nav-number">2.</span> <span class="nav-text">第一分钟：我承诺的东西坏了没有</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%AC%AC%E4%BA%94%E5%88%86%E9%92%9F%EF%BC%9A%E6%98%AF%E4%BD%A0%E7%9A%84%E9%97%AE%E9%A2%98%E8%BF%98%E6%98%AF%E6%88%91%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-number">3.</span> <span class="nav-text">第五分钟：是你的问题还是我的问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%AC%AC%E4%B8%80%E5%B0%8F%E6%97%B6%EF%BC%9A%E8%BF%98%E8%83%BD%E6%89%9B%E5%A4%9A%E4%B9%85%EF%BC%8C%E6%89%9B%E4%B8%8D%E4%BD%8F%E6%80%8E%E4%B9%88%E9%80%80"><span class="nav-number">4.</span> <span class="nav-text">第一小时：还能扛多久，扛不住怎么退</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%86%8D%E5%BE%80%E5%90%8E%EF%BC%9A%E6%94%B9%E5%AE%83%E5%92%8C%E4%BF%AE%E5%AE%83%E6%98%AF%E5%90%8C%E4%B8%80%E4%BB%B6%E4%BA%8B"><span class="nav-number">5.</span> <span class="nav-text">再往后：改它和修它是同一件事</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%B5%84%E6%BA%90%E6%8C%87%E6%A0%87%E5%BA%94%E8%AF%A5%E5%BE%85%E5%9C%A8%E5%93%AA%E9%87%8C"><span class="nav-number">6.</span> <span class="nav-text">资源指标应该待在哪里</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%94%B6%E5%B0%BE"><span class="nav-number">7.</span> <span class="nav-text">收尾</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Rui Shao</p>
+  <div class="site-description" itemprop="description">Rui Shao 的技术博客（中文）— 系统、基础设施与 AI</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/tech/archives/">
+          <span class="site-state-item-count">41</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/tech/categories/">
+        <span class="site-state-item-count">13</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tech/tags/">
+        <span class="site-state-item-count">66</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/shaorui0" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;shaorui0" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.linkedin.com/in/rui-shao-a21a55194/" title="LinkedIn → https:&#x2F;&#x2F;www.linkedin.com&#x2F;in&#x2F;rui-shao-a21a55194&#x2F;" rel="noopener me" target="_blank"><i class="fab fa-linkedin fa-fw"></i>LinkedIn</a>
+      </span>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://shaorui0.github.io/tech/2026/08/10/2026-08-10_all-metrics-green-but-queries-slow_zh/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/tech/images/avatar.gif">
+      <meta itemprop="name" content="Rui Shao">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Tech & AI · 中文">
+      <meta itemprop="description" content="Rui Shao 的技术博客（中文）— 系统、基础设施与 AI">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="查询很慢，但所有指标都是绿的 | Tech & AI · 中文">
+      <meta itemprop="description" content="一次 4 TB 宽表点查调查：暖缓存、零远程读，仍要 1.12 秒，CPU 内存带宽全部正常。分析型数据库的一等指标是每条查询的扇出，不是主机资源水位。">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          查询很慢，但所有指标都是绿的
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2026-08-10 00:00:00 / 修改时间：21:30:14" itemprop="dateCreated datePublished" datetime="2026-08-10T00:00:00+09:00">2026-08-10</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/tech/categories/SRE-%E6%96%B9%E6%B3%95%E8%AE%BA/" itemprop="url" rel="index"><span itemprop="name">SRE 方法论</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+            <div class="post-description">一次 4 TB 宽表点查调查：暖缓存、零远程读，仍要 1.12 秒，CPU 内存带宽全部正常。分析型数据库的一等指标是每条查询的扇出，不是主机资源水位。</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><nav class="article-toc-wrap" aria-label="文章目录"><div class="toc-title">文章目录</div><ol class="article-toc-list"><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#%E4%B8%80%E4%B8%AA%E6%89%80%E6%9C%89%E6%8C%87%E6%A0%87%E9%83%BD%E6%AD%A3%E5%B8%B8%E7%9A%84%E6%85%A2%E6%9F%A5%E8%AF%A2"><span class="article-toc-text">一个所有指标都正常的慢查询</span></a></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#%E7%AC%AC%E4%B8%80%E5%88%86%E9%92%9F%EF%BC%9A%E6%88%91%E6%89%BF%E8%AF%BA%E7%9A%84%E4%B8%9C%E8%A5%BF%E5%9D%8F%E4%BA%86%E6%B2%A1%E6%9C%89"><span class="article-toc-text">第一分钟：我承诺的东西坏了没有</span></a></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#%E7%AC%AC%E4%BA%94%E5%88%86%E9%92%9F%EF%BC%9A%E6%98%AF%E4%BD%A0%E7%9A%84%E9%97%AE%E9%A2%98%E8%BF%98%E6%98%AF%E6%88%91%E7%9A%84%E9%97%AE%E9%A2%98"><span class="article-toc-text">第五分钟：是你的问题还是我的问题</span></a></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#%E7%AC%AC%E4%B8%80%E5%B0%8F%E6%97%B6%EF%BC%9A%E8%BF%98%E8%83%BD%E6%89%9B%E5%A4%9A%E4%B9%85%EF%BC%8C%E6%89%9B%E4%B8%8D%E4%BD%8F%E6%80%8E%E4%B9%88%E9%80%80"><span class="article-toc-text">第一小时：还能扛多久，扛不住怎么退</span></a></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#%E5%86%8D%E5%BE%80%E5%90%8E%EF%BC%9A%E6%94%B9%E5%AE%83%E5%92%8C%E4%BF%AE%E5%AE%83%E6%98%AF%E5%90%8C%E4%B8%80%E4%BB%B6%E4%BA%8B"><span class="article-toc-text">再往后：改它和修它是同一件事</span></a></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#%E8%B5%84%E6%BA%90%E6%8C%87%E6%A0%87%E5%BA%94%E8%AF%A5%E5%BE%85%E5%9C%A8%E5%93%AA%E9%87%8C"><span class="article-toc-text">资源指标应该待在哪里</span></a></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#%E6%94%B6%E5%B0%BE"><span class="article-toc-text">收尾</span></a></li></ol></nav>
+<h2 id="一个所有指标都正常的慢查询">一个所有指标都正常的慢查询</h2>
+<p>那张表 4.0 TB，55 亿行，3727 列，存算分离，数据在对象存储上，八个 BE 每个挂 1.3 TB 本地 NVMe 做 file cache。一条最朴素的点查，按业务事件 ID 取十行，跑了 144 秒。</p>
+<p>第一反应当然是对象存储慢。于是我把同一个 ID 反复查，让缓存暖起来。暖之后仍然要 1.12 秒。这一次的现场是：缓存全命中，远程读次数为零，CPU 不高，内存不高，对象存储带宽用了不到 1%。</p>
+<p>手上那套以主机资源为中心的 dashboard，在这个故障面前一片绿。</p>
+<p>真因跟存储没有关系。事件 ID 既不是分桶键也不是分区键，所以一次点查要探遍全部 566 个 tablet、6689 个 segment，时间全花在打开这些倒排索引的 searcher 上。对象存储只是冷路径上叠加的一个乘数，扇出才是地板。</p>
+<p>把 144 秒拆开更清楚：扇出占 114 秒，真正的冷列读占 30 秒。如果只带上分桶键把范围剪到单个 tablet，仍然要 30 秒，因为 3727 列的宽表 <code>SELECT *</code> 有独立的列读放大，剪枝治不了它。同一个 ID 冷读 31.8 秒，暖读 0.46 秒，缓存能把列读压成亚秒。剪枝加上只取五列，0.55 秒。</p>
+<p>两个成本正交，所以要两个正交的动作：剪枝去扇出，暖缓存或行存去列读放大。</p>
+<p>最后的修复不涉及任何资源调整。事件 ID 本身可以解析出用户 ID 和毫秒时间戳，也就是说分桶键和分区键一直躺在查询条件里面，只是没人把它们拆出来。在查询层注入这两个字段，扫描范围从 566 个 tablet 收敛到 1 个，冷热两条路径同时受益。</p>
+<p>决定这条查询下限的是它要碰多少个数据块，跟集群还剩多少余量没有关系。而&quot;要碰多少个数据块&quot;，恰恰是主机资源监控测不到的东西。</p>
+<p>那该测什么？下面是我后来整理出来的顺序，按 oncall 时真正会问的问题排列。</p>
+<h2 id="第一分钟：我承诺的东西坏了没有">第一分钟：我承诺的东西坏了没有</h2>
+<p>数据库对外提供的是 SQL 服务，最顶上的指标应该是这个服务的契约，不是 CPU。这一步多数团队都知道要做，但落地时容易照抄在线服务的模板。</p>
+<p>单一 P99 对分析型数据库不成立。点查是毫秒级，固定报表几十秒，adhoc 全表几分钟，把它们混进一个分位数，得到的数字在该告警的时候不响，在业务只是换了个报表的时候乱抖。可用的做法有两条：按 workload class 分桶，各自定阈值；对 adhoc 这种没法预先分类的，用查询指纹相对自身历史基线的劣化倍数。</p>
+<p>口径上还有个常见的错位：SLI 应该是&quot;阈值内完成的请求数除以有效请求数&quot;，分位数只是观测视角，把 quantile 直接当 SLI 本体会让后面的 error budget 算不出来。</p>
+<p>我漏得最久的是第三组指标。这类系统同时是请求型服务、数据管道和存储系统，导入侧延迟或者部分失败的时候，查询照样成功返回，延迟也正常，返回的是旧数据或者缺了一段的数据。可用性和延迟全绿，业务已经在错的数据上做决策了。这种故障没有红灯，只有独立的新鲜度和完整性指标能抓到：端到端导入延迟、分区应到未到、导入失败率。</p>
+<h2 id="第五分钟：是你的问题还是我的问题">第五分钟：是你的问题还是我的问题</h2>
+<p>这是从 oncall 学来的最有用的一个动作。故障发生时第一个要收敛的不是根因，是责任方向：需求侧变了，还是供给侧变了。方向定错，接下来一小时全是浪费。</p>
+<p>这件事可以用数据直接判定，前提是两件基础设施。一是 FE 的 audit log 落成可以写 SQL 查的表，它是 per-query 的，带扫描行数、扫描字节、CPU 时间、峰值内存、执行状态、用户和库名。二是 SQL 指纹归一化，把参数抹掉之后取哈希。</p>
+<p>有了这两样，判定规则很短：</p>
+<ul>
+<li>同一指纹，扫描量没变，延迟变了，指向供给侧：集群资源、后台任务抢占、缓存失效、硬件降级</li>
+<li>出现新指纹，或者旧指纹的扫描字节暴涨，指向需求侧：业务上线、数据量增长、剪枝条件失效</li>
+<li>所有指纹一起劣化，指向全局过载或者供给侧</li>
+<li>单一指纹劣化而其余正常，指向这条查询自身，或者它命中的那部分数据分布变了</li>
+</ul>
+<p>指纹归一化是前提而不是优化项。没有它，所谓的 Top Slow SQL 每次都是一段不同的文本，既没法聚合，也没法看趋势，更没法判断这次慢是不是一次回归。</p>
+<p>开头那个案例按这套规则一眼就能定方向：同一条 SQL，扫描量一直就这么大，扇出一直就是全表级，集群侧什么都没变。所以正确动作是改查询，加资源属于走错方向。</p>
+<p>我们确实先走错过。加 BE、调大 scan 线程池，对这类点查完全无效，因为 <code>LIMIT</code> 会把并发压到 1，最终落在单 tablet 单 BE 上，多出来的机器一台都用不上。remote 线程池还不能随手往大调，那个版本上有个池子过大导致 BE 冻住的缺陷。最顺手的旋钮通常是错的，这跟上次那台 ClickHouse OOM 里&quot;把 pod 内存调大&quot;是同一类错误。</p>
+<h2 id="第一小时：还能扛多久，扛不住怎么退">第一小时：还能扛多久，扛不住怎么退</h2>
+<p>容量规划的直觉误区是把它当加法。真实约束来自排队论：等待时间随利用率按 ρ/(1-ρ) 放大，利用率从 0.5 涨到 0.9，排队时间涨九倍，从 0.9 再涨到 0.95，又翻一倍。</p>
+<p>所以要权衡的三样是利用率、延迟、余量，三选二。想省钱就是把利用率往上推，代价是 P99 的非线性劣化和突发时没有缓冲。这是数学的结论，跟工程水平无关。按平均利用率做的容量规划一定会在某个峰值上翻车。</p>
+<p>跟容量配套的那一半是隔离和降级，我最初那版清单里也漏掉了。一张 BI 看板打满整个集群，在分析型数据库上属于常态。可用的手段包括 workload group 的 CPU 内存软硬限、让查询排队（优于直接拒绝）、单查询内存上限、大查询熔断。</p>
+<p>没有降级方案的容量规划是赌博。容量总有被突破的那天，区别只在于突破时是有序退化还是雪崩。</p>
+<h2 id="再往后：改它和修它是同一件事">再往后：改它和修它是同一件事</h2>
+<p>变更管理和灾难恢复通常被写成两份清单，其实是一件事的两面：系统状态发生了非预期的跳变，怎么收敛回去。</p>
+<p>数据库变更的特殊性在于它的危险动作都是长时间运行的后台任务，并且跟在线查询抢同一份 CPU、IO 和内存。schema change 触发的数据重写、tablet 再均衡、BE 下线、compaction 策略调整、升级过程中的元数据兼容，全都属于这一类。所以变更可观测性的核心是后台任务的进度和资源占用可见：还剩多少没搬完、现在吃掉多少 IO、预计多久结束、能不能暂停、能不能限速。</p>
+<p>在线服务那套灰度加回滚，到数据库这里经常不成立，因为很多变更根本没有回滚路径。能暂停和能限速比能回滚更现实。</p>
+<p>恢复侧只有一条要说：备份存在不等于能恢复。FE 的元数据是整个集群最致命的单点，BE 数据一份不少，元数据丢了集群等于不存在。RTO 和 RPO 写在文档里没有意义，得定期真跑一遍并且计时。</p>
+<p>这里还有一次我自己的判断失误值得记下来。调查过程中我认定 file cache 在重启后会丢，据此提了一个升级方案去换持久化缓存。现场核实的结果是缓存盘本来就是持久卷，缓存元数据也有 dump 和 replay，实测重启后从 2% 自暖到 61%，那个升级理由整个不成立。推断和现场核实之间的差距，往往就是一个季度的工作量。</p>
+<h2 id="资源指标应该待在哪里">资源指标应该待在哪里</h2>
+<p>回到 CPU 和内存。它们作为告警源价值低，因为跟用户痛感的相关性太弱，开头那个案例就是最好的反例。它们真正的位置在诊断侧和容量输入侧，那里价值很高：判断供给侧是否劣化、算容量模型、做事后归因，全都要用。</p>
+<p>告警看症状，诊断看原因，这是两条不同的指标链路。我见过读完 SRE 那套方法论之后把资源 dashboard 全部删掉的做法，结果是真出事的时候手上没有证据。</p>
+<p>还有一件双方都容易忘的事：监控体系本身要有基数预算。tablet 粒度的指标在这类系统上会直接把 TSDB 打垮，一张表就有 566 个 tablet，一个生产集群几十万个是常态。</p>
+<h2 id="收尾">收尾</h2>
+<p>现在我看一套数据库监控体系，先问一个问题：真出事的时候，它能不能在五分钟内告诉我，该去找写 SQL 的那个人，还是该去找管集群的那个人。这个问题答不上来，指标再多也只是装饰。</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tech/tags/%E5%8F%AF%E8%A7%82%E6%B5%8B%E6%80%A7/" rel="tag"># 可观测性</a>
+              <a href="/tech/tags/SRE/" rel="tag"># SRE</a>
+              <a href="/tech/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" rel="tag"># 数据库</a>
+              <a href="/tech/tags/Doris/" rel="tag"># Doris</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/tech/2026/08/04/2026-08-04_how-i-use-claude-code-context-engineering-and-harness_zh/" rel="prev" title="如何用 Claude Code：模型是 CPU，Harness 是操作系统，Context 是内存页">
+                  <i class="fa fa-angle-left"></i> 如何用 Claude Code：模型是 CPU，Harness 是操作系统，Context 是内存页
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">Rui Shao</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+<!-- hexo injector body_end start --><script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>mermaid.initialize({ startOnLoad: true, theme: "default" });</script><!-- hexo injector body_end end --></body>
+</html>
