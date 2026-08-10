@@ -170,7 +170,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/tech/archives/">
-          <span class="site-state-item-count">41</span>
+          <span class="site-state-item-count">42</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -215,7 +215,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://shaorui0.github.io/tech/2026/04/15/2026-04-15_sre-agent-06-files-not-sessions_zh/">
+    <link itemprop="mainEntityOfPage" href="https://shaorui0.github.io/tech/2026/04/15/2026-04-15_sre-agent-04-intent-convention_zh/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/tech/images/avatar.gif">
@@ -233,179 +233,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/tech/2026/04/15/2026-04-15_sre-agent-06-files-not-sessions_zh/" class="post-title-link" itemprop="url">SRE Agent 设计笔记 06：Agent 通信介质是文件，不是 Session</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-      
-
-      <time title="创建时间：2026-04-15 00:00:00 / 修改时间：21:24:28" itemprop="dateCreated datePublished" datetime="2026-04-15T00:00:00+09:00">2026-04-15</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/tech/categories/SRE-Agent-%E8%AE%BE%E8%AE%A1%E7%AC%94%E8%AE%B0/" itemprop="url" rel="index"><span itemprop="name">SRE Agent 设计笔记</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>状态：大纲 核心论点 Agent 之间的通信应该通过持久化文件，不是共享 session。文件是 git-tracked、可 diff、可 audit、异步的；session 是 volatile、不可 inspect、时间耦合、不可恢复的。这是 Unix 哲学在 agent 时代的自然延伸。Plan file 的三重身份（执行计划 + RBAC 策略 + audit log）是这个原则的极端体现。 大纲 1. 共享 Session 的脆弱性 当前主流 multi-agent 模式：agent 之间共享 conversation context…</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/tech/2026/04/15/2026-04-15_sre-agent-06-files-not-sessions_zh/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://shaorui0.github.io/tech/2026/04/15/2026-04-15_sre-agent-07-eval-measurement-system_zh/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/tech/images/avatar.gif">
-      <meta itemprop="name" content="Rui Shao">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Tech & AI · 中文">
-      <meta itemprop="description" content="Rui Shao 的技术博客（中文）— 系统、基础设施与 AI">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content=" | Tech & AI · 中文">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/tech/2026/04/15/2026-04-15_sre-agent-07-eval-measurement-system_zh/" class="post-title-link" itemprop="url">SRE Agent 设计笔记 07：Eval 是度量系统设计</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-      
-
-      <time title="创建时间：2026-04-15 00:00:00 / 修改时间：21:24:59" itemprop="dateCreated datePublished" datetime="2026-04-15T00:00:00+09:00">2026-04-15</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/tech/categories/SRE-Agent-%E8%AE%BE%E8%AE%A1%E7%AC%94%E8%AE%B0/" itemprop="url" rel="index"><span itemprop="name">SRE Agent 设计笔记</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>状态：大纲 核心论点 Agent eval 不是测试，是度量系统设计。传统软件的 eval 是 assert equal，agent 的 eval 更像 SRE 的 SLI&#x2F;SLO 框架。但有一个关键区别：SLI&#x2F;SLO 的故障模式是已知的（延迟、错误率），agent 的故障模式需要先发现再定义。这让 agent eval 更接近 chaos engineering + SLO 的组合。背后的经济学基础是 cost inversion：生成便宜验证贵。 大纲 1. Cost Inversion（成本倒置） 传统软件：写代码贵、跑测试便宜 AI…</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/tech/2026/04/15/2026-04-15_sre-agent-07-eval-measurement-system_zh/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://shaorui0.github.io/tech/2026/04/15/2026-04-15_sre-agent-02-four-primitives_zh/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/tech/images/avatar.gif">
-      <meta itemprop="name" content="Rui Shao">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Tech & AI · 中文">
-      <meta itemprop="description" content="Rui Shao 的技术博客（中文）— 系统、基础设施与 AI">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content=" | Tech & AI · 中文">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/tech/2026/04/15/2026-04-15_sre-agent-02-four-primitives_zh/" class="post-title-link" itemprop="url">SRE Agent 设计笔记 02：四个控制论原语</a>
+          <a href="/tech/2026/04/15/2026-04-15_sre-agent-04-intent-convention_zh/" class="post-title-link" itemprop="url">SRE Agent 设计笔记 04：INTENT Convention 与 Untrusted Input</a>
         </h2>
 
         <div class="post-meta-container">
@@ -423,7 +251,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-04-18 17:02:56" itemprop="dateModified" datetime="2026-04-18T17:02:56+09:00">2026-04-18</time>
+      <time title="修改时间：2026-08-10 22:22:35" itemprop="dateModified" datetime="2026-08-10T22:22:35+09:00">2026-08-10</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -445,10 +273,10 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <p>状态：大纲 核心论点 当前 multi-agent 框架用角色拟物（PM&#x2F;Engineer&#x2F;QA&#x2F;Reviewer）建模协作，掩盖了真正的工程约束。正确的抽象是四个控制论原语：Spec、Loop、Hook、Fork。每个原语在 K8s 中都有精确的对应物，因为 K8s 花了二十年解决的就是同一类问题。 大纲 1. 角色抽象的问题 当前框架的拟物设计（skeuomorphism）：用人类组织角色降低认知负担 PM agent 和 Engineer agent 的本质区别不是「一个写需求一个写代码」，而是对 context…</p>
+          <p>状态：大纲 核心论点 Audit log 只记录 what 不记录 why 是一个老问题。INTENT convention 用 bash 注释嵌入推理，零工具开销。这个设计是被约束逼出来的：Claude Code 的 hooks 无法访问 conversation context，所以推理必须嵌入命令本身。约束驱动设计（constraint-driven design）本身值得展开。 大纲 1. 问题：Audit Log 的 Why 缺失 传统 audit log 记录了谁、在什么时间、对什么资源、做了什么操作 缺失的是…</p>
           <!--noindex-->
             <div class="post-button">
-              <a class="btn" href="/tech/2026/04/15/2026-04-15_sre-agent-02-four-primitives_zh/#more" rel="contents">
+              <a class="btn" href="/tech/2026/04/15/2026-04-15_sre-agent-04-intent-convention_zh/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -515,7 +343,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-04-18 16:24:12" itemprop="dateModified" datetime="2026-04-18T16:24:12+09:00">2026-04-18</time>
+      <time title="修改时间：2026-08-10 22:22:35" itemprop="dateModified" datetime="2026-08-10T22:22:35+09:00">2026-08-10</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -571,7 +399,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://shaorui0.github.io/tech/2026/04/15/2026-04-15_sre-agent-09-cross-validation_zh/">
+    <link itemprop="mainEntityOfPage" href="https://shaorui0.github.io/tech/2026/04/15/2026-04-15_sre-agent-06-files-not-sessions_zh/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/tech/images/avatar.gif">
@@ -589,7 +417,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/tech/2026/04/15/2026-04-15_sre-agent-09-cross-validation_zh/" class="post-title-link" itemprop="url">SRE Agent 设计笔记 09：三个来源的收敛与框架选择</a>
+          <a href="/tech/2026/04/15/2026-04-15_sre-agent-06-files-not-sessions_zh/" class="post-title-link" itemprop="url">SRE Agent 设计笔记 06：Agent 通信介质是文件，不是 Session</a>
         </h2>
 
         <div class="post-meta-container">
@@ -599,9 +427,15 @@
         <i class="far fa-calendar"></i>
       </span>
       <span class="post-meta-item-text">发表于</span>
-      
 
-      <time title="创建时间：2026-04-15 00:00:00 / 修改时间：21:26:11" itemprop="dateCreated datePublished" datetime="2026-04-15T00:00:00+09:00">2026-04-15</time>
+      <time title="创建时间：2026-04-15 00:00:00" itemprop="dateCreated datePublished" datetime="2026-04-15T00:00:00+09:00">2026-04-15</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2026-08-10 22:22:35" itemprop="dateModified" datetime="2026-08-10T22:22:35+09:00">2026-08-10</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -623,10 +457,10 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <p>状态：大纲 核心论点 四原语（Spec&#x2F;Loop&#x2F;Hook&#x2F;Fork）从三个完全独立的来源收敛到同一组结论。这种交叉验证本身是一个方法论观察：当不同路径独立到达相同抽象时，这些抽象大概率是结构性的而非偶然的。同时，这个收敛也指向一个实践判断：框架选择的重要性在下降，Harness 的 Policy Runtime 和 Stateful Workflow 两层才是持久投资方向。 大纲 1. 三个独立来源 OpenAI Codex 的设计选择 Docs as system of record（不是 prompt，是文件） Review…</p>
+          <p>状态：大纲 核心论点 Agent 之间的通信应该通过持久化文件，不是共享 session。文件是 git-tracked、可 diff、可 audit、异步的；session 是 volatile、不可 inspect、时间耦合、不可恢复的。这是 Unix 哲学在 agent 时代的自然延伸。Plan file 的三重身份（执行计划 + RBAC 策略 + audit log）是这个原则的极端体现。 大纲 1. 共享 Session 的脆弱性 当前主流 multi-agent 模式：agent 之间共享 conversation context…</p>
           <!--noindex-->
             <div class="post-button">
-              <a class="btn" href="/tech/2026/04/15/2026-04-15_sre-agent-09-cross-validation_zh/#more" rel="contents">
+              <a class="btn" href="/tech/2026/04/15/2026-04-15_sre-agent-06-files-not-sessions_zh/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -685,9 +519,15 @@
         <i class="far fa-calendar"></i>
       </span>
       <span class="post-meta-item-text">发表于</span>
-      
 
-      <time title="创建时间：2026-04-15 00:00:00 / 修改时间：21:25:38" itemprop="dateCreated datePublished" datetime="2026-04-15T00:00:00+09:00">2026-04-15</time>
+      <time title="创建时间：2026-04-15 00:00:00" itemprop="dateCreated datePublished" datetime="2026-04-15T00:00:00+09:00">2026-04-15</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2026-08-10 22:22:35" itemprop="dateModified" datetime="2026-08-10T22:22:35+09:00">2026-08-10</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -743,7 +583,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://shaorui0.github.io/tech/2026/04/15/2026-04-15_sre-agent-10-context-engineering_zh/">
+    <link itemprop="mainEntityOfPage" href="https://shaorui0.github.io/tech/2026/04/15/2026-04-15_sre-agent-07-eval-measurement-system_zh/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/tech/images/avatar.gif">
@@ -761,7 +601,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/tech/2026/04/15/2026-04-15_sre-agent-10-context-engineering_zh/" class="post-title-link" itemprop="url">SRE Agent 设计笔记 10：Context Engineering 的实践：知识分层与加载策略</a>
+          <a href="/tech/2026/04/15/2026-04-15_sre-agent-07-eval-measurement-system_zh/" class="post-title-link" itemprop="url">SRE Agent 设计笔记 07：Eval 是度量系统设计</a>
         </h2>
 
         <div class="post-meta-container">
@@ -771,9 +611,15 @@
         <i class="far fa-calendar"></i>
       </span>
       <span class="post-meta-item-text">发表于</span>
-      
 
-      <time title="创建时间：2026-04-15 00:00:00 / 修改时间：21:43:46" itemprop="dateCreated datePublished" datetime="2026-04-15T00:00:00+09:00">2026-04-15</time>
+      <time title="创建时间：2026-04-15 00:00:00" itemprop="dateCreated datePublished" datetime="2026-04-15T00:00:00+09:00">2026-04-15</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2026-08-10 22:22:35" itemprop="dateModified" datetime="2026-08-10T22:22:35+09:00">2026-08-10</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -795,10 +641,10 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <p>状态：大纲 核心论点 Agent 的知识不是一坨 prompt 塞进去就行。Skills &#x2F; Facets &#x2F; Knowledge 是三种不同抽象层次的知识，对应不同的加载策略和变更频率。这个分层不是分类学上的洁癖，是被两个实际力驱动的：context window 预算管理和维护责任分离。从四原语的视角看，Skills 是 Spec 组件，Facets 是 Loop 的方法论，Knowledge 是 Loop 执行时的领域数据。Blog 08（Prompt to Skill）讲了「Skill 是持久化的 Spec」，本篇回答它的…</p>
+          <p>状态：大纲 核心论点 Agent eval 不是测试，是度量系统设计。传统软件的 eval 是 assert equal，agent 的 eval 更像 SRE 的 SLI&#x2F;SLO 框架。但有一个关键区别：SLI&#x2F;SLO 的故障模式是已知的（延迟、错误率），agent 的故障模式需要先发现再定义。这让 agent eval 更接近 chaos engineering + SLO 的组合。背后的经济学基础是 cost inversion：生成便宜验证贵。 大纲 1. Cost Inversion（成本倒置） 传统软件：写代码贵、跑测试便宜 AI…</p>
           <!--noindex-->
             <div class="post-button">
-              <a class="btn" href="/tech/2026/04/15/2026-04-15_sre-agent-10-context-engineering_zh/#more" rel="contents">
+              <a class="btn" href="/tech/2026/04/15/2026-04-15_sre-agent-07-eval-measurement-system_zh/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -865,7 +711,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-04-18 16:39:36" itemprop="dateModified" datetime="2026-04-18T16:39:36+09:00">2026-04-18</time>
+      <time title="修改时间：2026-08-10 22:22:35" itemprop="dateModified" datetime="2026-08-10T22:22:35+09:00">2026-08-10</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -891,6 +737,282 @@
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/tech/2026/04/15/2026-04-15_sre-agent-11-parallel-fanout_zh/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://shaorui0.github.io/tech/2026/04/15/2026-04-15_sre-agent-10-context-engineering_zh/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/tech/images/avatar.gif">
+      <meta itemprop="name" content="Rui Shao">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Tech & AI · 中文">
+      <meta itemprop="description" content="Rui Shao 的技术博客（中文）— 系统、基础设施与 AI">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content=" | Tech & AI · 中文">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/tech/2026/04/15/2026-04-15_sre-agent-10-context-engineering_zh/" class="post-title-link" itemprop="url">SRE Agent 设计笔记 10：Context Engineering 的实践：知识分层与加载策略</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2026-04-15 00:00:00" itemprop="dateCreated datePublished" datetime="2026-04-15T00:00:00+09:00">2026-04-15</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2026-08-10 22:22:35" itemprop="dateModified" datetime="2026-08-10T22:22:35+09:00">2026-08-10</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/tech/categories/SRE-Agent-%E8%AE%BE%E8%AE%A1%E7%AC%94%E8%AE%B0/" itemprop="url" rel="index"><span itemprop="name">SRE Agent 设计笔记</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>状态：大纲 核心论点 Agent 的知识不是一坨 prompt 塞进去就行。Skills &#x2F; Facets &#x2F; Knowledge 是三种不同抽象层次的知识，对应不同的加载策略和变更频率。这个分层不是分类学上的洁癖，是被两个实际力驱动的：context window 预算管理和维护责任分离。从四原语的视角看，Skills 是 Spec 组件，Facets 是 Loop 的方法论，Knowledge 是 Loop 执行时的领域数据。Blog 08（Prompt to Skill）讲了「Skill 是持久化的 Spec」，本篇回答它的…</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/tech/2026/04/15/2026-04-15_sre-agent-10-context-engineering_zh/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://shaorui0.github.io/tech/2026/04/15/2026-04-15_sre-agent-05-declarative-constraints_zh/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/tech/images/avatar.gif">
+      <meta itemprop="name" content="Rui Shao">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Tech & AI · 中文">
+      <meta itemprop="description" content="Rui Shao 的技术博客（中文）— 系统、基础设施与 AI">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content=" | Tech & AI · 中文">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/tech/2026/04/15/2026-04-15_sre-agent-05-declarative-constraints_zh/" class="post-title-link" itemprop="url">SRE Agent 设计笔记 05：声明式约束与集群分级</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2026-04-15 00:00:00" itemprop="dateCreated datePublished" datetime="2026-04-15T00:00:00+09:00">2026-04-15</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2026-08-10 22:22:35" itemprop="dateModified" datetime="2026-08-10T22:22:35+09:00">2026-08-10</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/tech/categories/SRE-Agent-%E8%AE%BE%E8%AE%A1%E7%AC%94%E8%AE%B0/" itemprop="url" rel="index"><span itemprop="name">SRE Agent 设计笔记</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>状态：大纲 核心论点 约束 agent 行为有两条路径：命令式（规定步骤顺序）和声明式（定义终态条件）。命令式约束容易被绕过，声明式约束让 agent 自己找路径收敛。K8s 的核心设计哲学（Desired State YAML &gt; kubectl imperative）在 agent 约束设计中同样适用。集群分级是声明式约束的实例：按 failure cost 分级，hook 根据等级做语义门控。 大纲 1. 命令式约束的局限 「coding 之后必须 compile，compile 之后必须 test」 像 checklist 一样规定步骤…</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/tech/2026/04/15/2026-04-15_sre-agent-05-declarative-constraints_zh/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://shaorui0.github.io/tech/2026/04/15/2026-04-15_sre-agent-09-cross-validation_zh/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/tech/images/avatar.gif">
+      <meta itemprop="name" content="Rui Shao">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Tech & AI · 中文">
+      <meta itemprop="description" content="Rui Shao 的技术博客（中文）— 系统、基础设施与 AI">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content=" | Tech & AI · 中文">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/tech/2026/04/15/2026-04-15_sre-agent-09-cross-validation_zh/" class="post-title-link" itemprop="url">SRE Agent 设计笔记 09：三个来源的收敛与框架选择</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2026-04-15 00:00:00" itemprop="dateCreated datePublished" datetime="2026-04-15T00:00:00+09:00">2026-04-15</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2026-08-10 22:22:35" itemprop="dateModified" datetime="2026-08-10T22:22:35+09:00">2026-08-10</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/tech/categories/SRE-Agent-%E8%AE%BE%E8%AE%A1%E7%AC%94%E8%AE%B0/" itemprop="url" rel="index"><span itemprop="name">SRE Agent 设计笔记</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>状态：大纲 核心论点 四原语（Spec&#x2F;Loop&#x2F;Hook&#x2F;Fork）从三个完全独立的来源收敛到同一组结论。这种交叉验证本身是一个方法论观察：当不同路径独立到达相同抽象时，这些抽象大概率是结构性的而非偶然的。同时，这个收敛也指向一个实践判断：框架选择的重要性在下降，Harness 的 Policy Runtime 和 Stateful Workflow 两层才是持久投资方向。 大纲 1. 三个独立来源 OpenAI Codex 的设计选择 Docs as system of record（不是 prompt，是文件） Review…</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/tech/2026/04/15/2026-04-15_sre-agent-09-cross-validation_zh/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -957,7 +1079,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-03-23 12:50:40" itemprop="dateModified" datetime="2026-03-23T12:50:40+09:00">2026-03-23</time>
+      <time title="修改时间：2026-08-10 22:22:35" itemprop="dateModified" datetime="2026-08-10T22:22:35+09:00">2026-08-10</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -987,98 +1109,6 @@
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/tech/2026/02/12/2026-02-12_ai-era-professional-value-first-principle_zh/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://shaorui0.github.io/tech/2026/02/11/2026-02-11_production-monitoring_zh/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/tech/images/avatar.gif">
-      <meta itemprop="name" content="Rui Shao">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Tech & AI · 中文">
-      <meta itemprop="description" content="Rui Shao 的技术博客（中文）— 系统、基础设施与 AI">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content=" | Tech & AI · 中文">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/tech/2026/02/11/2026-02-11_production-monitoring_zh/" class="post-title-link" itemprop="url">监控系统会死在哪里</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2026-02-11 18:01:31" itemprop="dateCreated datePublished" datetime="2026-02-11T18:01:31+09:00">2026-02-11</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-03-23 12:53:15" itemprop="dateModified" datetime="2026-03-23T12:53:15+09:00">2026-03-23</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/tech/categories/%E7%94%9F%E4%BA%A7%E5%B7%A5%E7%A8%8B/" itemprop="url" rel="index"><span itemprop="name">生产工程</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>仪表盘一片绿色，用户已经宕机了。你遇到的不是可观测性问题，是控制系统故障。 这篇文章来自一次真实事故的复盘。不是监控入门，是设计审查：为什么生产组织在最需要可见性的时候反而看不见。 那次凌晨两点的事故 现场 凌晨 02:17，客户支持群冒出第一条消息：某大客户请求大量超时。 02:19，Oncall 被拉醒。 02:21，打开 Grafana，一片绿色。CPU 正常，Memory 正常，Error rate 接近 0。系统看上去啥事没有。 02:25，更多客户报告超时。业务负责人进会议，开始问：影响多少客户？范围多大？要不要回滚？多久能恢复？…</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/tech/2026/02/11/2026-02-11_production-monitoring_zh/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>

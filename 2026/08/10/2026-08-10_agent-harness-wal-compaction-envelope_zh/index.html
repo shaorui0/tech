@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 8.1.1">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/tech/favicon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/tech/favicon.svg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/tech/favicon.svg">
+  <link rel="mask-icon" href="/tech/favicon.svg" color="#222">
+
+<link rel="stylesheet" href="/tech/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"shaorui0.github.io","root":"/tech/","images":"/tech/images","scheme":"Gemini","darkmode":true,"version":"8.27.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/tech/js/config.js" defer></script>
+
+    <meta name="description" content="把工作项目的状态维护、边界控制和输出格式做成一套 2000 行的 hook + skill：必须发生的事挂事件触发，需要判断的事延迟到压缩阶段。以及 CLAUDE.md 为什么会越写越像一份带勘误的日志。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="机制要么挂在事件上，要么等于不存在">
+<meta property="og:url" content="https://shaorui0.github.io/tech/2026/08/10/2026-08-10_agent-harness-wal-compaction-envelope_zh/index.html">
+<meta property="og:site_name" content="Tech &amp; AI · 中文">
+<meta property="og:description" content="把工作项目的状态维护、边界控制和输出格式做成一套 2000 行的 hook + skill：必须发生的事挂事件触发，需要判断的事延迟到压缩阶段。以及 CLAUDE.md 为什么会越写越像一份带勘误的日志。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-08-09T15:00:00.000Z">
+<meta property="article:modified_time" content="2026-08-10T13:38:48.251Z">
+<meta property="article:author" content="Rui Shao">
+<meta property="article:tag" content="AI Agent">
+<meta property="article:tag" content="Claude Code">
+<meta property="article:tag" content="Context Engineering">
+<meta property="article:tag" content="Harness Engineering">
+<meta property="article:tag" content="系统设计">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://shaorui0.github.io/tech/2026/08/10/2026-08-10_agent-harness-wal-compaction-envelope_zh/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://shaorui0.github.io/tech/2026/08/10/2026-08-10_agent-harness-wal-compaction-envelope_zh/","path":"2026/08/10/2026-08-10_agent-harness-wal-compaction-envelope_zh/","title":"机制要么挂在事件上，要么等于不存在"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>机制要么挂在事件上，要么等于不存在 | Tech & AI · 中文</title>
+  
+
+
+
+
+
+
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous" defer></script>
+<script src="/tech/js/utils.js" defer></script><script src="/tech/js/motion.js" defer></script><script src="/tech/js/sidebar.js" defer></script><script src="/tech/js/next-boot.js" defer></script>
+
+  
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.10.1/mermaid.min.js","integrity":"sha256-BmQmdWDS8X2OTbrwELWK366LV6escyWhHHe0XCTU/Hk="}}</script>
+  <script src="/tech/js/third-party/tags/mermaid.js" defer></script>
+
+
+
+
+
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/tech/css/noscript.css">
+  </noscript>
+<!-- hexo injector head_end start --><style>
+.article-toc-wrap {
+  margin-bottom: 1.5em;
+  padding: 1em 1.25em;
+  background: #f8f9fa;
+  border-radius: 6px;
+  border-left: 3px solid #ddd;
+}
+.article-toc-wrap .toc-title {
+  font-weight: bold;
+  margin-bottom: 0.5em;
+  font-size: 0.95em;
+  color: #555;
+}
+.article-toc-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.article-toc-list .article-toc-list { padding-left: 1em; margin-top: 0.25em; }
+.article-toc-item { margin: 0.35em 0; }
+.article-toc-link {
+  text-decoration: none;
+  color: #444;
+  font-size: 0.9em;
+}
+.article-toc-link:hover { color: #08c; text-decoration: underline; }
+.article-toc-level-3 .article-toc-link { font-size: 0.85em; }
+.article-toc-level-4 .article-toc-link { font-size: 0.8em; }
+</style><!-- hexo injector head_end end --></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/tech/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Tech & AI · 中文</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">系统、基础设施与 AI</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/tech/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-tags"><a href="/tech/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/tech/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/tech/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li><li class="menu-item menu-item-english"><a href="https://shaorui0.github.io/tech-en/" rel="section"><i class="fa fa-language fa-fw"></i>English</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%9D%A0%E8%87%AA%E8%A7%89%E8%A7%A6%E5%8F%91%E7%9A%84%E6%9C%BA%E5%88%B6%EF%BC%8C%E5%90%88%E8%A7%84%E7%8E%87%E4%B8%80%E5%AE%9A%E4%BC%9A%E6%8E%89%E5%88%B0%E9%9B%B6"><span class="nav-number">1.</span> <span class="nav-text">靠自觉触发的机制，合规率一定会掉到零</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%86%99%E7%9A%84%E6%97%B6%E5%80%99%E4%B8%8D%E5%88%A4%E6%96%AD"><span class="nav-number">2.</span> <span class="nav-text">写的时候不判断</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#CLAUDE-md-%E8%B6%8A%E5%86%99%E8%B6%8A%E5%83%8F%E4%B8%80%E4%BB%BD%E5%B8%A6%E5%8B%98%E8%AF%AF%E7%9A%84%E6%97%A5%E5%BF%97"><span class="nav-number">3.</span> <span class="nav-text">CLAUDE.md 越写越像一份带勘误的日志</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%89%E5%85%A8%E5%8C%BA%E5%86%85%E4%B8%8D%E9%97%AE%EF%BC%8C%E5%AE%89%E5%85%A8%E5%8C%BA%E5%A4%96%E6%8B%A6%E4%BD%8F"><span class="nav-number">4.</span> <span class="nav-text">安全区内不问，安全区外拦住</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%90%8C%E4%B8%80%E6%9D%A1%E8%A7%84%E5%88%99%E5%86%99%E4%B8%A4%E9%81%8D"><span class="nav-number">5.</span> <span class="nav-text">同一条规则写两遍</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AF%B4%E4%BA%86%E4%BB%80%E4%B9%88%EF%BC%8C%E5%92%8C%E5%8A%A8%E4%BA%86%E4%BB%80%E4%B9%88"><span class="nav-number">6.</span> <span class="nav-text">说了什么，和动了什么</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B9%B6%E8%A1%8C%E4%B8%8D%E5%81%9A%E9%BB%98%E8%AE%A4"><span class="nav-number">7.</span> <span class="nav-text">并行不做默认</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#hook-%E9%87%8C%E7%BB%9D%E4%B8%8D%E8%B0%83%E6%A8%A1%E5%9E%8B%EF%BC%8C%E4%B9%9F%E7%BB%9D%E4%B8%8D%E5%A4%B1%E8%B4%A5"><span class="nav-number">8.</span> <span class="nav-text">hook 里绝不调模型，也绝不失败</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AE%B0%E5%BF%86%E6%98%AF%E7%A2%8E%E7%9A%84"><span class="nav-number">9.</span> <span class="nav-text">记忆是碎的</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A3%85%E3%80%81%E9%AA%8C%E3%80%81%E6%8B%86"><span class="nav-number">10.</span> <span class="nav-text">装、验、拆</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%83%E8%87%AA%E5%B7%B1%E4%B9%9F%E4%BC%9A%E6%BC%82"><span class="nav-number">11.</span> <span class="nav-text">它自己也会漂</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Rui Shao</p>
+  <div class="site-description" itemprop="description">Rui Shao 的技术博客（中文）— 系统、基础设施与 AI</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/tech/archives/">
+          <span class="site-state-item-count">42</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/tech/categories/">
+        <span class="site-state-item-count">13</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tech/tags/">
+        <span class="site-state-item-count">66</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/shaorui0" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;shaorui0" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.linkedin.com/in/rui-shao-a21a55194/" title="LinkedIn → https:&#x2F;&#x2F;www.linkedin.com&#x2F;in&#x2F;rui-shao-a21a55194&#x2F;" rel="noopener me" target="_blank"><i class="fab fa-linkedin fa-fw"></i>LinkedIn</a>
+      </span>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://shaorui0.github.io/tech/2026/08/10/2026-08-10_agent-harness-wal-compaction-envelope_zh/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/tech/images/avatar.gif">
+      <meta itemprop="name" content="Rui Shao">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Tech & AI · 中文">
+      <meta itemprop="description" content="Rui Shao 的技术博客（中文）— 系统、基础设施与 AI">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="机制要么挂在事件上，要么等于不存在 | Tech & AI · 中文">
+      <meta itemprop="description" content="把工作项目的状态维护、边界控制和输出格式做成一套 2000 行的 hook + skill：必须发生的事挂事件触发，需要判断的事延迟到压缩阶段。以及 CLAUDE.md 为什么会越写越像一份带勘误的日志。">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          机制要么挂在事件上，要么等于不存在
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2026-08-10 00:00:00 / 修改时间：22:38:48" itemprop="dateCreated datePublished" datetime="2026-08-10T00:00:00+09:00">2026-08-10</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/tech/categories/AI-Agent-%E5%AE%9E%E8%B7%B5%E7%AC%94%E8%AE%B0/" itemprop="url" rel="index"><span itemprop="name">AI Agent 实践笔记</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+            <div class="post-description">把工作项目的状态维护、边界控制和输出格式做成一套 2000 行的 hook + skill：必须发生的事挂事件触发，需要判断的事延迟到压缩阶段。以及 CLAUDE.md 为什么会越写越像一份带勘误的日志。</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><nav class="article-toc-wrap" aria-label="文章目录"><div class="toc-title">文章目录</div><ol class="article-toc-list"><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#%E9%9D%A0%E8%87%AA%E8%A7%89%E8%A7%A6%E5%8F%91%E7%9A%84%E6%9C%BA%E5%88%B6%EF%BC%8C%E5%90%88%E8%A7%84%E7%8E%87%E4%B8%80%E5%AE%9A%E4%BC%9A%E6%8E%89%E5%88%B0%E9%9B%B6"><span class="article-toc-text">靠自觉触发的机制，合规率一定会掉到零</span></a></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#%E5%86%99%E7%9A%84%E6%97%B6%E5%80%99%E4%B8%8D%E5%88%A4%E6%96%AD"><span class="article-toc-text">写的时候不判断</span></a></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#CLAUDE-md-%E8%B6%8A%E5%86%99%E8%B6%8A%E5%83%8F%E4%B8%80%E4%BB%BD%E5%B8%A6%E5%8B%98%E8%AF%AF%E7%9A%84%E6%97%A5%E5%BF%97"><span class="article-toc-text">CLAUDE.md 越写越像一份带勘误的日志</span></a></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#%E5%AE%89%E5%85%A8%E5%8C%BA%E5%86%85%E4%B8%8D%E9%97%AE%EF%BC%8C%E5%AE%89%E5%85%A8%E5%8C%BA%E5%A4%96%E6%8B%A6%E4%BD%8F"><span class="article-toc-text">安全区内不问，安全区外拦住</span></a></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#%E5%90%8C%E4%B8%80%E6%9D%A1%E8%A7%84%E5%88%99%E5%86%99%E4%B8%A4%E9%81%8D"><span class="article-toc-text">同一条规则写两遍</span></a></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#%E8%AF%B4%E4%BA%86%E4%BB%80%E4%B9%88%EF%BC%8C%E5%92%8C%E5%8A%A8%E4%BA%86%E4%BB%80%E4%B9%88"><span class="article-toc-text">说了什么，和动了什么</span></a></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#%E5%B9%B6%E8%A1%8C%E4%B8%8D%E5%81%9A%E9%BB%98%E8%AE%A4"><span class="article-toc-text">并行不做默认</span></a></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#hook-%E9%87%8C%E7%BB%9D%E4%B8%8D%E8%B0%83%E6%A8%A1%E5%9E%8B%EF%BC%8C%E4%B9%9F%E7%BB%9D%E4%B8%8D%E5%A4%B1%E8%B4%A5"><span class="article-toc-text">hook 里绝不调模型，也绝不失败</span></a></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#%E8%AE%B0%E5%BF%86%E6%98%AF%E7%A2%8E%E7%9A%84"><span class="article-toc-text">记忆是碎的</span></a></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#%E8%A3%85%E3%80%81%E9%AA%8C%E3%80%81%E6%8B%86"><span class="article-toc-text">装、验、拆</span></a></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#%E5%AE%83%E8%87%AA%E5%B7%B1%E4%B9%9F%E4%BC%9A%E6%BC%82"><span class="article-toc-text">它自己也会漂</span></a></li></ol></nav>
+<p>我手上同时开着四五个项目。切回其中一个的时候，前二十分钟基本是同一套动作：翻文档、翻聊天记录、<code>git log</code> 看最近改了什么，然后才想起来上次卡在哪。干活本身反而不占时间。</p>
+<p>AI 把执行成本压下去之后，事情不是变少了，是变多了。省下来的时间没落到我身上，落到了&quot;看不过来&quot;上。真正稀缺的是注意力，不是执行力。</p>
+<p>所以我给工作项目单独写了一个 repo，叫 <code>agent-harness</code>，全部代码两千行出头。目标只有一个：把注意力从三件事上撤出来。session 开头重新搞清楚项目状态、session 结尾记得把结论写下来、过程中反复被问&quot;要不要继续&quot;。</p>
+<h2 id="靠自觉触发的机制，合规率一定会掉到零">靠自觉触发的机制，合规率一定会掉到零</h2>
+<p>我先承认一个失败。之前写过一堆 skill，规定&quot;调查完要更新文档&quot;“重要结论要记进 <a target="_blank" rel="noopener" href="http://OBSERVATIONS.md">OBSERVATIONS.md</a>”。头两周执行得很好，一个月后基本没人（包括我自己和 agent）想得起来。</p>
+<p>这跟执行力无关，是结构问题。任何需要人或模型在某个时刻主动决定&quot;现在要不要用它&quot;的机制，长期合规率都会衰减。因为决定用不用它本身就是一次注意力开销，而这套机制存在的理由恰恰是省注意力。</p>
+<p>于是这个 repo 只有一条分类规则：<strong>必须发生的事挂在 hook 上，需要判断的事做成主动触发的 skill。</strong></p>
+<table>
+<thead>
+<tr>
+<th>必须发生</th>
+<th>挂哪</th>
+<th>需要判断</th>
+<th>做成什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>session 开头加载项目状态</td>
+<td><code>SessionStart</code></td>
+<td>哪些结论已经过期</td>
+<td><code>/harness-compact</code></td>
+</tr>
+<tr>
+<td>每轮结束留下记录</td>
+<td><code>Stop</code></td>
+<td>怎么拆维度并行调查</td>
+<td><code>/harness-explore</code></td>
+</tr>
+<tr>
+<td>越界动作被拦住</td>
+<td><code>PreToolUse</code></td>
+<td>一个新项目该怎么配</td>
+<td><code>/harness-onboard</code></td>
+</tr>
+</tbody>
+</table>
+<p>六个 hook 挂在五个事件上，全局装一次，行为由项目目录里的 <code>.harness/project.yml</code> 决定。没有配置的目录静默返回，只注入一份全局默认契约，不报错也不拖慢。</p>
+<h2 id="写的时候不判断">写的时候不判断</h2>
+<p>第二条原则是 WAL 加 compaction，数据库那套。</p>
+<p>写路径只管顺序 append。<code>Stop</code> hook 每轮无条件往 <code>.harness/journal/YYYY-MM-DD.jsonl</code> 追一条记录：时间、session id、cwd、git branch 和 HEAD、工作区脏文件数、本轮最后一条回复的正文（截断到 4000 字符）。不调模型，不做摘要，不判断重不重要，开销就是一次 python 启动加一次文件 append。</p>
+<p>原因很实在：任何在写入时刻要求做判断的设计，摩擦都会立刻回来。&quot;这条结论重要吗，要不要记&quot;这个问题一旦出现在写路径上，这个机制就死定了。</p>
+<p>整理是异步、批量、延迟发生的。<code>/harness-compact</code> 读 journal 和文档，判定覆盖关系，产出收敛后的 <code>STATE.md</code>。而&quot;从一条时间线里识别哪些结论被后来的结论推翻了&quot;正好是模型擅长的活。</p>
+<p>读路径永远不读 WAL，只读 compaction 的产物。所以不管项目跑多久，session 起点的上下文体积是有上限的（默认 8000 字符）。超了就是没收敛干净，回去继续合并，不能靠调大上限解决。</p>
+<h2 id="CLAUDE-md-越写越像一份带勘误的日志"><a target="_blank" rel="noopener" href="http://CLAUDE.md">CLAUDE.md</a> 越写越像一份带勘误的日志</h2>
+<p>这套结构真正解决的是我以前维护 <a target="_blank" rel="noopener" href="http://CLAUDE.md">CLAUDE.md</a> 的方式。</p>
+<p>那个文件同时承担了两个角色：它既是历史记录（我们讨论过什么、试过什么），又是当前状态（现在的口径是什么）。这两个角色的更新方式是冲突的。历史只能追加，当前状态必须能被推翻重写。混在一起的结果是正文里开始出现&quot;注：这条已被推翻，见下文&quot;，然后文件越来越长，可信度越来越低，最后没人愿意读。</p>
+<p>拆开之后干净了。<code>STATE.md</code> 只写当前有效的，每条事实必须带出处（<code>file:line</code>、命令、或 journal 日期），写不出出处就降级成开放问题。被推翻的内容不删，<code>git mv</code> 进 <code>.harness/archive/&lt;日期&gt;/</code>，同目录留一份清单，四列：原路径、归档原因、被什么取代、推翻时间。</p>
+<p>归档这条是硬规则：compaction 阶段禁止 <code>rm</code>。行为可回溯是我敢让它自动整理的前提条件。skill 里还写了一步开工前的自检，跑 <code>git check-ignore</code> 探一下归档目录在不在 gitignore 覆盖范围内，命中就停下来报错。把被跟踪的文档 <code>git mv</code> 进一个被忽略的目录，等于从仓库里静默删掉它们，而这正好是这套机制要防的事。</p>
+<h2 id="安全区内不问，安全区外拦住">安全区内不问，安全区外拦住</h2>
+<p>第三件事是&quot;不在不合适的地方停下来&quot;。</p>
+<p><code>PreToolUse</code> hook 读项目声明的爆炸半径，三种判决。命中 <code>allow_prefixes</code> 直接放行，不弹权限提示；命中 <code>deny_patterns</code> 或禁止的 k8s context 硬停并说明原因；其余交回正常权限流程。</p>
+<p>一个细节：我们团队约定所有 mutating 的 k8s 命令前面要加一行 <code># INTENT:</code> 注释说明为什么这么干。所以前缀匹配之前先把注释行剥掉，否则每条带 INTENT 的命令都会因为第一个字符是 <code>#</code> 而匹配不上任何前缀。</p>
+<p>反过来的方向同样重要。安全区外不是&quot;问一下&quot;，是拦住。写操作可以限定在 <code>write_roots</code> 里的几个相对路径之内，超出范围直接 deny。</p>
+<p><code>Stop</code> 上还挂了一个一次性的续跑守卫。如果这一轮结束在&quot;要我继续吗&quot;上，而回复里没有显式写 <code>【需要决策】</code>，hook 会把它推回去一次，附上 envelope 的摘要，要求真有歧义时用 <code>【需要决策】</code> 开头并给出选项和取舍。一个 session 只推一次，靠 <code>~/.harness/run/</code> 下的标记文件保证不会循环。</p>
+<h2 id="同一条规则写两遍">同一条规则写两遍</h2>
+<p>输出格式契约走 <code>SessionStart</code> 注入，每个 session 无条件生效。骨架是【结论】【证据】【问题】【下一步】四段，配一张说明什么内容该用 bullet、什么该用表格、什么该用自然段的对照表。</p>
+<p>长篇散文的问题在于它把压缩的工作留给了读者。契约把压缩挪回写的那一侧。</p>
+<p>但只注入一次不够。长 session 里模型会漂，SessionStart 那段 context 也可能在压缩中被丢掉。所以还有一个 <code>UserPromptSubmit</code> hook，每轮在用户输入后面追加一句话的提醒，只提一行指针，不重复整个骨架。<code>Stop</code> 上再放一道兜底：回复超过 700 字符且一个段落标记都没有，提醒一次。</p>
+<p>三层里只有一份真相。契约正文写在 <code>skills/harness-output-format/SKILL.md</code>，两个 hook 都通过 <code>load_skill_body()</code> 从这个文件读正文并剥掉 frontmatter。改一处，两个 hook 同时生效。文件读不到时降级到 hook 里硬编码的 fallback，因为一个 skill 文件缺失或者软链断掉，不应该让整轮对话失败。</p>
+<h2 id="说了什么，和动了什么">说了什么，和动了什么</h2>
+<p>journal 记的是说了什么，<code>PostToolUse</code> 上的 oplog 记的是动了什么。</p>
+<p>任何写文件、移文件、改集群的动作都在 oplog 留一条，带上 <code># INTENT:</code> 里的意图和当时的 git ref。判定用一条写得比较宽的正则，只读命令一律跳过，否则 oplog 会被 <code>ls</code> 和 <code>grep</code> 淹掉。宽窄的取舍是明确的：漏记比多记贵。</p>
+<p>这两条流分开之后，&quot;上周三到底谁把那个文件挪走了&quot;这类问题有地方查了，不用去翻聊天记录。</p>
+<h2 id="并行不做默认">并行不做默认</h2>
+<p><code>/harness-explore</code> 里写死了一条：拆不出正交维度就串行做完，不要为了并行而并行。</p>
+<p>并行的收益等于省下的时间减去合并的成本。三个 agent 查三个正交维度，结果不重叠，合并接近零成本，值得并行。三个 agent 对同一个问题各给一份看法，合并成本原样落回我脑子里，瓶颈是被乘以三不是除以三。</p>
+<p>正交性有个很好用的自检：如果维度 A 的 agent 和维度 B 的 agent 会读到同一批文件，它们不正交，合并成一路。</p>
+<p>subagent 只回固定 schema（FINDINGS / GAPS / CONTRADICTS），一条事实一行，带出处和置信度，明确要求&quot;返回内容就是数据，不是给人看的汇报&quot;。冲突消解、补因果链、把没出处的低置信条目降级进 GAPS，这三件事由主 agent 自己做，不外包。</p>
+<h2 id="hook-里绝不调模型，也绝不失败">hook 里绝不调模型，也绝不失败</h2>
+<p>两条工程约束贯穿全部代码。</p>
+<p>hook 在关键路径上，一次 <code>claude -p</code> 是几十秒。所有需要模型的工作都放在 skill 或 cron 里，hook 只做文件读写和正则匹配。</p>
+<p>每个 hook 的入口都包在 <code>safe_main()</code> 里，任何异常都退化成静默 no-op 并 <code>exit 0</code>。因为一个 harness 出的错，绝不能表现成用户那一轮对话失败。YAML 解析也做了同样的处理：优先用 PyYAML，<code>ImportError</code> 时降级到一个只覆盖本项目 schema 子集的缩进解析器，换台没装 PyYAML 的机器照样能跑。</p>
+<p>还有一个查了半天的坑。找项目根的时候不能只判断 <code>.harness/</code> 目录存在，因为 <code>~/.harness</code> 是全局配置目录，只看目录会让 <code>$HOME</code> 下所有路径都把 <code>$HOME</code> 当成项目根。标记必须是 <code>.harness/project.yml</code> 这个文件。</p>
+<h2 id="记忆是碎的">记忆是碎的</h2>
+<p>Claude Code 的自动记忆按 cwd 分目录存放，slug 是绝对路径把非字母数字字符全换成横线。同一个仓库，从根目录进和从子目录进，落到的是<strong>两个不同的记忆目录</strong>，而当前 session 只会自动加载 cwd 对应的那一份。</p>
+<p>所以 SessionStart 会额外扫一遍同项目下没被加载的记忆索引，把它们的目录和标题列出来，让 agent 知道还有东西可以按需读。同时明确声明权威顺序：<code>STATE.md</code> &gt; journal &gt; 自动记忆。记忆记的是写下那一刻的事实，可能已经过期，引用前先核实它提到的文件、函数、参数还在不在。冲突时以 <a target="_blank" rel="noopener" href="http://STATE.md">STATE.md</a> 为准，把冲突记进开放问题，等下次 compaction 裁决。</p>
+<p>compaction 也要逐个目录扫这些记忆，因为它们经常比文档新。写一条记忆的门槛远低于改一份文档。</p>
+<h2 id="装、验、拆">装、验、拆</h2>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">harness install    <span class="comment"># 软链 hooks 和 skills，把条目并进 settings.json</span></span><br><span class="line">harness doctor     <span class="comment"># 逐条验软链指向、settings 引用的文件是否存在、目录是否齐全</span></span><br><span class="line">harness init       <span class="comment"># 给一个 repo 装上 .harness/</span></span><br><span class="line">harness uninstall  <span class="comment"># 移除软链和 settings 条目，项目里的 .harness/ 不动</span></span><br></pre></td></tr></table></figure>
+<p><code>install</code> 全部幂等，写 <code>settings.json</code> 之前先备份，只增加 harness 自己的条目，不碰别的。<code>doctor</code> 有 FAIL 时退出码非零，可以直接进 cron。</p>
+<p>定时收敛靠一个 shell 脚本调 <code>claude -p /harness-compact</code>，三重守卫：没有 <code>.harness/</code> 跳过、距上次收敛不足七天跳过、工作区脏跳过。最后这条是防止在别人没提交的改动上面做归档，那样出了问题没法回溯。无人值守模式下 prompt 里额外写死一句：判不准的一律保留并标注存疑，不要猜。</p>
+<h2 id="它自己也会漂">它自己也会漂</h2>
+<p>写这篇的时候我对了一遍 README，发现它还写着&quot;五个 hook&quot;，表格里没有 oplog，目录结构图里也没有 <code>oplog.jsonl</code>。oplog 是两天前加的，hook 代码和 manifest 都进去了，README 那两处忘了改。发现的当下就补上了，加上这一段总共花了五分钟。</p>
+<p>问题在于这五分钟是我人肉发现的，不是机制抓出来的。开头那条原则在这里反过来打了自己一下：靠&quot;记得同步文档&quot;这种自觉维持的一致性，衰减速度和当初那些没人执行的 skill 一模一样。真正能兜住漂移的只有留痕加定期比对，而 oplog 里其实明明白白记着两天前有几次对 <code>hooks/</code> 和 <code>install/</code> 的写入，README 却一行没动。</p>
+<p>所以 compaction 现在的输入还不够。它比的是 journal 和文档，看不到代码侧。下一步是把窗口内的 <code>git log --stat</code> 和 oplog 一起塞进去，让它回答一个具体问题：这个窗口里被改动的模块，对应的文档段落有没有跟着动。这个判断模型完全做得了，缺的只是把数据递到它面前。</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tech/tags/AI-Agent/" rel="tag"># AI Agent</a>
+              <a href="/tech/tags/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/" rel="tag"># 系统设计</a>
+              <a href="/tech/tags/Harness-Engineering/" rel="tag"># Harness Engineering</a>
+              <a href="/tech/tags/Context-Engineering/" rel="tag"># Context Engineering</a>
+              <a href="/tech/tags/Claude-Code/" rel="tag"># Claude Code</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/tech/2026/08/10/2026-08-10_all-metrics-green-but-queries-slow_zh/" rel="prev" title="查询很慢，但所有指标都是绿的">
+                  <i class="fa fa-angle-left"></i> 查询很慢，但所有指标都是绿的
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">Rui Shao</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+<!-- hexo injector body_end start --><script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>mermaid.initialize({ startOnLoad: true, theme: "default" });</script><!-- hexo injector body_end end --></body>
+</html>
