@@ -143,10 +143,10 @@
     <content type="html"><![CDATA[<p>英文版：English 症状 外部连接数据库服务瞬间失败，报 connection refused。「瞬间」就是线索：refused 意味着包到了、没人在听，快速且确定。timeout 意味着有监听者但不应答。两个词指向栈的不同半边，混为一谈会浪费掉第一个小时。 逐跳走，停在第一个失败处 链路有八跳：client → DNS → 负载均衡 → NodePort → ingress → Service → Endpoints → pod。方法毫无花哨：按序核实每一跳确实在监听或解析，停在第一个失败的跳。在这类事故上，它找到过两个不同的根因：…</p>]]></content>
   </entry>
   <entry>
-    <title>替换 Prometheus Federation：一个多租户监控平台的重建</title>
+    <title>多租户指标平台上的告警分层设计</title>
     <link href="https://shaorui0.github.io/tech/2026/08/03/2026-08-03_replacing-prometheus-federation_zh/"/>
     <id>https://shaorui0.github.io/tech/2026/08/03/2026-08-03_replacing-prometheus-federation_zh/</id>
-    <updated>2026-08-10T13:22:35.472Z</updated>
+    <updated>2026-09-18T04:42:05.584Z</updated>
     <published>2026-08-02T15:00:00.000Z</published>
     <content type="html"><![CDATA[<p>英文版：English Why Federation 拓扑顶端的 global Prometheus 每周 OOM 两到三次。它的 head block 维护着 1.2M series，占用 5 到 10 GB 内存；每次崩溃重启都会在数据上留下空洞，而这些空洞会以&quot;不存在的故障&quot;的形式把 oncall 从床上叫醒。这是可靠性的一半。另一半是延迟，而且是结构性的：Federation 叠加了两层 scrape 周期，集群本地 15s 加全局层 30s，全局视图最多滞后现实 45 秒。P0 发生时，被 page 的人看到的是过去。…</p>]]></content>
   </entry>

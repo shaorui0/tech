@@ -20,15 +20,15 @@
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"shaorui0.github.io","root":"/tech/","images":"/tech/images","scheme":"Gemini","darkmode":true,"version":"8.27.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/tech/js/config.js" defer></script>
 
-    <meta name="description" content="把 50 个 Kubernetes 集群从每周 OOM 的 Federation 拓扑迁到 VictoriaMetrics 平台：1.2M active series，数据延迟 45s 降到 5s 以内，切换全程告警不断流。">
+    <meta name="description" content="在服务 50 个 Kubernetes 集群的 VictoriaMetrics 平台上设计三层告警分级与 per-tenant SLI recording rules，把约 80% 不可操作的资源型告警换成基于用户影响的准入控制。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="替换 Prometheus Federation：一个多租户监控平台的重建">
+<meta property="og:title" content="多租户指标平台上的告警分层设计">
 <meta property="og:url" content="https://shaorui0.github.io/tech/2026/08/03/2026-08-03_replacing-prometheus-federation_zh/index.html">
 <meta property="og:site_name" content="Tech &amp; AI · 中文">
-<meta property="og:description" content="把 50 个 Kubernetes 集群从每周 OOM 的 Federation 拓扑迁到 VictoriaMetrics 平台：1.2M active series，数据延迟 45s 降到 5s 以内，切换全程告警不断流。">
+<meta property="og:description" content="在服务 50 个 Kubernetes 集群的 VictoriaMetrics 平台上设计三层告警分级与 per-tenant SLI recording rules，把约 80% 不可操作的资源型告警换成基于用户影响的准入控制。">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2026-08-02T15:00:00.000Z">
-<meta property="article:modified_time" content="2026-08-10T13:22:35.472Z">
+<meta property="article:modified_time" content="2026-09-18T04:42:05.584Z">
 <meta property="article:author" content="Rui Shao">
 <meta property="article:tag" content="Prometheus">
 <meta property="article:tag" content="SLO">
@@ -41,10 +41,10 @@
 <link rel="canonical" href="https://shaorui0.github.io/tech/2026/08/03/2026-08-03_replacing-prometheus-federation_zh/">
 
 
-<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://shaorui0.github.io/tech/2026/08/03/2026-08-03_replacing-prometheus-federation_zh/","path":"2026/08/03/2026-08-03_replacing-prometheus-federation_zh/","title":"替换 Prometheus Federation：一个多租户监控平台的重建"}</script>
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://shaorui0.github.io/tech/2026/08/03/2026-08-03_replacing-prometheus-federation_zh/","path":"2026/08/03/2026-08-03_replacing-prometheus-federation_zh/","title":"多租户指标平台上的告警分层设计"}</script>
 
 <script class="next-config" data-name="calendar" type="application/json">""</script>
-<title>替换 Prometheus Federation：一个多租户监控平台的重建 | Tech & AI · 中文</title>
+<title>多租户指标平台上的告警分层设计 | Tech & AI · 中文</title>
   
 
 
@@ -237,12 +237,12 @@
     </span>
 
     <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="替换 Prometheus Federation：一个多租户监控平台的重建 | Tech & AI · 中文">
-      <meta itemprop="description" content="把 50 个 Kubernetes 集群从每周 OOM 的 Federation 拓扑迁到 VictoriaMetrics 平台：1.2M active series，数据延迟 45s 降到 5s 以内，切换全程告警不断流。">
+      <meta itemprop="name" content="多租户指标平台上的告警分层设计 | Tech & AI · 中文">
+      <meta itemprop="description" content="在服务 50 个 Kubernetes 集群的 VictoriaMetrics 平台上设计三层告警分级与 per-tenant SLI recording rules，把约 80% 不可操作的资源型告警换成基于用户影响的准入控制。">
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          替换 Prometheus Federation：一个多租户监控平台的重建
+          多租户指标平台上的告警分层设计
         </h1>
 
         <div class="post-meta-container">
@@ -260,7 +260,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-08-10 22:22:35" itemprop="dateModified" datetime="2026-08-10T22:22:35+09:00">2026-08-10</time>
+      <time title="修改时间：2026-09-18 13:42:05" itemprop="dateModified" datetime="2026-09-18T13:42:05+09:00">2026-09-18</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -275,7 +275,7 @@
   
 </div>
 
-            <div class="post-description">把 50 个 Kubernetes 集群从每周 OOM 的 Federation 拓扑迁到 VictoriaMetrics 平台：1.2M active series，数据延迟 45s 降到 5s 以内，切换全程告警不断流。</div>
+            <div class="post-description">在服务 50 个 Kubernetes 集群的 VictoriaMetrics 平台上设计三层告警分级与 per-tenant SLI recording rules，把约 80% 不可操作的资源型告警换成基于用户影响的准入控制。</div>
         </div>
       </header>
 
@@ -289,21 +289,11 @@
 <h2 id="Why">Why</h2>
 <p>Federation 拓扑顶端的 global Prometheus 每周 OOM 两到三次。它的 head block 维护着 1.2M series，占用 5 到 10 GB 内存；每次崩溃重启都会在数据上留下空洞，而这些空洞会以&quot;不存在的故障&quot;的形式把 oncall 从床上叫醒。这是可靠性的一半。另一半是延迟，而且是结构性的：Federation 叠加了两层 scrape 周期，集群本地 15s 加全局层 30s，全局视图最多滞后现实 45 秒。P0 发生时，被 page 的人看到的是过去。</p>
 <p>规模让两个问题都无解。50 个集群的负载下 <code>/federate</code> 接口频繁 scrape timeout，Grafana 上出现数据断点；每个集群各自维护一套 federation rules，新集群接入要手工修改 global Prometheus 的 scrape 配置。同时平台没有可用的多租户维度：指标跨租户聚合，单个租户的局部故障被平均值掩盖。</p>
-<p>我在一个 3 到 4 人的 SRE 团队里独立 own observability 这个领域：设计、选型、落地。引擎选型上我做了 VictoriaMetrics 与 Thanos 的 POC 对比（写入吞吐、压缩率、运维复杂度），结论由团队共识确认。</p>
+<p>这套问题的解法是把指标平台从 Federation 切换到 VictoriaMetrics。这是 platform 团队在我接手这个范围之前完成的迁移：引擎选型（VictoriaMetrics vs Thanos）、数据生命周期策略和迁移执行都不是我做的。我可以从 SLO 和架构角度讨论这个选择为什么合理，但答不上迁移过程里踩过的具体坑。</p>
+<p>我一手 own、端到端负责的部分，是叠在这个新指标存储之上的告警层。对 30 天告警历史的审计显示，约 80% 的 page 是 resource-centric 的：CPU 或内存抖动，值班人看一眼就关掉；而且指标没有可用的租户维度，单个租户的局部故障会被整个集群的平均值掩盖。</p>
 <h2 id="How">How</h2>
-<p>替代方案是推送式的中心化架构：每个 workload 集群部署一个 vmagent 就地采集，在 relabel 阶段注入 <code>cluster</code> 和 cluster group 标签，然后 remote_write 到中心 VictoriaMetrics 集群（vminsert ×2 挂 LB，vmstorage ×3 副本因子 2，vmselect ×2）。vmalert 在同一存储上评估 recording rules 和 alert rules；Alertmanager 以 HA 双实例做通知路由；Grafana 加 Loki 构成读取与验证面。</p>
-<p>容量按实测输入设计：50 集群 × 约 12 节点 ≈ 600 节点，每节点约 2,000 series，合计约 1.2M active series、约 80,000 samples/s（15s 采集间隔）。热存储 SSD 上 3 个月约 250 GB，压缩比约 4 倍：同样的窗口在 Federation 下要 930 GB。冷存储走 S3，5 分钟降采样，180 天约 25 GB。</p>
-<p>告警是平台的组成部分，不是附属品。recording rules 先物化一族 SLI：QPS、error ratio、P95/P99 latency、saturation、分租户 SLI，全部按 <code>{tenant, cluster group}</code> 键控；dashboard 和告警规则都消费预计算结果，不在现场跑重查询。告警分三层：PAGER 走 PagerDuty，只留给确认的用户影响；HIGH 进 Slack；MEDIUM 归工单。PAGER 必须满足 multi-window burn-rate：5m 和 30m 两个窗口同时超阈值才触发，既滤掉瞬时抖动，又不放过持续恶化。inhibition 只沿因果明确的链条做抑制（NodeNotReady 抑制同节点的 PodUnableToStart）；跨服务的推测性抑制被刻意排除，因为配错方向的 inhibition 会掩盖真实故障。</p>
-<p>租户身份有两条注入路径：应用在自己的 metrics 上打 <code>tenant</code> label，因为只有应用知道在处理谁的请求；vmagent 在 scrape 时通过 relabel 注入集群与 cluster group 上下文。项目之前各集群的 relabel 配置各自为政：cluster 命名不统一，部分团队用 <code>client</code> 而不是 <code>tenant</code>，这会悄无声息地破坏告警路由、drill-down 和 inhibition 的 label 相等匹配。我写了统一的 relabel 模板分发到所有集群，并推动应用侧收敛到 <code>tenant</code>。</p>
-<p><strong>旧架构：federation。</strong></p>
-<div class="mermaid">flowchart TB
-  subgraph FLEET[&quot;50 个集群&quot;]
-    P[&quot;每集群 Prometheus&lt;br/&gt;15s 抓取&quot;]
-  end
-  P --&gt;|&quot;/federate 拉取 · 30s&quot;| G[&quot;全局 Prometheus&lt;br/&gt;120 万 series head block&quot;]
-  G --&gt; GR[&quot;Grafana&quot;]
-  G -.-&gt;|&quot;每周 OOM · 延迟最高 45s&quot;| GAP[&quot;数据缺口 → 假告警&quot;]</div>
-<p><strong>新架构：VictoriaMetrics 平台。</strong></p>
+<p>这套平台是推送式的中心化架构：每个 workload 集群部署一个 vmagent 就地采集，在 relabel 阶段注入 <code>cluster</code> 和 cluster group 标签，然后 remote_write 到中心 VictoriaMetrics 集群（vminsert ×2 挂 LB，vmstorage ×3 副本因子 2，vmselect ×2）。vmalert 在同一存储上评估 recording rules 和 alert rules；Alertmanager 以 HA 双实例做通知路由；Grafana 加 Loki 构成读取与验证面。这套拓扑和它的容量规划（50 集群 × 约 12 节点 ≈ 600 节点，每节点约 2,000 series，合计约 1.2M active series、约 80,000 samples/s，15s 采集间隔；热存储 SSD 上 3 个月约 250 GB；冷存储走 S3，5 分钟降采样，180 天约 25 GB）在我开始在它上面工作之前就已经落地。</p>
+<p><strong>平台拓扑（既有背景知识，不是我建的）。</strong></p>
 <div class="mermaid">flowchart TB
   subgraph FLEET2[&quot;50 个集群&quot;]
     A[&quot;vmagent&lt;br/&gt;remote_write + 持久化队列&quot;]
@@ -314,16 +304,23 @@
   VQ --&gt; VA[&quot;vmalert&lt;br/&gt;recording + 告警规则&quot;]
   VQ --&gt; GF[&quot;Grafana / Loki&quot;]
   VA --&gt; AM[&quot;Alertmanager&lt;br/&gt;三层分级 + inhibition&quot;]</div>
+<p>在这个平台之上，我设计了告警层。recording rules 先物化一族 SLI：QPS、error ratio、P95/P99 latency、saturation、分租户 SLI，全部按 <code>{tenant, cluster group}</code> 键控；dashboard 和告警规则都消费预计算结果，不在现场跑重查询。告警分三层：PAGER 走 PagerDuty，只留给确认的用户影响；HIGH 进 Slack；MEDIUM 归工单。PAGER 必须满足 multi-window burn-rate：5m 和 30m 两个窗口同时超阈值才触发，既滤掉瞬时抖动，又不放过持续恶化。inhibition 只沿因果明确的链条做抑制（NodeNotReady 抑制同节点的 PodUnableToStart）；跨服务的推测性抑制被刻意排除，因为配错方向的 inhibition 会掩盖真实故障。</p>
+<p><strong>我在这之上设计的：告警层。</strong></p>
+<div class="mermaid">flowchart TB
+  VA[&quot;vmalert&lt;br/&gt;按 {tenant, cluster_group} 键控的 SLI recording rules&quot;] --&gt; SEV{&quot;严重度准入控制&quot;}
+  SEV --&gt;|&quot;可观测用户影响，&lt;br/&gt;5m+30m burn-rate&quot;| PAGER[&quot;PAGER → 寻呼通道&quot;]
+  SEV --&gt;|&quot;降级但未影响用户&quot;| HIGH[&quot;HIGH → Slack&quot;]
+  SEV --&gt;|&quot;信息性&quot;| MED[&quot;MEDIUM → 工单&quot;]
+  PAGER --&gt; INH[&quot;Inhibition：只做因果链&quot;]</div>
+<p>租户身份有两条注入路径：应用在自己的 metrics 上打 <code>tenant</code> label，因为只有应用知道在处理谁的请求；vmagent 在 scrape 时通过 relabel 注入集群与 cluster group 上下文。项目之前各集群的 relabel 配置各自为政：cluster 命名不统一，部分团队用 <code>client</code> 而不是 <code>tenant</code>，这会悄无声息地破坏告警路由、drill-down 和 inhibition 的 label 相等匹配。我写了统一的 relabel 模板分发到所有集群，并推动应用侧收敛到 <code>tenant</code>。</p>
 <h2 id="Hard-parts">Hard parts</h2>
-<p><strong>切换全程不丢一条告警。</strong> VictoriaMetrics 用 MetricsQL，与 PromQL 存在边界差异，“规则照常触发&quot;不能靠假设。我们以双写配置并行运行新旧两套栈两周，每条告警规则在两侧同时评估，diff 触发行为，修完所有分歧才切换通知路由。平台还必须&quot;响亮地失败”：vmalert 持续输出心跳，deadman’s switch 加 out-of-band 探针把&quot;监控失联&quot;在分钟级转化为一条明确的 page，而不是一个安静的盲区。</p>
-<p><strong>数据延迟从 45s 到 5s 以内。</strong> 改善来自架构而非调参。Federation 的滞后是两层 scrape 周期的结构性叠加；remote_write 在采集的同时推送样本，延迟直接降到 5 秒以内。真正需要工程投入的不是快，而是不丢：推送意味着网络抖动可能丢数据，所以每个 vmagent 都在本地磁盘上跑 persistent queue，remote 断连期间缓冲，恢复后回放。</p>
 <p><strong>多租户 series 基数治理。</strong> 加租户维度会成倍放大 series，label 铺开后增长很快。治理手段：tenant 级 recording rules 只覆盖核心 SLI；基础设施指标一律不带 tenant label；retention 分层（tenant SLA 序列 90 天，排障序列 30 天，基础设施 15 天）；定期 cardinality 审查清理意外的高基数 label。诚实的复盘结论：cardinality budget 应该在第一天就存在，而不是等增长曲线逼出来。</p>
 <p><strong>让 severity 有语义。</strong> 对 30 天告警历史做审计，约 80% 的 page 是 resource-centric 的：CPU 或内存抖动，值班人看一眼就关掉。解法是给 PAGER 层做准入控制：一条 page 必须指示可观测的用户影响（SLO burn rate、SLA latency 击穿、关键链路 QPS 断崖），其余全部降级到 HIGH 或 MEDIUM；静态阈值全部换成 multi-window burn-rate。上线后用两个反馈信号持续调参：每条 PAGER 的 action rate，以及用户报了问题但没有对应 page 的漏报。</p>
 <h2 id="Production">Production</h2>
-<p>切换的门禁是那两周的双写窗口：告警规则在两套栈上触发行为等价、dashboard 查询在 MetricsQL 下结果等价，路由才允许迁移；门禁通过之前 Federation 栈一直作为 fallback 在线。inhibition 规则在 staging 环境人工触发上游故障做验证，确认下游告警被正确抑制，并保留 firing 历史供 postmortem 回溯。切换后，新集群接入从&quot;写 federation rules 加改全局 scrape 配置&quot;收缩为&quot;部署 vmagent，配一个 remote_write 地址&quot;。日常验证靠三个信号：deadman 心跳、PAGER action rate、漏报追踪。</p>
+<p>severity 重设计与 SLI recording rules 是在既有（已完成迁移）的指标平台之上按集群逐步上线的，所以告警层本身没有单独的切换风险。新规则在路由生效前，先对照历史 firing 行为验证过。inhibition 规则在 staging 环境人工触发上游故障做验证，确认下游告警被正确抑制，并保留 firing 历史供 postmortem 回溯。日常验证靠两个信号：PAGER action rate、漏报追踪（用户报了问题但没有对应 page）。租户 label 的一致性由共享 relabel 模板持续强制，不再靠逐集群 review。</p>
 <h2 id="Takeaways">Takeaways</h2>
 <ul>
-<li>Federation 的 45s 延迟和每周 OOM 是架构属性而不是配置属性，任何调参预算都修不好。</li>
+<li>Federation 的 45s 延迟和每周 OOM 是架构属性而不是配置属性。这是我能扛住追问的判断，即便我没有执行那次迁移。</li>
 <li>告警质量是准入控制问题：定义什么配得上一条 page，其余全部降级，用每条 page 的 action rate 做回归测试。</li>
 <li>label 一致性本身就是平台基础设施：路由、drill-down、inhibition 全部依赖 label 相等匹配，必须在 relabel 层一次性强制，不能靠各团队各自约定。</li>
 </ul>
