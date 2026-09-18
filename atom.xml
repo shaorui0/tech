@@ -15,14 +15,6 @@
     <content type="html"><![CDATA[<p>一句话 写出第一个探针只证明了这个形态可行。探针库和告警规则是同一类东西，一堆随时间累积的判定，而告警规则已经把这类东西的结局演示过一次了。 所以「怎么做成一个能用的系统」这个问题，等价于「怎么不重演那个结局」。 前一篇讲了为什么要有探针层，以及第一个探针跑在生产规则集上的结果。这一篇讲从那一个探针到一个能被团队依赖的判定层，中间隔着什么。 先看那个已知的结局 告警规则腐烂有三条机制，它们不是执行力问题，是激励结构问题： 机制 内容 加告警免费 新增一条是一行代码，没有准入成本 删告警受罚 删掉之后万一出事，责任在删的人身上；留着不会有人怪你 失效无声…</p>]]></content>
   </entry>
   <entry>
-    <title>dashboard 是给人眼用的</title>
-    <link href="https://shaorui0.github.io/tech/2026/09/03/2026-09-03_dashboard-is-for-human-eyes_zh/"/>
-    <id>https://shaorui0.github.io/tech/2026/09/03/2026-09-03_dashboard-is-for-human-eyes_zh/</id>
-    <updated>2026-09-06T07:06:56.193Z</updated>
-    <published>2026-09-02T15:00:00.000Z</published>
-    <content type="html"><![CDATA[<p>一句话 人需要选时间窗，是因为人要在图上做视觉比较。agent 不需要时间窗，因为比较逻辑可以直接写进表达式里。时间窗是给人眼用的中间产物。 全文的推导链 八步，每一步是上一步的推论。中间第 7 步是承重墙，单独用一节较真。 # 命题 1 消费者不同，认知机制就不同。人靠视觉模式识别，agent 靠精确数值比较与并行条件求值 2 认知机制不同，接口形态就该不同。给 agent 图，是把它逼到最弱的模态上 3 时间窗是视觉比较的容器。换掉消费者之后，它该被吸收进表达式，不该暴露成参数 4 已有的给机器看的判定就是告警规则。形态早就有了，不是新发明 5…</p>]]></content>
-  </entry>
-  <entry>
     <title>根因不是发现的，是选择的</title>
     <link href="https://shaorui0.github.io/tech/2026/09/03/2026-09-03_root-cause-is-chosen-not-found_zh/"/>
     <id>https://shaorui0.github.io/tech/2026/09/03/2026-09-03_root-cause-is-chosen-not-found_zh/</id>
@@ -31,12 +23,12 @@
     <content type="html"><![CDATA[<p>一句话 事故复盘里最常见的无意义争论是「到底哪个才是真正的根因」。这个争论没有答案，因为根因不是一个客观存在的点，是你在因果链上选择的一个切断位置。 选哪里，取决于哪个切断点最便宜且最可靠。 交付物不是一个点 写「根因是 X」这种句式，会逼着人把一条链压成一个词。改成链之后，思考质量会跟着变： 拿一次真实事故做例子。可见信号是 Kafka 消费积压，真因在 ClickHouse 的系统表里（完整复盘）。它的链是这样： flowchart TB A[&quot;CH 升级留下带数字后缀的旧系统日志表&quot;] --&gt;…</p>]]></content>
   </entry>
   <entry>
-    <title>机制要么挂在事件上，要么等于不存在</title>
-    <link href="https://shaorui0.github.io/tech/2026/08/10/2026-08-10_agent-harness-wal-compaction-envelope_zh/"/>
-    <id>https://shaorui0.github.io/tech/2026/08/10/2026-08-10_agent-harness-wal-compaction-envelope_zh/</id>
-    <updated>2026-08-10T13:38:48.251Z</updated>
-    <published>2026-08-09T15:00:00.000Z</published>
-    <content type="html"><![CDATA[<p>我手上同时开着四五个项目。切回其中一个的时候，前二十分钟基本是同一套动作：翻文档、翻聊天记录、git log 看最近改了什么，然后才想起来上次卡在哪。干活本身反而不占时间。 AI 把执行成本压下去之后，事情不是变少了，是变多了。省下来的时间没落到我身上，落到了&quot;看不过来&quot;上。真正稀缺的是注意力，不是执行力。 所以我给工作项目单独写了一个 repo，叫 agent-harness，全部代码两千行出头。目标只有一个：把注意力从三件事上撤出来。session 开头重新搞清楚项目状态、session…</p>]]></content>
+    <title>dashboard 是给人眼用的</title>
+    <link href="https://shaorui0.github.io/tech/2026/09/03/2026-09-03_dashboard-is-for-human-eyes_zh/"/>
+    <id>https://shaorui0.github.io/tech/2026/09/03/2026-09-03_dashboard-is-for-human-eyes_zh/</id>
+    <updated>2026-09-06T07:06:56.193Z</updated>
+    <published>2026-09-02T15:00:00.000Z</published>
+    <content type="html"><![CDATA[<p>一句话 人需要选时间窗，是因为人要在图上做视觉比较。agent 不需要时间窗，因为比较逻辑可以直接写进表达式里。时间窗是给人眼用的中间产物。 全文的推导链 八步，每一步是上一步的推论。中间第 7 步是承重墙，单独用一节较真。 # 命题 1 消费者不同，认知机制就不同。人靠视觉模式识别，agent 靠精确数值比较与并行条件求值 2 认知机制不同，接口形态就该不同。给 agent 图，是把它逼到最弱的模态上 3 时间窗是视觉比较的容器。换掉消费者之后，它该被吸收进表达式，不该暴露成参数 4 已有的给机器看的判定就是告警规则。形态早就有了，不是新发明 5…</p>]]></content>
   </entry>
   <entry>
     <title>查询很慢，但所有指标都是绿的</title>
@@ -55,12 +47,28 @@
     <content type="html"><![CDATA[<p>一句话 声明 desired state，观测 actual state，做 diff，收敛。失败不是异常路径，是这个循环里被自然吸收的一帧。 这句话在三代基础设施里原样成立： 代 desired state 形式 reconcile 对象 收敛保证 IaC &#x2F; GitOps HCL &#x2F; YAML，存在 Git 里 云资源 强——确定性 diff Kubernetes spec 运行时状态 强——controller 持续 reconcile AI Agent 自然语言意图 任意开放任务 概率性 三代不是三个不相关的技术，是同一个范式的三次落地。…</p>]]></content>
   </entry>
   <entry>
+    <title>机制要么挂在事件上，要么等于不存在</title>
+    <link href="https://shaorui0.github.io/tech/2026/08/10/2026-08-10_agent-harness-wal-compaction-envelope_zh/"/>
+    <id>https://shaorui0.github.io/tech/2026/08/10/2026-08-10_agent-harness-wal-compaction-envelope_zh/</id>
+    <updated>2026-08-10T13:38:48.251Z</updated>
+    <published>2026-08-09T15:00:00.000Z</published>
+    <content type="html"><![CDATA[<p>我手上同时开着四五个项目。切回其中一个的时候，前二十分钟基本是同一套动作：翻文档、翻聊天记录、git log 看最近改了什么，然后才想起来上次卡在哪。干活本身反而不占时间。 AI 把执行成本压下去之后，事情不是变少了，是变多了。省下来的时间没落到我身上，落到了&quot;看不过来&quot;上。真正稀缺的是注意力，不是执行力。 所以我给工作项目单独写了一个 repo，叫 agent-harness，全部代码两千行出头。目标只有一个：把注意力从三件事上撤出来。session 开头重新搞清楚项目状态、session…</p>]]></content>
+  </entry>
+  <entry>
     <title>如何用 Claude Code：模型是 CPU，Harness 是操作系统，Context 是内存页</title>
     <link href="https://shaorui0.github.io/tech/2026/08/04/2026-08-04_how-i-use-claude-code-context-engineering-and-harness_zh/"/>
     <id>https://shaorui0.github.io/tech/2026/08/04/2026-08-04_how-i-use-claude-code-context-engineering-and-harness_zh/</id>
     <updated>2026-08-10T13:22:35.477Z</updated>
     <published>2026-08-03T15:00:00.000Z</published>
     <content type="html"><![CDATA[<p>先说清楚这篇要回答什么 已经写过一个十一篇的系列，讲 SRE 和 agent 之间的同构性，讲 Spec&#x2F;Loop&#x2F;Hook&#x2F;Fork 四个控制论原语。那个系列的语言是抽象层的为什么。这篇不重复那些内容，只回答一个更朴素的问题：把我自己天天在用的 context-infrastructure 这个 repo 摊开来看，我到底在怎么用 Claude Code。 我每次打开任务前做的一件事 任何任务开始之前，我不是直接开始干活，是先让 agent 读四个文件。SOUL.md 定义它要扮演的角色和底层逻辑，USER.md…</p>]]></content>
+  </entry>
+  <entry>
+    <title>我当前做了什么，匹配什么能力</title>
+    <link href="https://shaorui0.github.io/tech/2026/08/03/2026-08-03_an-audit-of-my-own-radar_zh/"/>
+    <id>https://shaorui0.github.io/tech/2026/08/03/2026-08-03_an-audit-of-my-own-radar_zh/</id>
+    <updated>2026-08-10T13:22:35.463Z</updated>
+    <published>2026-08-02T15:00:00.000Z</published>
+    <content type="html"><![CDATA[<p>英文版：English 分数是怎么产生的 方法放在最前面，因为没有方法，数字就是噪音。雷达上每个 depth 分数都由证据密度推导：旗舰 artifact 的数量与深度（带证据引用的事故复盘、经受住重测的实测结果）、从工作中沉淀出的方法论体量（runbook、debug tree、固化的规则），以及是否存在公开可验证之物。它明确不是自评。 原因是：自评分数对读者没有信息量。自评在人与人之间没有校准，夸大的激励是结构性的，而且当你不同意时无处可查。一个由认证过的迁移支撑的 82 是可以审计的声明；一个由自信支撑的 82…</p>]]></content>
   </entry>
   <entry>
     <title>弹性计算层是怎么设计的：离散容量、一个写原语、不会骗人的 readiness</title>
@@ -79,36 +87,20 @@
     <content type="html"><![CDATA[<p>英文版：English Why 立项的时候，这个 pager 已经不能作为任何事情的证据了。Phase 0 的量化 baseline 说明了问题：367 条 alert rule 打着进 OpsGenie 的路由 label，散落在 30 个规则文件里；全局 OpsGenie channel 每天吞下约 960 条告警，其中约 85% 是 P3，原因很简单，不写 priority 时 P3 就是默认值。仅 infra 团队的 OpsGenie channel 就以每小时约 12 条的速率运行，一天约 290 条。 细看比总量更糟。一条 for: 0m…</p>]]></content>
   </entry>
   <entry>
-    <title>把一份文档编译成 control loop：面向 5G vRAN 裸金属的 machine-level 配置收敛控制器</title>
-    <link href="https://shaorui0.github.io/tech/2026/08/03/2026-08-03_compiling-a-document-into-a-control-loop_zh/"/>
-    <id>https://shaorui0.github.io/tech/2026/08/03/2026-08-03_compiling-a-document-into-a-control-loop_zh/</id>
-    <updated>2026-08-10T13:22:35.465Z</updated>
-    <published>2026-08-02T15:00:00.000Z</published>
-    <content type="html"><![CDATA[<p>英文版：English 这是什么，以及为什么做 Kubernetes 在容器上跑一个 reconcile loop：声明 desired state，观察 actual state，收敛差异，循环往复。这个项目把同一套哲学向下推了一层，落到承载 5G vRAN 实时无线流量的裸金属硬件上。 Intel 的 5G 云化（cloud-ification）把无线接入网的 L1&#x2F;L2 从专用芯片搬到通用 Xeon 服务器加标准 NIC 加软件（FlexRAN 参考架构）上。这套软件能不能跑出认证性能，完全取决于底层硬件、固件、内核是否被精确调到 Intel…</p>]]></content>
-  </entry>
-  <entry>
-    <title>生产 Kubernetes 升级工程：50 集群，1.24 → 1.29，零事故</title>
-    <link href="https://shaorui0.github.io/tech/2026/08/03/2026-08-03_kubernetes-upgrade-engineering_zh/"/>
-    <id>https://shaorui0.github.io/tech/2026/08/03/2026-08-03_kubernetes-upgrade-engineering_zh/</id>
-    <updated>2026-08-10T13:22:35.468Z</updated>
-    <published>2026-08-02T15:00:00.000Z</published>
-    <content type="html"><![CDATA[<p>英文版：English 为什么做 Kubernetes 1.24 即将脱离支持窗口，每落后一个 minor 版本，CVE 暴露面和合规风险都在累积。集群规模是 50 个 AWS 上的自管理集群：kubeadm control plane 加 ASG worker。存量升级方式完全无法规模化：单集群 18-21 小时纯手工操作，且必须两人结对，因为真正的风险模型只存在于资深工程师的脑子里。再乘上逐 minor 跳版的约束（kubeadm 一次只能升一个 minor，1.24 到 1.29 意味着每个中间版本都要走一遍，每一跳都覆盖 control…</p>]]></content>
-  </entry>
-  <entry>
-    <title>引擎级查询路由：EXPLAIN ROUTE PLAN</title>
-    <link href="https://shaorui0.github.io/tech/2026/08/03/2026-08-03_engine-level-query-routing_zh/"/>
-    <id>https://shaorui0.github.io/tech/2026/08/03/2026-08-03_engine-level-query-routing_zh/</id>
-    <updated>2026-08-10T13:22:35.467Z</updated>
-    <published>2026-08-02T15:00:00.000Z</published>
-    <content type="html"><![CDATA[<p>英文版：English 为什么判定必须发生在执行之前 迁移把 serving 和分析收敛到同一套 Apache Doris 平台之后，重查询占比不到 1%，但一条被误放进共享轻查询池的重查询足以拖垮整个池子。事后弹性救不了这个场景：计算池扩容是分钟级操作，内存打爆是秒级事件。路由判定唯一安全的位置是 plan time，即任何 backend 碰到数据之前。 第一个问题是：原生 Doris 暴露的信号够不够。我搭了一条闭环可行性流水线（SQL 输入，解析 EXPLAIN 输出并分类，再真实执行作为 ground truth），套件 52 条…</p>]]></content>
-  </entry>
-  <entry>
     <title>扇出是地板：两个针对「没人能控制的查询形态」的定向优化</title>
     <link href="https://shaorui0.github.io/tech/2026/08/03/2026-08-03_fan-out-is-the-floor_zh/"/>
     <id>https://shaorui0.github.io/tech/2026/08/03/2026-08-03_fan-out-is-the-floor_zh/</id>
     <updated>2026-08-10T13:22:35.467Z</updated>
     <published>2026-08-02T15:00:00.000Z</published>
     <content type="html"><![CDATA[<p>英文版：English 这篇在整体里的位置 分析平台的重建分三层，而三层解决的问题性质不同。 迁移层换掉了地基：从 ClickHouse 换到存算分离的 Apache Doris。不是因为 Doris 更快 —— ClickHouse 当时还更快 —— 而是因为 ClickHouse 快的那个前提条件失效了。它的性能依赖排序键和事先对查询形态建模，而当越来越大比例的查询由 AI agent 产生时，没有人能事先知道形态。 弹性计算层在上面建了控制面：执行前评估每条查询的成本、在 plan 期判定它 heavy 还是 light、给重尾一个物理隔离的…</p>]]></content>
+  </entry>
+  <entry>
+    <title>火线上的操作顺序</title>
+    <link href="https://shaorui0.github.io/tech/2026/08/03/2026-08-03_order-of-operations-under-fire_zh/"/>
+    <id>https://shaorui0.github.io/tech/2026/08/03/2026-08-03_order-of-operations-under-fire_zh/</id>
+    <updated>2026-08-10T13:22:35.469Z</updated>
+    <published>2026-08-02T15:00:00.000Z</published>
+    <content type="html"><![CDATA[<p>英文版：English 症状 一个租户的查询量冲到基线之上很远。serving 延迟上升，依赖链错误率攀升，异步重算开始和消息队列、数据库争夺同一份余量。 顺序，以及为什么不能重排 **先止血。**把流量 50&#x2F;50 切到第二个集群。秒级可逆，为下游所有环节买到余量，不改变任何行为。 **再卸载非关键负载。**动态降级非关键的异步重算：运行时配置把它限流到零，不用重启。系统继续履行主契约，后台工作让路。 **最后带上限扩容。**serving 与异步池在显式上限下扩容；消息队列分区翻倍；数据库垂直扩 2 倍。…</p>]]></content>
   </entry>
   <entry>
     <title>重构一个 50 亿行的事件存储：一路做到引擎里</title>
@@ -119,12 +111,28 @@
     <content type="html"><![CDATA[<p>英文版：English 一段话版本 我们的反欺诈事件层要同时服务两种日益冲突的负载：serving 路径上的毫秒级点查，和越来越多由面向 AI agent 的产品功能（而不是人类分析师）产生的不可预测 ad-hoc 分析。旧的 ClickHouse shared-nothing 层对第二种负载既不能隔离也不能弹性扩容：一条重查询能饿死共享池，我们实测过一条 SELECT * LIMIT 10 排在 bulk insert 后面，墙钟等了 61 秒、CPU 只用了 60 毫秒。我做的不是一次迁移。我把这一层重建在存算分离上（Apache Doris…</p>]]></content>
   </entry>
   <entry>
-    <title>火线上的操作顺序</title>
-    <link href="https://shaorui0.github.io/tech/2026/08/03/2026-08-03_order-of-operations-under-fire_zh/"/>
-    <id>https://shaorui0.github.io/tech/2026/08/03/2026-08-03_order-of-operations-under-fire_zh/</id>
-    <updated>2026-08-10T13:22:35.469Z</updated>
+    <title>生产 Kubernetes 升级工程：50 集群，1.24 → 1.29，零事故</title>
+    <link href="https://shaorui0.github.io/tech/2026/08/03/2026-08-03_kubernetes-upgrade-engineering_zh/"/>
+    <id>https://shaorui0.github.io/tech/2026/08/03/2026-08-03_kubernetes-upgrade-engineering_zh/</id>
+    <updated>2026-08-10T13:22:35.468Z</updated>
     <published>2026-08-02T15:00:00.000Z</published>
-    <content type="html"><![CDATA[<p>英文版：English 症状 一个租户的查询量冲到基线之上很远。serving 延迟上升，依赖链错误率攀升，异步重算开始和消息队列、数据库争夺同一份余量。 顺序，以及为什么不能重排 **先止血。**把流量 50&#x2F;50 切到第二个集群。秒级可逆，为下游所有环节买到余量，不改变任何行为。 **再卸载非关键负载。**动态降级非关键的异步重算：运行时配置把它限流到零，不用重启。系统继续履行主契约，后台工作让路。 **最后带上限扩容。**serving 与异步池在显式上限下扩容；消息队列分区翻倍；数据库垂直扩 2 倍。…</p>]]></content>
+    <content type="html"><![CDATA[<p>英文版：English 为什么做 Kubernetes 1.24 即将脱离支持窗口，每落后一个 minor 版本，CVE 暴露面和合规风险都在累积。集群规模是 50 个 AWS 上的自管理集群：kubeadm control plane 加 ASG worker。存量升级方式完全无法规模化：单集群 18-21 小时纯手工操作，且必须两人结对，因为真正的风险模型只存在于资深工程师的脑子里。再乘上逐 minor 跳版的约束（kubeadm 一次只能升一个 minor，1.24 到 1.29 意味着每个中间版本都要走一遍，每一跳都覆盖 control…</p>]]></content>
+  </entry>
+  <entry>
+    <title>把一份文档编译成 control loop：面向 5G vRAN 裸金属的 machine-level 配置收敛控制器</title>
+    <link href="https://shaorui0.github.io/tech/2026/08/03/2026-08-03_compiling-a-document-into-a-control-loop_zh/"/>
+    <id>https://shaorui0.github.io/tech/2026/08/03/2026-08-03_compiling-a-document-into-a-control-loop_zh/</id>
+    <updated>2026-08-10T13:22:35.465Z</updated>
+    <published>2026-08-02T15:00:00.000Z</published>
+    <content type="html"><![CDATA[<p>英文版：English 这是什么，以及为什么做 Kubernetes 在容器上跑一个 reconcile loop：声明 desired state，观察 actual state，收敛差异，循环往复。这个项目把同一套哲学向下推了一层，落到承载 5G vRAN 实时无线流量的裸金属硬件上。 Intel 的 5G 云化（cloud-ification）把无线接入网的 L1&#x2F;L2 从专用芯片搬到通用 Xeon 服务器加标准 NIC 加软件（FlexRAN 参考架构）上。这套软件能不能跑出认证性能，完全取决于底层硬件、固件、内核是否被精确调到 Intel…</p>]]></content>
+  </entry>
+  <entry>
+    <title>引擎级查询路由：EXPLAIN ROUTE PLAN</title>
+    <link href="https://shaorui0.github.io/tech/2026/08/03/2026-08-03_engine-level-query-routing_zh/"/>
+    <id>https://shaorui0.github.io/tech/2026/08/03/2026-08-03_engine-level-query-routing_zh/</id>
+    <updated>2026-08-10T13:22:35.467Z</updated>
+    <published>2026-08-02T15:00:00.000Z</published>
+    <content type="html"><![CDATA[<p>英文版：English 为什么判定必须发生在执行之前 迁移把 serving 和分析收敛到同一套 Apache Doris 平台之后，重查询占比不到 1%，但一条被误放进共享轻查询池的重查询足以拖垮整个池子。事后弹性救不了这个场景：计算池扩容是分钟级操作，内存打爆是秒级事件。路由判定唯一安全的位置是 plan time，即任何 backend 碰到数据之前。 第一个问题是：原生 Doris 暴露的信号够不够。我搭了一条闭环可行性流水线（SQL 输入，解析 EXPLAIN 输出并分类，再真实执行作为 ground truth），套件 52 条…</p>]]></content>
   </entry>
   <entry>
     <title>refused 不是 timeout</title>
@@ -151,19 +159,11 @@
     <content type="html"><![CDATA[<p>英文版：English 把 SRE 还原到第一性原理，它就是一件事：运营「系统应该做什么」与「实际在做什么」之间的回路。发现偏差，解释偏差，收敛偏差，并让它保持收敛。AI agent 没有改变这个定义，改变的是回路里谁干什么。这不是预测，是我工作周的实况：agent 在跑我的生产取证，一套 agent harness 在跑我的 oncall triage，这份简历背后的证据本身也是由 agent 流水线蒸馏出来的。这一页写的是从内部看到的这场变化。 发展到今天，变了什么 oncall 的执行层交给了 agent。 一次分布式存储系统的…</p>]]></content>
   </entry>
   <entry>
-    <title>我当前做了什么，匹配什么能力</title>
-    <link href="https://shaorui0.github.io/tech/2026/08/03/2026-08-03_an-audit-of-my-own-radar_zh/"/>
-    <id>https://shaorui0.github.io/tech/2026/08/03/2026-08-03_an-audit-of-my-own-radar_zh/</id>
-    <updated>2026-08-10T13:22:35.463Z</updated>
+    <title>不接触生产，恢复 52 亿行</title>
+    <link href="https://shaorui0.github.io/tech/2026/08/03/2026-08-03_restoring-5b-rows-without-touching-prod_zh/"/>
+    <id>https://shaorui0.github.io/tech/2026/08/03/2026-08-03_restoring-5b-rows-without-touching-prod_zh/</id>
+    <updated>2026-08-10T13:22:35.472Z</updated>
     <published>2026-08-02T15:00:00.000Z</published>
-    <content type="html"><![CDATA[<p>英文版：English 分数是怎么产生的 方法放在最前面，因为没有方法，数字就是噪音。雷达上每个 depth 分数都由证据密度推导：旗舰 artifact 的数量与深度（带证据引用的事故复盘、经受住重测的实测结果）、从工作中沉淀出的方法论体量（runbook、debug tree、固化的规则），以及是否存在公开可验证之物。它明确不是自评。 原因是：自评分数对读者没有信息量。自评在人与人之间没有校准，夸大的激励是结构性的，而且当你不同意时无处可查。一个由认证过的迁移支撑的 82 是可以审计的声明；一个由自信支撑的 82…</p>]]></content>
-  </entry>
-  <entry>
-    <title>一个 SRE Oncall Triage Harness：agent 自主调查，mutation 主权归人</title>
-    <link href="https://shaorui0.github.io/tech/2026/08/03/2026-08-03_sre-oncall-triage-harness_zh/"/>
-    <id>https://shaorui0.github.io/tech/2026/08/03/2026-08-03_sre-oncall-triage-harness_zh/</id>
-    <updated>2026-08-10T13:22:35.473Z</updated>
-    <published>2026-08-02T15:00:00.000Z</published>
-    <content type="html"><![CDATA[<p>英文版：English Why 一次 oncall 调查里，主 agent 真正要做的是判断：这是不是假警报、根因在哪、下一步查什么、要不要升级。判断需要一个清醒的 context 窗口。可是一次 raw range query 回来可能就是 30K token，一段日志更多。如果主 agent 自己去拉这些数据，等它走到需要下关键判断的阶段，context 已经被原始数字淹没，判断力也被榨干了。 这就是全系统建立其上的第一性约束：context 是稀缺的 RAM，不是无限的硬盘。谁占用它，谁就该为占用付出代价。由此直接推出一条铁律，主 agent…</p>]]></content>
+    <content type="html"><![CDATA[<p>英文版：English 纠正前提 最初的方案假设被数据库 TTL 过期的行能从在线卷上找回。这个假设是错的，而证明它错就是第一份交付物：这个引擎的 TTL 删除会物理 unlink 数据 part，也不存在能接住它们的 S3 分层。在线系统上没有任何可恢复的东西，而在在线磁盘上做实验来确认这一点，是只有风险没有收益。 恢复架构 真实存在的是生产卷的不可变每日 EBS 快照序列。恢复路径：把快照物化成一块全新的独立卷，挂到一个独立的数据库实例上，在那里验证。全程不对任何在线磁盘做…</p>]]></content>
   </entry>
 </feed>

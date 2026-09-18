@@ -399,7 +399,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://shaorui0.github.io/tech/2026/04/15/2026-04-15_sre-agent-10-context-engineering_zh/">
+    <link itemprop="mainEntityOfPage" href="https://shaorui0.github.io/tech/2026/04/15/2026-04-15_sre-agent-02-four-primitives_zh/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/tech/images/avatar.gif">
@@ -417,7 +417,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/tech/2026/04/15/2026-04-15_sre-agent-10-context-engineering_zh/" class="post-title-link" itemprop="url">SRE Agent 设计笔记 10：Context Engineering 的实践：知识分层与加载策略</a>
+          <a href="/tech/2026/04/15/2026-04-15_sre-agent-02-four-primitives_zh/" class="post-title-link" itemprop="url">SRE Agent 设计笔记 02：四个控制论原语</a>
         </h2>
 
         <div class="post-meta-container">
@@ -457,10 +457,10 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <p>状态：大纲 核心论点 Agent 的知识不是一坨 prompt 塞进去就行。Skills &#x2F; Facets &#x2F; Knowledge 是三种不同抽象层次的知识，对应不同的加载策略和变更频率。这个分层不是分类学上的洁癖，是被两个实际力驱动的：context window 预算管理和维护责任分离。从四原语的视角看，Skills 是 Spec 组件，Facets 是 Loop 的方法论，Knowledge 是 Loop 执行时的领域数据。Blog 08（Prompt to Skill）讲了「Skill 是持久化的 Spec」，本篇回答它的…</p>
+          <p>状态：大纲 核心论点 当前 multi-agent 框架用角色拟物（PM&#x2F;Engineer&#x2F;QA&#x2F;Reviewer）建模协作，掩盖了真正的工程约束。正确的抽象是四个控制论原语：Spec、Loop、Hook、Fork。每个原语在 K8s 中都有精确的对应物，因为 K8s 花了二十年解决的就是同一类问题。 大纲 1. 角色抽象的问题 当前框架的拟物设计（skeuomorphism）：用人类组织角色降低认知负担 PM agent 和 Engineer agent 的本质区别不是「一个写需求一个写代码」，而是对 context…</p>
           <!--noindex-->
             <div class="post-button">
-              <a class="btn" href="/tech/2026/04/15/2026-04-15_sre-agent-10-context-engineering_zh/#more" rel="contents">
+              <a class="btn" href="/tech/2026/04/15/2026-04-15_sre-agent-02-four-primitives_zh/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
