@@ -1,8 +1,401 @@
-<!doctype html>
-<html lang="en"><head><meta charset="utf-8">
-<title>Moved</title>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 8.1.1">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/tech-en/favicon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/tech-en/favicon.svg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/tech-en/favicon.svg">
+  <link rel="mask-icon" href="/tech-en/favicon.svg" color="#222">
+
+<link rel="stylesheet" href="/tech-en/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"shaorui0.github.io","root":"/tech-en/","images":"/tech-en/images","scheme":"Gemini","darkmode":true,"version":"8.27.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}}</script><script src="/tech-en/js/config.js" defer></script>
+
+    <meta name="description" content="Designed a 3-tier alerting system with per-tenant SLI recording rules on VictoriaMetrics, replacing resource-centric paging (~80% of pages were not actionable) with admission control tied to observabl">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Tenant-Aware Alerting on a Multi-Tenant Metrics Platform">
+<meta property="og:url" content="https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_replacing-prometheus-federation_en/index.html">
+<meta property="og:site_name" content="Tech &amp; AI">
+<meta property="og:description" content="Designed a 3-tier alerting system with per-tenant SLI recording rules on VictoriaMetrics, replacing resource-centric paging (~80% of pages were not actionable) with admission control tied to observabl">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2026-08-02T15:00:00.000Z">
+<meta property="article:modified_time" content="2026-09-22T07:13:53.879Z">
+<meta property="article:author" content="Rui Shao">
+<meta property="article:tag" content="Observability">
+<meta property="article:tag" content="Prometheus">
+<meta property="article:tag" content="SLO">
+<meta property="article:tag" content="SRE">
+<meta property="article:tag" content="VictoriaMetrics">
+<meta name="twitter:card" content="summary">
+
+
 <link rel="canonical" href="https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_replacing-prometheus-federation_en/">
-<meta http-equiv="refresh" content="0; url=https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_replacing-prometheus-federation_en/">
-<script>location.replace("https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_replacing-prometheus-federation_en/");</script>
-<style>body{font-family:-apple-system,sans-serif;margin:4rem auto;max-width:32rem;padding:0 1.5rem;line-height:1.6}a{color:#1155cc}</style>
-</head><body><p>The English blog moved to <a href="https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_replacing-prometheus-federation_en/">its own site</a>.</p></body></html>
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_replacing-prometheus-federation_en/","path":"2026/08/03/2026-08-03_replacing-prometheus-federation_en/","title":"Tenant-Aware Alerting on a Multi-Tenant Metrics Platform"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>Tenant-Aware Alerting on a Multi-Tenant Metrics Platform | Tech & AI</title>
+  
+
+
+
+
+
+
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous" defer></script>
+<script src="/tech-en/js/utils.js" defer></script><script src="/tech-en/js/motion.js" defer></script><script src="/tech-en/js/sidebar.js" defer></script><script src="/tech-en/js/next-boot.js" defer></script>
+
+  
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.10.1/mermaid.min.js","integrity":"sha256-BmQmdWDS8X2OTbrwELWK366LV6escyWhHHe0XCTU/Hk="}}</script>
+  <script src="/tech-en/js/third-party/tags/mermaid.js" defer></script>
+
+
+
+
+
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/tech-en/css/noscript.css">
+  </noscript>
+<!-- hexo injector head_end start --><style>
+.article-toc-wrap {
+  margin-bottom: 1.5em;
+  padding: 1em 1.25em;
+  background: #f8f9fa;
+  border-radius: 6px;
+  border-left: 3px solid #ddd;
+}
+.article-toc-wrap .toc-title {
+  font-weight: bold;
+  margin-bottom: 0.5em;
+  font-size: 0.95em;
+  color: #555;
+}
+.article-toc-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.article-toc-list .article-toc-list { padding-left: 1em; margin-top: 0.25em; }
+.article-toc-item { margin: 0.35em 0; }
+.article-toc-link {
+  text-decoration: none;
+  color: #444;
+  font-size: 0.9em;
+}
+.article-toc-link:hover { color: #08c; text-decoration: underline; }
+.article-toc-level-3 .article-toc-link { font-size: 0.85em; }
+.article-toc-level-4 .article-toc-link { font-size: 0.8em; }
+</style><!-- hexo injector head_end end --></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/tech-en/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Tech & AI</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">Systems, Infrastructure, and AI</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="Search" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/tech-en/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-tags"><a href="/tech-en/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li><li class="menu-item menu-item-categories"><a href="/tech-en/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li><li class="menu-item menu-item-archives"><a href="/tech-en/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li><li class="menu-item menu-item-中文"><a href="https://shaorui0.github.io/tech/" rel="section"><i class="fa fa-language fa-fw"></i>中文</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Why"><span class="nav-number">1.</span> <span class="nav-text">Why</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#How"><span class="nav-number">2.</span> <span class="nav-text">How</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Hard-parts"><span class="nav-number">3.</span> <span class="nav-text">Hard parts</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Production"><span class="nav-number">4.</span> <span class="nav-text">Production</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Takeaways"><span class="nav-number">5.</span> <span class="nav-text">Takeaways</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Rui Shao</p>
+  <div class="site-description" itemprop="description">Rui Shao — writing about systems, infrastructure and AI</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/tech-en/archives/">
+          <span class="site-state-item-count">24</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+        <span class="site-state-item-count">10</span>
+        <span class="site-state-item-name">categories</span>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">34</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/shaorui0" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;shaorui0" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.linkedin.com/in/rui-shao-a21a55194/" title="LinkedIn → https:&#x2F;&#x2F;www.linkedin.com&#x2F;in&#x2F;rui-shao-a21a55194&#x2F;" rel="noopener me" target="_blank"><i class="fab fa-linkedin fa-fw"></i>LinkedIn</a>
+      </span>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_replacing-prometheus-federation_en/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/tech-en/images/avatar.gif">
+      <meta itemprop="name" content="Rui Shao">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Tech & AI">
+      <meta itemprop="description" content="Rui Shao — writing about systems, infrastructure and AI">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="Tenant-Aware Alerting on a Multi-Tenant Metrics Platform | Tech & AI">
+      <meta itemprop="description" content="Designed a 3-tier alerting system with per-tenant SLI recording rules on VictoriaMetrics, replacing resource-centric paging (~80% of pages were not actionable) with admission control tied to observable user impact — on a platform serving 50 Kubernetes clusters.">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Tenant-Aware Alerting on a Multi-Tenant Metrics Platform
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2026-08-03 00:00:00" itemprop="dateCreated datePublished" datetime="2026-08-03T00:00:00+09:00">2026-08-03</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2026-09-22 16:13:53" itemprop="dateModified" datetime="2026-09-22T16:13:53+09:00">2026-09-22</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/tech-en/categories/Observability/" itemprop="url" rel="index"><span itemprop="name">Observability</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+            <div class="post-description">Designed a 3-tier alerting system with per-tenant SLI recording rules on VictoriaMetrics, replacing resource-centric paging (~80% of pages were not actionable) with admission control tied to observable user impact — on a platform serving 50 Kubernetes clusters.</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><nav class="article-toc-wrap" aria-label="Contents"><div class="toc-title">Contents</div><ol class="article-toc-list"><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#Why"><span class="article-toc-text">Why</span></a></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#How"><span class="article-toc-text">How</span></a></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#Hard-parts"><span class="article-toc-text">Hard parts</span></a></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#Production"><span class="article-toc-text">Production</span></a></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#Takeaways"><span class="article-toc-text">Takeaways</span></a></li></ol></nav>
+<blockquote>
+<p>Also in Chinese: <a href="https://shaorui0.github.io/tech/2026/08/03/2026-08-03_replacing-prometheus-federation_zh/">中文版</a></p>
+</blockquote>
+<h2 id="Why">Why</h2>
+<p><strong>Ownership boundary, stated up front</strong>: the metrics platform itself — VictoriaMetrics replacing an earlier Prometheus Federation topology across 50 Kubernetes clusters — was migrated before I took on this scope. That migration’s architecture decision, engine selection (VictoriaMetrics vs. Thanos), data lifecycle policy, and execution belong to the platform team, not to me. I can discuss why Federation’s failure mode (weekly OOM, up to 45s data lag) was architectural rather than a tuning problem, because that’s a judgment call I can defend, but I don’t own the migration’s implementation details and can’t speak to the rough edges it hit along the way.</p>
+<p>What I did own, end to end, was what sits on top of that metrics store: the alerting layer. An audit of 30 days of alert history showed that roughly 80% of pages were resource-centric — CPU or memory jitter that on-call would glance at and dismiss — and the metrics had no usable tenant dimension, so a fault confined to one tenant disappeared into a cluster-wide average.</p>
+<h2 id="How">How</h2>
+<p>The platform underneath is a push-based hub: one vmagent per workload cluster scrapes locally and remote-writes into a central VictoriaMetrics cluster (vminsert ×2 behind LB, vmstorage ×3 with replication factor 2, vmselect ×2); vmalert evaluates rules against the same store; Alertmanager (HA pair) routes notifications; Grafana and Loki form the read-and-verify plane. That topology and its capacity planning (~1.2M active series, ~80,000 samples/s at a 15s scrape interval; ~250 GB hot storage for 3 months; 180-day downsampled cold storage on S3) were already in place when I started working on top of it.</p>
+<p>On top of that platform, I designed the alerting layer. Recording rules materialize an SLI family first — QPS, error ratio, P95/P99 latency, saturation, and per-tenant SLI — keyed by <code>{tenant, cluster group}</code>; dashboards and alert rules consume the precomputed series instead of running heavy queries live. Severity is three-tiered: PAGER is reserved for confirmed user impact, HIGH goes to Slack, MEDIUM becomes a ticket. A PAGER requires a multi-window burn-rate breach — both the 5m and the 30m windows over threshold — which filters transient jitter without losing sustained degradation. Inhibition rules suppress derived noise along explicitly causal chains only (NodeNotReady inhibits PodUnableToStart on the same node); speculative cross-service inhibition was deliberately excluded, because a wrong inhibition hides a real failure.</p>
+<p>Tenant identity needed its own fix. Relabel configs had drifted per cluster before this project — inconsistent cluster naming, some teams labeling <code>client</code> instead of <code>tenant</code> — which silently broke alert routing, drill-down, and inhibition’s label-equality matching. I wrote one relabel template, distributed it to all clusters, and drove the application-side convergence on <code>tenant</code> (applications emit their own <code>tenant</code> label since only the application knows whose request it is serving; vmagent relabeling injects cluster and cluster-group context at scrape time).</p>
+<p><strong>Platform topology (inherited context, not my build).</strong></p>
+<div class="mermaid">flowchart TB
+  subgraph FLEET2[&quot;50 clusters&quot;]
+    A[&quot;vmagent&lt;br/&gt;remote_write + persistent queue&quot;]
+  end
+  A --&gt; VI[&quot;vminsert ×2&quot;]
+  VI --&gt; VS[(&quot;vmstorage ×3 · repl=2&quot;)]
+  VS --&gt; VQ[&quot;vmselect ×2&quot;]
+  VQ --&gt; VA[&quot;vmalert&lt;br/&gt;recording + alerting rules&quot;]
+  VQ --&gt; GF[&quot;Grafana / Loki&quot;]
+  VA --&gt; AM[&quot;Alertmanager&lt;br/&gt;3-tier + inhibition&quot;]</div>
+<p><strong>What I built on top of it: the alerting layer.</strong></p>
+<div class="mermaid">flowchart TB
+  VA[&quot;vmalert&lt;br/&gt;SLI recording rules by {tenant, cluster_group}&quot;] --&gt; SEV{&quot;Severity admission control&quot;}
+  SEV --&gt;|&quot;observable user impact,&lt;br/&gt;5m+30m burn-rate&quot;| PAGER[&quot;PAGER → paging channel&quot;]
+  SEV --&gt;|&quot;degraded, not user-facing&quot;| HIGH[&quot;HIGH → Slack&quot;]
+  SEV --&gt;|&quot;informational&quot;| MED[&quot;MEDIUM → ticket&quot;]
+  PAGER --&gt; INH[&quot;Inhibition: causal chains only&quot;]</div>
+<h2 id="Hard-parts">Hard parts</h2>
+<p><strong>Getting tenant identity right.</strong> Before the relabel template, routing, drill-down, and inhibition all silently broke whenever a team’s label convention drifted from the norm — <code>client</code> instead of <code>tenant</code>, inconsistent cluster naming. Fixing this meant treating label consistency as platform infrastructure rather than a per-team convention: one relabel template, enforced at the layer where metrics enter the system, not negotiated case by case.</p>
+<p><strong>Multi-tenant cardinality governance.</strong> Adding a tenant dimension to SLIs multiplies series, and growth after the label rollout was fast. The controls: tenant-level recording rules exist only for core SLIs; infrastructure metrics carry no tenant label at all; retention is tiered (tenant SLA series 90 days, troubleshooting series 30 days, infrastructure 15 days); periodic cardinality reviews catch accidentally high-cardinality labels. Honest retrospective: a cardinality budget should have existed from day one, not after the growth curve forced the issue.</p>
+<p><strong>Making severity mean something.</strong> The 30-day alert audit showing ~80% resource-centric, non-actionable pages was the forcing function. The fix was admission control on the PAGER tier: a page must indicate observable user impact (SLO burn rate, SLA latency breach, or a QPS cliff on a critical flow), everything else is demoted to HIGH or MEDIUM. Static thresholds were replaced by multi-window burn-rate. Two feedback signals tuned the system after launch: action rate per PAGER, and user-reported incidents that produced no page.</p>
+<h2 id="Production">Production</h2>
+<p>The severity redesign and SLI recording rules rolled out cluster by cluster behind the existing (already-migrated) metrics platform, so there was no separate cutover risk for the alerting layer itself — new rules were validated against firing history before their routing went live. Ongoing verification runs on two signals I track: PAGER action rate, and missed-incident tracking (user-reported incidents that produced no page). The tenant-label convergence is enforced going forward by the shared relabel template rather than by per-cluster review.</p>
+<h2 id="Takeaways">Takeaways</h2>
+<ul>
+<li>Federation’s 45s lag and weekly OOMs were properties of the architecture, not of the configuration — that’s a judgment I can defend even though I didn’t execute the migration off it.</li>
+<li>Alert quality is an admission-control problem: define what earns a page, demote everything else, and measure action rate per page as the regression test.</li>
+<li>Label consistency is platform infrastructure. Routing, drill-down, and inhibition all depend on label equality, so it must be enforced once at the relabel layer, not negotiated per team.</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tech-en/tags/Observability/" rel="tag"># Observability</a>
+              <a href="/tech-en/tags/SRE/" rel="tag"># SRE</a>
+              <a href="/tech-en/tags/VictoriaMetrics/" rel="tag"># VictoriaMetrics</a>
+              <a href="/tech-en/tags/Prometheus/" rel="tag"># Prometheus</a>
+              <a href="/tech-en/tags/SLO/" rel="tag"># SLO</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/tech-en/2026/08/03/2026-08-03_fan-out-is-the-floor_en/" rel="prev" title="Fan-Out Is the Floor: Two Targeted Optimizations for Query Shapes Nobody Controls">
+                  <i class="fa fa-angle-left"></i> Fan-Out Is the Floor: Two Targeted Optimizations for Query Shapes Nobody Controls
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/tech-en/2026/08/03/2026-08-03_order-of-operations-under-fire_en/" rel="next" title="Order of operations under fire">
+                  Order of operations under fire <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">Rui Shao</span>
+  </div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+<!-- hexo injector body_end start --><script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>mermaid.initialize({ startOnLoad: true, theme: "default" });</script><!-- hexo injector body_end end --></body>
+</html>
