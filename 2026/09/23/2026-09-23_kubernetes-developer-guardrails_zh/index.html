@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 8.1.1">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/tech/favicon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/tech/favicon.svg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/tech/favicon.svg">
+  <link rel="mask-icon" href="/tech/favicon.svg" color="#222">
+
+<link rel="stylesheet" href="/tech/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"shaorui0.github.io","root":"/tech/","images":"/tech/images","scheme":"Gemini","darkmode":false,"version":"8.27.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/tech/js/config.js" defer></script>
+
+    <meta name="description" content="开发者要能自己改 deployment、不用给 infra 提单，但不能碰那两个会牵动整个集群成本和容量的字段。RBAC 表达不了这件事，Kyverno 的 admission 策略可以。按 Audit → 验收 → Enforce 推到五个集群（其中一个是 PCI 环境），回滚只需一行。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="让开发者自己改 deployment，但不能碰副本数和资源">
+<meta property="og:url" content="https://shaorui0.github.io/tech/2026/09/23/2026-09-23_kubernetes-developer-guardrails_zh/index.html">
+<meta property="og:site_name" content="Tech &amp; AI · 中文">
+<meta property="og:description" content="开发者要能自己改 deployment、不用给 infra 提单，但不能碰那两个会牵动整个集群成本和容量的字段。RBAC 表达不了这件事，Kyverno 的 admission 策略可以。按 Audit → 验收 → Enforce 推到五个集群（其中一个是 PCI 环境），回滚只需一行。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-09-22T15:00:00.000Z">
+<meta property="article:modified_time" content="2026-09-23T14:31:25.443Z">
+<meta property="article:author" content="Rui Shao">
+<meta property="article:tag" content="CI&#x2F;CD">
+<meta property="article:tag" content="Kubernetes">
+<meta property="article:tag" content="SRE">
+<meta property="article:tag" content="基础设施即代码">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://shaorui0.github.io/tech/2026/09/23/2026-09-23_kubernetes-developer-guardrails_zh/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://shaorui0.github.io/tech/2026/09/23/2026-09-23_kubernetes-developer-guardrails_zh/","path":"2026/09/23/2026-09-23_kubernetes-developer-guardrails_zh/","title":"让开发者自己改 deployment，但不能碰副本数和资源"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>让开发者自己改 deployment，但不能碰副本数和资源 | Tech & AI · 中文</title>
+  
+
+
+
+
+
+
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous" defer></script>
+<script src="/tech/js/utils.js" defer></script><script src="/tech/js/motion.js" defer></script><script src="/tech/js/sidebar.js" defer></script><script src="/tech/js/next-boot.js" defer></script>
+
+  
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.10.1/mermaid.min.js","integrity":"sha256-BmQmdWDS8X2OTbrwELWK366LV6escyWhHHe0XCTU/Hk="}}</script>
+  <script src="/tech/js/third-party/tags/mermaid.js" defer></script>
+
+
+
+
+
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/tech/css/noscript.css">
+  </noscript>
+<!-- hexo injector head_end start --><style>
+.article-toc-wrap {
+  margin-bottom: 1.5em;
+  padding: 1em 1.25em;
+  background: #f8f9fa;
+  border-radius: 6px;
+  border-left: 3px solid #ddd;
+}
+.article-toc-wrap .toc-title {
+  font-weight: bold;
+  margin-bottom: 0.5em;
+  font-size: 0.95em;
+  color: #555;
+}
+.article-toc-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.article-toc-list .article-toc-list { padding-left: 1em; margin-top: 0.25em; }
+.article-toc-item { margin: 0.35em 0; }
+.article-toc-link {
+  text-decoration: none;
+  color: #444;
+  font-size: 0.9em;
+}
+.article-toc-link:hover { color: #08c; text-decoration: underline; }
+.article-toc-level-3 .article-toc-link { font-size: 0.85em; }
+.article-toc-level-4 .article-toc-link { font-size: 0.8em; }
+</style><!-- hexo injector head_end end --></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/tech/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Tech & AI · 中文</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">系统、基础设施与 AI</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/tech/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-tags"><a href="/tech/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/tech/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/tech/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li><li class="menu-item menu-item-english"><a href="https://shaorui0.github.io/tech-en/" rel="section"><i class="fa fa-language fa-fw"></i>English</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%B5%B7%E5%9B%A0"><span class="nav-number">1.</span> <span class="nav-text">起因</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AE%BF%E9%97%AE%E9%93%BE%E8%B7%AF%E4%B8%8A%E7%9A%84%E4%B8%89%E5%B1%82"><span class="nav-number">2.</span> <span class="nav-text">访问链路上的三层</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#RBAC-%E7%AE%A1%E4%B8%8D%E5%88%B0%E5%AD%97%E6%AE%B5"><span class="nav-number">3.</span> <span class="nav-text">RBAC 管不到字段</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%86%E9%98%B6%E6%AE%B5%E6%8E%A8%E5%B9%BF"><span class="nav-number">4.</span> <span class="nav-text">分阶段推广</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%BF%98%E6%B2%A1%E8%A7%A3%E5%86%B3%E7%9A%84"><span class="nav-number">5.</span> <span class="nav-text">还没解决的</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Rui Shao</p>
+  <div class="site-description" itemprop="description">Rui Shao 的技术博客（中文）— 系统、基础设施与 AI</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/tech/archives/">
+          <span class="site-state-item-count">33</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/tech/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tech/tags/">
+        <span class="site-state-item-count">44</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/shaorui0" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;shaorui0" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.linkedin.com/in/rui-shao-a21a55194/" title="LinkedIn → https:&#x2F;&#x2F;www.linkedin.com&#x2F;in&#x2F;rui-shao-a21a55194&#x2F;" rel="noopener me" target="_blank"><i class="fab fa-linkedin fa-fw"></i>LinkedIn</a>
+      </span>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://shaorui0.github.io/tech/2026/09/23/2026-09-23_kubernetes-developer-guardrails_zh/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/tech/images/avatar.gif">
+      <meta itemprop="name" content="Rui Shao">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Tech & AI · 中文">
+      <meta itemprop="description" content="Rui Shao 的技术博客（中文）— 系统、基础设施与 AI">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="让开发者自己改 deployment，但不能碰副本数和资源 | Tech & AI · 中文">
+      <meta itemprop="description" content="开发者要能自己改 deployment、不用给 infra 提单，但不能碰那两个会牵动整个集群成本和容量的字段。RBAC 表达不了这件事，Kyverno 的 admission 策略可以。按 Audit → 验收 → Enforce 推到五个集群（其中一个是 PCI 环境），回滚只需一行。">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          让开发者自己改 deployment，但不能碰副本数和资源
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2026-09-23 00:00:00 / 修改时间：23:31:25" itemprop="dateCreated datePublished" datetime="2026-09-23T00:00:00+09:00">2026-09-23</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/tech/categories/%E7%94%9F%E4%BA%A7%E5%B7%A5%E7%A8%8B/" itemprop="url" rel="index"><span itemprop="name">生产工程</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+            <div class="post-description">开发者要能自己改 deployment、不用给 infra 提单，但不能碰那两个会牵动整个集群成本和容量的字段。RBAC 表达不了这件事，Kyverno 的 admission 策略可以。按 Audit → 验收 → Enforce 推到五个集群（其中一个是 PCI 环境），回滚只需一行。</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><nav class="article-toc-wrap" aria-label="文章目录"><div class="toc-title">文章目录</div><ol class="article-toc-list"><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#%E8%B5%B7%E5%9B%A0"><span class="article-toc-text">起因</span></a></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#%E8%AE%BF%E9%97%AE%E9%93%BE%E8%B7%AF%E4%B8%8A%E7%9A%84%E4%B8%89%E5%B1%82"><span class="article-toc-text">访问链路上的三层</span></a></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#RBAC-%E7%AE%A1%E4%B8%8D%E5%88%B0%E5%AD%97%E6%AE%B5"><span class="article-toc-text">RBAC 管不到字段</span></a></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#%E5%88%86%E9%98%B6%E6%AE%B5%E6%8E%A8%E5%B9%BF"><span class="article-toc-text">分阶段推广</span></a></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#%E8%BF%98%E6%B2%A1%E8%A7%A3%E5%86%B3%E7%9A%84"><span class="article-toc-text">还没解决的</span></a></li></ol></nav>
+<blockquote>
+<p>英文版：<a href="https://shaorui0.github.io/tech-en/2026/09/23/2026-09-23_kubernetes-developer-guardrails_en/">English</a></p>
+</blockquote>
+<h2 id="起因">起因</h2>
+<p>集群访问原来分三种：admin、只读，以及一个&quot;developer&quot;角色，也就是只读再加删 pod、删 job 的权限。结果除了重启，任何改动都得找 infra，哪怕只是一个环境变量、一个镜像 tag、一处配置。开发者想自己动手，infra 又不想发一个顺手就能把副本数翻倍、把内存 request 提三倍的角色。一个团队的改动变成整个集群的节点压力和成本，走的就是这两个字段。</p>
+<p>所以需求很具体：<strong>对工作负载有完整写权限，唯独 <code>spec.replicas</code> 和 <code>containers[].resources</code> 不能改。</strong></p>
+<h2 id="访问链路上的三层">访问链路上的三层</h2>
+<p>动 YAML 之前，我先把访问链路写了下来。角色变更如果只落在其中一层，等于没生效。所有权限系统回答的都是同一个表达式 <code>Allow(主体, 动作, 资源, 上下文)</code>，区别只在每一部分由谁执行。我们这里有三个执行点：</p>
+<table>
+<thead>
+<tr>
+<th>层</th>
+<th>职责</th>
+<th>新角色在这层需要什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>审批平台</td>
+<td>决定给不给钥匙</td>
+<td>角色选项、审批策略、映射</td>
+</tr>
+<tr>
+<td>堡垒机</td>
+<td>保管钥匙并记录使用</td>
+<td>一个绑定 ServiceAccount token 的账号</td>
+</tr>
+<tr>
+<td>Kubernetes</td>
+<td>决定钥匙能开哪些门</td>
+<td>ClusterRole + ServiceAccount + binding</td>
+</tr>
+</tbody>
+</table>
+<p>这个项目做的是第三层，另外在门里面加了一把更细的锁。</p>
+<h2 id="RBAC-管不到字段">RBAC 管不到字段</h2>
+<p>RBAC 的词汇是&quot;资源 × 动作&quot;。<code>patch deployments</code> 是一条授权，覆盖 Deployment 的所有字段，env、image、replicas、resources 一视同仁。RBAC 里写不出&quot;可以 patch 但不能碰某个字段&quot;这样的规则，角色拆得再细也没用。</p>
+<p>字段级的控制要放到请求路径的下一步，也就是 admission。API server 先认证，再按 RBAC 授权，持久化之前把对象交给 admission webhook。于是设计分成两层：</p>
+<ul>
+<li>RBAC 给 <code>developer-edit</code> 角色对 pod、deployment、statefulset、daemonset、service、configmap、job、ingress、PVC 的完整 CRUD，集群级资源只允许读 namespace。</li>
+<li>一条 Kyverno <code>ClusterPolicy</code>（validating admission webhook）：来自 developer ServiceAccount 的 <code>UPDATE</code> 请求，只要 <code>spec.replicas</code> 和旧对象不同，或者任一容器的 <code>resources</code> 和旧对象里同名容器不同，就拒绝。</li>
+</ul>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="bullet">-</span> <span class="attr">name:</span> <span class="string">deny-replicas-change</span></span><br><span class="line">  <span class="attr">match:</span></span><br><span class="line">    <span class="attr">any:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">resources:</span></span><br><span class="line">        <span class="attr">kinds:</span> [<span class="string">Deployment</span>, <span class="string">Deployment/scale</span>]</span><br><span class="line">  <span class="attr">preconditions:</span></span><br><span class="line">    <span class="attr">all:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">key:</span> <span class="string">&quot;<span class="template-variable">&#123;&#123; request.operation &#125;&#125;</span>&quot;</span></span><br><span class="line">      <span class="attr">operator:</span> <span class="string">Equals</span></span><br><span class="line">      <span class="attr">value:</span> <span class="string">UPDATE</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">key:</span> <span class="string">&quot;<span class="template-variable">&#123;&#123; request.userInfo.username &#125;&#125;</span>&quot;</span></span><br><span class="line">      <span class="attr">operator:</span> <span class="string">AnyIn</span></span><br><span class="line">      <span class="attr">value:</span> [<span class="string">&quot;system:serviceaccount:&lt;ns&gt;:developer&quot;</span>, <span class="string">&quot;system:serviceaccount:&lt;ns&gt;:developer-edit&quot;</span>]</span><br><span class="line">  <span class="attr">validate:</span></span><br><span class="line">    <span class="attr">message:</span> <span class="string">&quot;developers cannot change spec.replicas or scale&quot;</span></span><br><span class="line">    <span class="attr">deny:</span></span><br><span class="line">      <span class="attr">conditions:</span></span><br><span class="line">        <span class="attr">any:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">key:</span> <span class="string">&quot;<span class="template-variable">&#123;&#123; request.object.spec.replicas || `null` &#125;&#125;</span>&quot;</span></span><br><span class="line">          <span class="attr">operator:</span> <span class="string">NotEquals</span></span><br><span class="line">          <span class="attr">value:</span> <span class="string">&quot;<span class="template-variable">&#123;&#123; request.oldObject.spec.replicas || `null` &#125;&#125;</span>&quot;</span></span><br></pre></td></tr></table></figure>
+<p>策略能不能真正守住，看三个细节：</p>
+<ol>
+<li><code>kubectl scale</code> 写的是 <code>deployments/scale</code> 子资源，和 Deployment 本身是两种 kind。只 match <code>Deployment</code> 的策略 review 时看着没问题，却会被最常见的改副本方式绕过去，所以规则两种 kind 都要 match。</li>
+<li>resources 要按容器名逐个比较，两边都带 null 默认值。整体比较容器列表，会把无害的顺序变化判成违规；不加 null 默认值，&quot;没设 resources&quot;会直接求值报错，得不出判定。</li>
+<li>RBAC 在 admission 之前执行，所以测试要先证明 RBAC。角色本身如果不能 <code>patch</code>，请求在 Kyverno 看到之前就被拒了，验收会显示&quot;改副本被拒&quot;，原因却是错的。每次推广的第一步都是 <code>kubectl auth can-i patch deployment --as=&lt;sa&gt;</code>，这一步返回 yes，后面的策略测试才算数。</li>
+</ol>
+<h2 id="分阶段推广">分阶段推广</h2>
+<p>一条会拒绝写入的策略，哪怕只针对开发者，也是生产变更，所以按风险变更的流程推：</p>
+<ol>
+<li>Audit：策略把违规写进 policy report，不拦任何请求。</li>
+<li>验收：用一个一次性的测试 deployment，绝不指向真实业务。加环境变量必须成功；改 replicas、改 resources、<code>scale</code> 三项都必须被记录为违规。</li>
+<li>Enforce：切 <code>validationFailureAction</code>，重跑同一组用例。env 仍然成功，另外三项被拒并返回策略消息。</li>
+<li>回滚：一次 patch 切回 <code>Audit</code>，保留记录、停止拦截。删除策略是另外单独的一步。</li>
+</ol>
+<p>每一步都幂等（<code>kubectl apply</code>、<code>helm upgrade --install</code>），推到一半的集群可以从头重跑。集群一个一个推，先只上 RBAC，再装 Kyverno 和 Audit 策略，最后 Enforce，任何一项验收失败就停在当前集群。推广前先摸了五个集群的底：一个已经齐全；三个要从零建 ServiceAccount、角色、binding 并安装 Kyverno；PCI 环境那个本来就跑着 Kyverno，只需叠加 RBAC 对象和策略。五个集群最后全部切到了 Enforce。</p>
+<h2 id="还没解决的">还没解决的</h2>
+<p>最大的缺口在归因。开发者经堡垒机、用一个共享的 ServiceAccount token 访问集群，所以 Kubernetes 审计日志里记的是 <code>serviceaccount:developer-edit</code>，看不到具体的人，谁做了什么只存在堡垒机的会话日志里。作为第一步可以接受，作为终态不行。升级路线是按人的身份访问，堡垒机侧做 impersonation 或者上 OIDC，让 API server 自己的审计轨迹里出现具体的人。</p>
+<p>另外，这条策略是两个字段的黑名单。如果以后要收得更紧，就反过来列白名单：开发者只能改 env、args、image、annotation，其余一律拒绝。</p>
+<p>回头看，几件事比较值得记下来。RBAC 只回答&quot;哪个资源、哪个动作&quot;，哪个字段、什么值要交给 admission，靠拆角色拿字段级控制是找错了地方。策略有多强，取决于它最窄的那个 match，<code>/scale</code> 这类子资源正是看着没问题的规则漏掉的地方。各层要按请求顺序测，对一个 RBAC 已经拒绝的角色跑 admission 测试，会因为错误的原因通过。最后，先 Audit 再 Enforce，并且留一行命令的退路：分阶段推广多花一天，策略拦下一次真实发布就是一次事故。</p>
+<p>脱敏后的策略、RBAC 模板和分阶段推广脚本在 <a target="_blank" rel="noopener" href="https://github.com/shaorui0/k8s-developer-guardrails">github.com/shaorui0/k8s-developer-guardrails</a>。</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tech/tags/SRE/" rel="tag"># SRE</a>
+              <a href="/tech/tags/Kubernetes/" rel="tag"># Kubernetes</a>
+              <a href="/tech/tags/CI-CD/" rel="tag"># CI/CD</a>
+              <a href="/tech/tags/%E5%9F%BA%E7%A1%80%E8%AE%BE%E6%96%BD%E5%8D%B3%E4%BB%A3%E7%A0%81/" rel="tag"># 基础设施即代码</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/tech/2026/09/22/2026-09-22_no-counterexample-no-criterion_zh/" rel="prev" title="一条分区规则，静默算错了六个租户">
+                  <i class="fa fa-angle-left"></i> 一条分区规则，静默算错了六个租户
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">Rui Shao</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+<!-- hexo injector body_end start --><script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>mermaid.initialize({ startOnLoad: true, theme: "default" });</script><!-- hexo injector body_end end --></body>
+</html>
