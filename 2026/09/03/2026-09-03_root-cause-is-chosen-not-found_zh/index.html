@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 8.1.1">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/tech/favicon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/tech/favicon.svg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/tech/favicon.svg">
+  <link rel="mask-icon" href="/tech/favicon.svg" color="#222">
+
+<link rel="stylesheet" href="/tech/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"shaorui0.github.io","root":"/tech/","images":"/tech/images","scheme":"Gemini","darkmode":false,"version":"8.27.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/tech/js/config.js" defer></script>
+
+    <meta name="description" content="拿一次 Kafka 积压的复盘举例：把根因写成一条因果链，每条边做反事实检验，再列出没解释掉的观察。链画出来之后，争论就变成了比较在哪一刀切最划算。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="复盘时争「哪个才是根因」，为什么总争不出结果">
+<meta property="og:url" content="https://shaorui0.github.io/tech/2026/09/03/2026-09-03_root-cause-is-chosen-not-found_zh/index.html">
+<meta property="og:site_name" content="Tech &amp; AI · 中文">
+<meta property="og:description" content="拿一次 Kafka 积压的复盘举例：把根因写成一条因果链，每条边做反事实检验，再列出没解释掉的观察。链画出来之后，争论就变成了比较在哪一刀切最划算。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-09-02T15:00:00.000Z">
+<meta property="article:modified_time" content="2026-09-23T09:07:20.455Z">
+<meta property="article:author" content="Rui Shao">
+<meta property="article:tag" content="AI Agent">
+<meta property="article:tag" content="SRE">
+<meta property="article:tag" content="事故复盘">
+<meta property="article:tag" content="方法论">
+<meta property="article:tag" content="根因分析">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://shaorui0.github.io/tech/2026/09/03/2026-09-03_root-cause-is-chosen-not-found_zh/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://shaorui0.github.io/tech/2026/09/03/2026-09-03_root-cause-is-chosen-not-found_zh/","path":"2026/09/03/2026-09-03_root-cause-is-chosen-not-found_zh/","title":"复盘时争「哪个才是根因」，为什么总争不出结果"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>复盘时争「哪个才是根因」，为什么总争不出结果 | Tech & AI · 中文</title>
+  
+
+
+
+
+
+
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous" defer></script>
+<script src="/tech/js/utils.js" defer></script><script src="/tech/js/motion.js" defer></script><script src="/tech/js/sidebar.js" defer></script><script src="/tech/js/next-boot.js" defer></script>
+
+  
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.10.1/mermaid.min.js","integrity":"sha256-BmQmdWDS8X2OTbrwELWK366LV6escyWhHHe0XCTU/Hk="}}</script>
+  <script src="/tech/js/third-party/tags/mermaid.js" defer></script>
+
+
+
+
+
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/tech/css/noscript.css">
+  </noscript>
+<!-- hexo injector head_end start --><style>
+.article-toc-wrap {
+  margin-bottom: 1.5em;
+  padding: 1em 1.25em;
+  background: #f8f9fa;
+  border-radius: 6px;
+  border-left: 3px solid #ddd;
+}
+.article-toc-wrap .toc-title {
+  font-weight: bold;
+  margin-bottom: 0.5em;
+  font-size: 0.95em;
+  color: #555;
+}
+.article-toc-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.article-toc-list .article-toc-list { padding-left: 1em; margin-top: 0.25em; }
+.article-toc-item { margin: 0.35em 0; }
+.article-toc-link {
+  text-decoration: none;
+  color: #444;
+  font-size: 0.9em;
+}
+.article-toc-link:hover { color: #08c; text-decoration: underline; }
+.article-toc-level-3 .article-toc-link { font-size: 0.85em; }
+.article-toc-level-4 .article-toc-link { font-size: 0.8em; }
+</style><!-- hexo injector head_end end --></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/tech/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Tech & AI · 中文</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">系统、基础设施与 AI</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/tech/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-tags"><a href="/tech/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/tech/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/tech/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li><li class="menu-item menu-item-english"><a href="https://shaorui0.github.io/tech-en/" rel="section"><i class="fa fa-language fa-fw"></i>English</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%8A%8A%E9%93%BE%E7%94%BB%E5%87%BA%E6%9D%A5"><span class="nav-number">1.</span> <span class="nav-text">把链画出来</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9C%A8%E5%93%AA%E4%B8%80%E5%88%80%E5%88%87"><span class="nav-number">2.</span> <span class="nav-text">在哪一刀切</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%8D%E4%BA%8B%E5%AE%9E%E6%A3%80%E9%AA%8C"><span class="nav-number">3.</span> <span class="nav-text">反事实检验</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BF%85%E8%A6%81%E6%9D%A1%E4%BB%B6%E5%92%8C%E5%85%85%E5%88%86%E6%9D%A1%E4%BB%B6"><span class="nav-number">4.</span> <span class="nav-text">必要条件和充分条件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%B2%A1%E8%A7%A3%E9%87%8A%E6%8E%89%E7%9A%84%E9%82%A3%E5%87%A0%E6%9D%A1%E8%A7%82%E5%AF%9F"><span class="nav-number">5.</span> <span class="nav-text">没解释掉的那几条观察</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#RCA-%E5%92%8C-triage-%E5%8F%8D%E7%9D%80%E6%9D%A5"><span class="nav-number">6.</span> <span class="nav-text">RCA 和 triage 反着来</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AF%81%E6%8D%AE%E8%A6%81%E5%9C%A8%E4%BA%8B%E4%B8%AD%E7%95%99%E4%B8%8B"><span class="nav-number">7.</span> <span class="nav-text">证据要在事中留下</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Rui Shao</p>
+  <div class="site-description" itemprop="description">Rui Shao 的技术博客（中文）— 系统、基础设施与 AI</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/tech/archives/">
+          <span class="site-state-item-count">32</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/tech/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tech/tags/">
+        <span class="site-state-item-count">44</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/shaorui0" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;shaorui0" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.linkedin.com/in/rui-shao-a21a55194/" title="LinkedIn → https:&#x2F;&#x2F;www.linkedin.com&#x2F;in&#x2F;rui-shao-a21a55194&#x2F;" rel="noopener me" target="_blank"><i class="fab fa-linkedin fa-fw"></i>LinkedIn</a>
+      </span>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://shaorui0.github.io/tech/2026/09/03/2026-09-03_root-cause-is-chosen-not-found_zh/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/tech/images/avatar.gif">
+      <meta itemprop="name" content="Rui Shao">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Tech & AI · 中文">
+      <meta itemprop="description" content="Rui Shao 的技术博客（中文）— 系统、基础设施与 AI">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="复盘时争「哪个才是根因」，为什么总争不出结果 | Tech & AI · 中文">
+      <meta itemprop="description" content="拿一次 Kafka 积压的复盘举例：把根因写成一条因果链，每条边做反事实检验，再列出没解释掉的观察。链画出来之后，争论就变成了比较在哪一刀切最划算。">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          复盘时争「哪个才是根因」，为什么总争不出结果
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2026-09-03 00:00:00" itemprop="dateCreated datePublished" datetime="2026-09-03T00:00:00+09:00">2026-09-03</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2026-09-23 18:07:20" itemprop="dateModified" datetime="2026-09-23T18:07:20+09:00">2026-09-23</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/tech/categories/SRE-%E6%96%B9%E6%B3%95%E8%AE%BA/" itemprop="url" rel="index"><span itemprop="name">SRE 方法论</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+            <div class="post-description">拿一次 Kafka 积压的复盘举例：把根因写成一条因果链，每条边做反事实检验，再列出没解释掉的观察。链画出来之后，争论就变成了比较在哪一刀切最划算。</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><nav class="article-toc-wrap" aria-label="文章目录"><div class="toc-title">文章目录</div><ol class="article-toc-list"><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#%E6%8A%8A%E9%93%BE%E7%94%BB%E5%87%BA%E6%9D%A5"><span class="article-toc-text">把链画出来</span></a></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#%E5%9C%A8%E5%93%AA%E4%B8%80%E5%88%80%E5%88%87"><span class="article-toc-text">在哪一刀切</span></a></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#%E5%8F%8D%E4%BA%8B%E5%AE%9E%E6%A3%80%E9%AA%8C"><span class="article-toc-text">反事实检验</span></a></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#%E5%BF%85%E8%A6%81%E6%9D%A1%E4%BB%B6%E5%92%8C%E5%85%85%E5%88%86%E6%9D%A1%E4%BB%B6"><span class="article-toc-text">必要条件和充分条件</span></a></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#%E6%B2%A1%E8%A7%A3%E9%87%8A%E6%8E%89%E7%9A%84%E9%82%A3%E5%87%A0%E6%9D%A1%E8%A7%82%E5%AF%9F"><span class="article-toc-text">没解释掉的那几条观察</span></a></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#RCA-%E5%92%8C-triage-%E5%8F%8D%E7%9D%80%E6%9D%A5"><span class="article-toc-text">RCA 和 triage 反着来</span></a></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#%E8%AF%81%E6%8D%AE%E8%A6%81%E5%9C%A8%E4%BA%8B%E4%B8%AD%E7%95%99%E4%B8%8B"><span class="article-toc-text">证据要在事中留下</span></a></li></ol></nav>
+<p>前段时间处理过一次 Kafka 消费积压。告警是多个租户的 consumer lag 一路上涨，查到最后，问题出在 ClickHouse 的系统表里（<a href="/2026/08/03/2026-08-03_zombie-system-tables-subsecond-oom_zh/">完整复盘</a>）。写复盘时出现了两种说法：一种说根因是 CH 升级留下的旧表，一种说是服务器内存上限给得太低。两种都有道理，谁也说服不了谁。</p>
+<p>后来我想明白了，这个争论本身问错了。根因并不是事故里某个客观存在的点，它是我们在一条因果链上挑出来下刀的位置。挑哪里，看哪一刀最便宜、最可靠。</p>
+<hr>
+<h2 id="把链画出来">把链画出来</h2>
+<p>「根因是 X」这种句式会逼着人把一条链压成一个词。那次事故的链是这样的：</p>
+<div class="mermaid">flowchart TB
+  A[&quot;CH 升级留下带数字后缀的旧系统日志表&quot;] --&gt; B[&quot;僵尸表体积累积到 TiB 级&quot;]
+  B --&gt; C[&quot;后台 merge 挑到僵尸表的 parts&quot;]
+  M[&quot;merge 调度被触发&quot;] --&gt; C
+  C --&gt; D[&quot;内存一秒内从 2 GiB 冲到 21.6 GiB 上限&quot;]
+  L[&quot;服务器内存上限 21.6 GiB&quot;] --&gt; D
+  D --&gt; E[&quot;并发插入被 Code 241 杀掉&quot;]
+  E --&gt; F[&quot;失败批次进入 30s sleep 加 rebalance 重试循环&quot;]
+  F --&gt; G[&quot;多租户 consumer lag 单调上涨（可见告警）&quot;]</div>
+<p>链上有七个节点，每个都可以是切断点。「升级残留」和「内存上限太低」两种说法并不冲突，只是下刀的位置不同。</p>
+<hr>
+<h2 id="在哪一刀切">在哪一刀切</h2>
+<p>同一条链上，各个切断点的代价、可靠性和周期差别很大：</p>
+<table>
+<thead>
+<tr>
+<th>切断点</th>
+<th>动作</th>
+<th>代价</th>
+<th>可靠性</th>
+<th>撤回成本</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>升级不留残留</td>
+<td>改升级流程，升级后审计并清理</td>
+<td>高，跨团队，周期长</td>
+<td>高，从源头断</td>
+<td>撤回免费</td>
+</tr>
+<tr>
+<td>僵尸表不长大</td>
+<td>给内部日志表加 TTL，关掉最大的几张</td>
+<td>低，配置层</td>
+<td>高</td>
+<td>撤回免费</td>
+</tr>
+<tr>
+<td>merge 不引爆</td>
+<td>限制单次 merge 的内存与并发</td>
+<td>中</td>
+<td>中，只是降低概率</td>
+<td>撤回免费</td>
+</tr>
+<tr>
+<td>抬高内存上限</td>
+<td>改服务器内存上限</td>
+<td>最低</td>
+<td>低，只是推后</td>
+<td>撤回免费</td>
+</tr>
+<tr>
+<td>消费者不死循环</td>
+<td>改重试策略</td>
+<td>中</td>
+<td>低，治的是症状</td>
+<td>一次中断</td>
+</tr>
+</tbody>
+</table>
+<p>团队常常想修最深的那个原因，可最深的往往最贵、周期最长，还得等别的团队配合。链画出来以后，讨论就从站哪边变成了算哪边便宜。那次最后落地的是配置层：给内部日志表加 TTL、给 merge 封内存上限，另外在升级 runbook 末尾加了一步残留审计。</p>
+<hr>
+<h2 id="反事实检验">反事实检验</h2>
+<p>时间上先发生的事，不一定是原因。要把因果边和伴随现象分开，只需要问一个问题：如果上游节点没发生，下游还会发生吗？</p>
+<table>
+<thead>
+<tr>
+<th>回答</th>
+<th>含义</th>
+<th>处理</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>不会</td>
+<td>上游是下游的必要条件</td>
+<td>进主链</td>
+</tr>
+<tr>
+<td>还会</td>
+<td>上游是伴随现象</td>
+<td>移出主链，留在时间线里</td>
+</tr>
+<tr>
+<td>不知道</td>
+<td>无法判定</td>
+<td>标为未验证，不得进入主链</td>
+</tr>
+</tbody>
+</table>
+<p>拿那条链跑一遍，砍掉了一条边。</p>
+<p>报错里有一行 <code>current RSS: 8.85 GiB</code>，我第一反应是内存慢性泄漏：RSS 长期偏高，一次 merge 就撑爆了。换成反事实的问法再看：假如 RSS 一直待在 2 GiB 的基线，那次 merge 还会把并发插入杀掉吗？会。内存是在一秒内冲到 21.6 GiB 上限的，基线高一点低一点改变不了结果。所以 RSS 偏高只能写进时间线，主链里没有它的位置。</p>
+<p>很多复盘写下来的是时间上先发生的事，没人问过这些事在因果上是不是必要的。这一步最容易被跳过，跳过的后果是修完之后事故照样复发，因为修掉的是伴随现象。</p>
+<p>能做实验就做实验，去掉一个条件再压一次；做不了实验只能推理，但要标成「未验证」。一份 RCA 里有几条未验证的边，基本就能看出它有多可靠。</p>
+<hr>
+<h2 id="必要条件和充分条件">必要条件和充分条件</h2>
+<p>一条边通过反事实检验，只能说明上游是必要条件，说明不了它充分。</p>
+<p>僵尸表存在，单靠它不会 OOM，还需要 merge 调度正好挑到它，内存上限也正好在那个量级。三个条件要同时满足。链图里从旁边并进来的 <code>merge 调度被触发</code> 和 <code>服务器内存上限</code>，就是另外两个必要条件。</p>
+<p>几个条件必须同时满足时，打断任意一个，事故就不会发生。所以<strong>防复发的动作应该落在最便宜的那个必要条件上</strong>，最「根本」的那个未必划算。前面那张表里配置层 TTL 性价比最高，原因就在这里：它打断的是「僵尸表涨到 TiB 级」，阻断效果和改升级流程一样，成本低一个数量级。</p>
+<hr>
+<h2 id="没解释掉的那几条观察">没解释掉的那几条观察</h2>
+<p>人写的复盘里很少有这一节，但它最能防住伪根因。</p>
+<p>做法是把这次收集到的观察逐条过一遍，看当前的解释能不能覆盖，覆盖不了的列出来。这一步要读懂每条观察在说什么，再判断解释有没有涵盖它，做不成数值比较，所以应该留给能读语义的那一层，不适合写成一条规则。如果有三条观察解释不了，这个根因多半不完整。</p>
+<p>放到那次事故上，至少能问出两个问题。为什么是这几个租户先出现 lag，其他租户没有？merge 挑到僵尸表是随机的还是有触发条件，如果是随机的，之前几个月为什么一直没出事？这些问题的答案不影响这次修复是否正确，但决定了这个解释完不完整，也决定了几个月后同一条链会不会换个样子再来一次。</p>
+<p>这件事 agent 比人容易做好。人会不自觉地略过不符合自己判断的观察，跟能力无关；agent 会把每一条证据都老老实实过一遍。在 RCA 上，我觉得这是 agent 比人强的少数几个地方之一。</p>
+<p>agent 也有自己的坑：它不知道自己漏查了什么。如果只查了三个维度，覆盖率 100% 说明不了任何问题。所以报覆盖率时，要一起报查了哪些维度、没查哪些，只报一个百分比会显得比实际好看。</p>
+<hr>
+<h2 id="RCA-和-triage-反着来">RCA 和 triage 反着来</h2>
+<p>同一套假设管理机制，放在 triage 和 RCA 里，用法正好相反。</p>
+<p>triage 跟时间赛跑，止住就算成功，可以不知道根因。它最常见的失败是收敛太早，看到一条变更记录就锁定了，所以门禁要防止拖太久：连续几条假设被否掉，就强制升级。RCA 要的是正确，最常见的失败是把相关当成因果，所以门禁要防止停太早：必须做反事实，必须列残余，次强的解释要留到最后。</p>
+<p>两者手里的证据也不一样。triage 时数据还在线上，做 RCA 时数据可能已经被 retention 删掉了。结论的去向也不同，triage 的结论决定下一个动作，RCA 的结论决定架构上往哪投钱。triage 判断错了，多花十分钟；RCA 判断错了，团队可能花一个季度修错地方，事故还会再来。RCA 值得付更高的严格度成本，就是因为这个。</p>
+<p>次强的解释要写清楚为什么被排除。读复盘的人需要知道你考虑过什么，不然他会在会上把你已经排除掉的那个再提一遍。</p>
+<hr>
+<h2 id="证据要在事中留下">证据要在事中留下</h2>
+<p>做 RCA 最实际的困难，往往是证据已经没了：指标过了 retention，日志滚掉了，pod 被重建，临时表被清理。等到坐下来复盘，反事实检验要用的数据经常已经拿不到。那次事故能查清楚，靠的是引擎内部 1 秒粒度的 metric log，而这份数据也有自己的保留期。</p>
+<p>所以 RCA 要往前挪到 triage 阶段：事中就把关键查询的原始返回落盘，别只把结论写进报告。</p>
+<p>这件事成本很低，写文件而已，收益要几天后才看得到。不做也不会马上出问题的事，靠自觉一定会漏，得写成硬要求。在我的 oncall harness 里它是一条验收标准：每次调查建工作目录时顺手建一个 <code>evidence/</code>，每次查询的原始返回按查询和时间窗命名存进去。</p>
+<p>目前这套设计我只实装了 triage 那一半，也就是止损的部分。RCA 这一档还靠事后手写案例，因果链、反事实三态、覆盖率门禁都还是设计，没有代码。</p>
+<p>反事实检验也有做不到的地方。分布式系统里很多边没法做实验，总不能为了验证一条边，在生产上再造一次事故。这时候反事实只能靠推理，文档里就必须看得出哪条是推理、哪条有证据，「未验证」这个状态就是为此设的。</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tech/tags/SRE/" rel="tag"># SRE</a>
+              <a href="/tech/tags/%E4%BA%8B%E6%95%85%E5%A4%8D%E7%9B%98/" rel="tag"># 事故复盘</a>
+              <a href="/tech/tags/%E6%A0%B9%E5%9B%A0%E5%88%86%E6%9E%90/" rel="tag"># 根因分析</a>
+              <a href="/tech/tags/AI-Agent/" rel="tag"># AI Agent</a>
+              <a href="/tech/tags/%E6%96%B9%E6%B3%95%E8%AE%BA/" rel="tag"># 方法论</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/tech/2026/09/03/2026-09-03_dashboard-is-for-human-eyes_zh/" rel="prev" title="人看 dashboard，agent 该看什么">
+                  <i class="fa fa-angle-left"></i> 人看 dashboard，agent 该看什么
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/tech/2026/09/05/2026-09-05_one-probe-is-not-a-system_zh/" rel="next" title="从一个探针，到一个能用的判定层">
+                  从一个探针，到一个能用的判定层 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">Rui Shao</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+<!-- hexo injector body_end start --><script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>mermaid.initialize({ startOnLoad: true, theme: "default" });</script><!-- hexo injector body_end end --></body>
+</html>
