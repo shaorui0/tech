@@ -1,33 +1,33 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width">
 <meta name="theme-color" content="#222"><meta name="generator" content="Hexo 8.1.1">
 
-  <link rel="apple-touch-icon" sizes="180x180" href="/tech-en/favicon.svg">
-  <link rel="icon" type="image/png" sizes="32x32" href="/tech-en/favicon.svg">
-  <link rel="icon" type="image/png" sizes="16x16" href="/tech-en/favicon.svg">
-  <link rel="mask-icon" href="/tech-en/favicon.svg" color="#222">
+  <link rel="apple-touch-icon" sizes="180x180" href="/tech/favicon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/tech/favicon.svg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/tech/favicon.svg">
+  <link rel="mask-icon" href="/tech/favicon.svg" color="#222">
 
-<link rel="stylesheet" href="/tech-en/css/main.css">
+<link rel="stylesheet" href="/tech/css/main.css">
 
 
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
 
-<script class="next-config" data-name="main" type="application/json">{"hostname":"shaorui0.github.io","root":"/tech-en/","images":"/tech-en/images","scheme":"Gemini","darkmode":false,"version":"8.27.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}}</script><script src="/tech-en/js/config.js" defer></script>
+<script class="next-config" data-name="main" type="application/json">{"hostname":"shaorui0.github.io","root":"/tech/","images":"/tech/images","scheme":"Gemini","darkmode":false,"version":"8.27.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/tech/js/config.js" defer></script>
 
     <meta name="description" content="ClickHouse → Doris 存算分离：内存工程、引擎级路由、两次 compaction 事故，以及经受住重测的数字。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="重构反欺诈事件存储：一路做到引擎里">
-<meta property="og:url" content="https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_rebuilding-a-5b-row-event-store_zh/index.html">
-<meta property="og:site_name" content="Tech &amp; AI">
+<meta property="og:url" content="https://shaorui0.github.io/tech/2026/08/03/2026-08-03_rebuilding-a-5b-row-event-store_zh/index.html">
+<meta property="og:site_name" content="Tech &amp; AI · 中文">
 <meta property="og:description" content="ClickHouse → Doris 存算分离：内存工程、引擎级路由、两次 compaction 事故，以及经受住重测的数字。">
-<meta property="og:locale" content="en_US">
+<meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2026-08-02T15:00:00.000Z">
-<meta property="article:modified_time" content="2026-09-24T07:54:02.154Z">
+<meta property="article:modified_time" content="2026-10-16T17:11:26.003Z">
 <meta property="article:author" content="Rui Shao">
 <meta property="article:tag" content="Apache Doris">
 <meta property="article:tag" content="ClickHouse">
@@ -37,13 +37,13 @@
 <meta name="twitter:card" content="summary">
 
 
-<link rel="canonical" href="https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_rebuilding-a-5b-row-event-store_zh/">
+<link rel="canonical" href="https://shaorui0.github.io/tech/2026/08/03/2026-08-03_rebuilding-a-5b-row-event-store_zh/">
 
 
-<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_rebuilding-a-5b-row-event-store_zh/","path":"2026/08/03/2026-08-03_rebuilding-a-5b-row-event-store_zh/","title":"重构反欺诈事件存储：一路做到引擎里"}</script>
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://shaorui0.github.io/tech/2026/08/03/2026-08-03_rebuilding-a-5b-row-event-store_zh/","path":"2026/08/03/2026-08-03_rebuilding-a-5b-row-event-store_zh/","title":"重构反欺诈事件存储：一路做到引擎里"}</script>
 
 <script class="next-config" data-name="calendar" type="application/json">""</script>
-<title>重构反欺诈事件存储：一路做到引擎里 | Tech & AI</title>
+<title>重构反欺诈事件存储：一路做到引擎里 | Tech & AI · 中文</title>
   
 
 
@@ -55,12 +55,12 @@
 
   
   <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous" defer></script>
-<script src="/tech-en/js/utils.js" defer></script><script src="/tech-en/js/motion.js" defer></script><script src="/tech-en/js/sidebar.js" defer></script><script src="/tech-en/js/next-boot.js" defer></script>
+<script src="/tech/js/utils.js" defer></script><script src="/tech/js/motion.js" defer></script><script src="/tech/js/sidebar.js" defer></script><script src="/tech/js/next-boot.js" defer></script>
 
   
 
   <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.10.1/mermaid.min.js","integrity":"sha256-BmQmdWDS8X2OTbrwELWK366LV6escyWhHHe0XCTU/Hk="}}</script>
-  <script src="/tech-en/js/third-party/tags/mermaid.js" defer></script>
+  <script src="/tech/js/third-party/tags/mermaid.js" defer></script>
 
 
 
@@ -73,7 +73,7 @@
 
 
   <noscript>
-    <link rel="stylesheet" href="/tech-en/css/noscript.css">
+    <link rel="stylesheet" href="/tech/css/noscript.css">
   </noscript>
 <!-- hexo injector head_end start --><style>
 .article-toc-wrap {
@@ -113,7 +113,7 @@
     <div class="column">
       <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
   <div class="site-nav-toggle">
-    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+    <div class="toggle" aria-label="切换导航栏" role="button">
         <span class="toggle-line"></span>
         <span class="toggle-line"></span>
         <span class="toggle-line"></span>
@@ -122,16 +122,16 @@
 
   <div class="site-meta">
 
-    <a href="/tech-en/" class="brand" rel="start">
+    <a href="/tech/" class="brand" rel="start">
       <i class="logo-line"></i>
-      <p class="site-title">Tech & AI</p>
+      <p class="site-title">Tech & AI · 中文</p>
       <i class="logo-line"></i>
     </a>
-      <p class="site-subtitle" itemprop="description">Systems, Infrastructure, and AI</p>
+      <p class="site-subtitle" itemprop="description">系统、基础设施与 AI</p>
   </div>
 
   <div class="site-nav-right">
-    <div class="toggle popup-trigger" aria-label="Search" role="button">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
     </div>
   </div>
 </div>
@@ -139,7 +139,7 @@
 
 
 <nav class="site-nav">
-  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/tech-en/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-tags"><a href="/tech-en/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li><li class="menu-item menu-item-categories"><a href="/tech-en/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li><li class="menu-item menu-item-archives"><a href="/tech-en/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li><li class="menu-item menu-item-中文"><a href="https://shaorui0.github.io/tech/" rel="section"><i class="fa fa-language fa-fw"></i>中文</a></li>
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/tech/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-tags"><a href="/tech/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/tech/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/tech/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li><li class="menu-item menu-item-english"><a href="https://shaorui0.github.io/tech-en/" rel="section"><i class="fa fa-language fa-fw"></i>English</a></li>
   </ul>
 </nav>
 
@@ -154,10 +154,10 @@
     <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
       <ul class="sidebar-nav">
         <li class="sidebar-nav-toc">
-          Table of Contents
+          文章目录
         </li>
         <li class="sidebar-nav-overview">
-          Overview
+          站点概览
         </li>
       </ul>
 
@@ -171,25 +171,25 @@
         <div class="site-overview-wrap sidebar-panel">
           <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
   <p class="site-author-name" itemprop="name">Rui Shao</p>
-  <div class="site-description" itemprop="description">Rui Shao — writing about systems, infrastructure and AI</div>
+  <div class="site-description" itemprop="description">Rui Shao 的技术博客（中文）— 系统、基础设施与 AI</div>
 </div>
 <div class="site-state-wrap animated">
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
-        <a href="/tech-en/archives/">
-          <span class="site-state-item-count">58</span>
-          <span class="site-state-item-name">posts</span>
+        <a href="/tech/archives/">
+          <span class="site-state-item-count">61</span>
+          <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
-          <a href="/tech-en/categories/">
+          <a href="/tech/categories/">
         <span class="site-state-item-count">19</span>
-        <span class="site-state-item-name">categories</span></a>
+        <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
-          <a href="/tech-en/tags/">
+          <a href="/tech/tags/">
         <span class="site-state-item-count">59</span>
-        <span class="site-state-item-name">tags</span></a>
+        <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
 </div>
@@ -222,21 +222,21 @@
   
   
 
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
-    <link itemprop="mainEntityOfPage" href="https://shaorui0.github.io/tech-en/2026/08/03/2026-08-03_rebuilding-a-5b-row-event-store_zh/">
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://shaorui0.github.io/tech/2026/08/03/2026-08-03_rebuilding-a-5b-row-event-store_zh/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/tech-en/images/avatar.gif">
+      <meta itemprop="image" content="/tech/images/avatar.gif">
       <meta itemprop="name" content="Rui Shao">
     </span>
 
     <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Tech & AI">
-      <meta itemprop="description" content="Rui Shao — writing about systems, infrastructure and AI">
+      <meta itemprop="name" content="Tech & AI · 中文">
+      <meta itemprop="description" content="Rui Shao 的技术博客（中文）— 系统、基础设施与 AI">
     </span>
 
     <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="重构反欺诈事件存储：一路做到引擎里 | Tech & AI">
+      <meta itemprop="name" content="重构反欺诈事件存储：一路做到引擎里 | Tech & AI · 中文">
       <meta itemprop="description" content="ClickHouse → Doris 存算分离：内存工程、引擎级路由、两次 compaction 事故，以及经受住重测的数字。">
     </span>
       <header class="post-header">
@@ -250,24 +250,24 @@
       <span class="post-meta-item-icon">
         <i class="far fa-calendar"></i>
       </span>
-      <span class="post-meta-item-text">Posted on</span>
+      <span class="post-meta-item-text">发表于</span>
 
-      <time title="Created: 2026-08-03 00:00:00" itemprop="dateCreated datePublished" datetime="2026-08-03T00:00:00+09:00">2026-08-03</time>
+      <time title="创建时间：2026-08-03 00:00:00" itemprop="dateCreated datePublished" datetime="2026-08-03T00:00:00+09:00">2026-08-03</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
         <i class="far fa-calendar-check"></i>
       </span>
-      <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2026-09-24 16:54:02" itemprop="dateModified" datetime="2026-09-24T16:54:02+09:00">2026-09-24</time>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2026-10-17 02:11:26" itemprop="dateModified" datetime="2026-10-17T02:11:26+09:00">2026-10-17</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
         <i class="far fa-folder"></i>
       </span>
-      <span class="post-meta-item-text">In</span>
+      <span class="post-meta-item-text">分类于</span>
         <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/tech-en/categories/%E6%95%B0%E6%8D%AE%E5%B9%B3%E5%8F%B0/" itemprop="url" rel="index"><span itemprop="name">数据平台</span></a>
+          <a href="/tech/categories/%E6%95%B0%E6%8D%AE%E5%B9%B3%E5%8F%B0/" itemprop="url" rel="index"><span itemprop="name">数据平台</span></a>
         </span>
     </span>
 
@@ -348,13 +348,13 @@
 <p>于是我在一个 Apache Doris fork 上把它修进引擎：</p>
 <ul>
 <li>
-<p><code>EXPLAIN ESTIMATE PLAN</code>：一个只读 visitor 遍历定稿的物理计划，把 CBO 已有的算子级估算吐成 JSON，纯加法（零删除），机制部分已准备为 upstream PR。</p>
+<p><code>EXPLAIN ESTIMATE PLAN</code>：一个只读 visitor 遍历定稿的物理计划，把 CBO 已有的算子级估算吐成 JSON，纯加法（零删除），机制部分已准备为 upstream proposal 的 patch（尚未合入 Apache Doris）。</p>
 </li>
 <li>
 <p><code>EXPLAIN ROUTE PLAN</code>：估算加一个 15 规则分类器，<strong>6–8 毫秒</strong>返回路由裁决，与数据量无关。分类器从一个被当作可执行 oracle 的 Python 参考实现移植，任何集群介入之前先过 <strong>197/197</strong> golden corpus parity。约 21 个阈值可热更，调参不需要重新构建。</p>
 </li>
 </ul>
-<p>leadership 起初想把分类器也贡献上游。我用第一个 PR 自己的原则反着论证：引擎应该吐数据，调用方决定策略。分类器携带我们校准的阈值和 recall 优先的偏置，那是策略，应该留在内部，即使代码本身开源。知道什么不该贡献，改变了计划。</p>
+<p>leadership 起初想把分类器也贡献上游。我用第一版 proposal draft 自己的原则反着论证：引擎应该吐数据，调用方决定策略。分类器携带我们校准的阈值和 recall 优先的偏置，那是策略，应该留在内部，即使代码本身开源。知道什么不该贡献，改变了计划。</p>
 <p>Heavy recall 在标准套件上从 <strong>7% 到 100%</strong>，剩余的漏网由设计兜住：误判的重查询在轻池撞上固定槽位内存硬限（约每查询 <strong>404 MB</strong>、禁止超卖），约 3 秒内被杀并自动升级到重池。分类器允许不完美，因为安全保证从不依赖它。</p>
 <h2 id="两次-compaction-事故">两次 compaction 事故</h2>
 <p>死亡螺旋：迁移完成后，宽表冻结在每 tablet 约 <strong>2,500</strong> 个 segment，手动 compaction 静默失败，冷点查 40–68 秒。根因是三个因素连乘：bulk load 期间关了 auto-compaction，债务堆到单个任务要合并约 2,506 段 × 3,727 列（被内存守卫在 43 GB 处中止，任务级中止而非进程崩溃）；cloud 模式没有 peer cache，每个 segment 都是约 7 秒的 S3 冷读；segment 之所以小，是因为稀疏宽 schema 在内存写缓冲和磁盘 segment 之间有 <strong>46 倍</strong>的压缩衰减。我们还在任何人花钱之前证明了加后端无用：单个 tablet 的 compaction 无法跨节点拆分，日志里数出 <strong>632</strong> 次空转唤醒对 <strong>9</strong> 次真实合并，问题出在并发集中度上。验证过的配方（auto-compaction 常开、写缓冲扩大 4 倍、按月分桶把 tablet 钉在约 10 GB、加宽列组把 S3 重扫削约 40 倍）把冷点查从 40 秒压到服务端 <strong>100 毫秒以内</strong>。</p>
@@ -364,7 +364,7 @@
 <p>全链路真实跑通：裁决判重 → controller patch 0→N → spot 节点约 <strong>66 秒</strong>起来、后端约 2 分钟注册、分层就绪检查（<code>SELECT 1</code> 探针会被前端常量折叠、从不触达后端，它会把一个空池报告成健康）→ 查询执行 → 池回收归零。serving 池 live 从 2 台扩到 4 台，零数据搬迁：tablet 住在 S3，归属自动再平衡。这是 shared-data 的运维红利，在真实集群上拍到的。</p>
 <h2 id="数字凭什么可信">数字凭什么可信</h2>
 <p>上面每个论断都经过测量，其中几个在路上被撤回。早期 benchmark 显示 Doris 聚合赢 ClickHouse 3–5 倍，我 red-team 了自己的结果，找到混淆项（负载中的 8 核生产节点对隔离的 14 核 benchmark 节点），撤回了倍数。公开的「Doris 快 6–40 倍」全部溯源到厂商；一手 ClickBench 数据说 ClickHouse 仍领先平表扫描。迁移完整性认证为 <strong>99.945%</strong>（5,170,688,484 / 5,173,508,562 行），0.055% 的差额逐条归因到去重语义，验证方法本身也得为安全重新设计：一次朴素的 <code>COUNT(*)</code> 对账曾打崩全部八台后端。数字每次重测都变得更不讨喜，这通常是逼近真相的信号。</p>
-<p>文中的引擎级工作在一个 Apache Doris fork 上；机制（<code>EXPLAIN ESTIMATE PLAN</code>）已准备贡献上游，策略层刻意留在内部。名称、租户与精确标识已匿名化，规模数字取整。</p>
+<p>文中的引擎级工作在一个 Apache Doris fork 上；机制（<code>EXPLAIN ESTIMATE PLAN</code>）已准备为 upstream proposal 的 patch（尚未合入），策略层刻意留在内部。Doris 平台已上线生产（2026-10-17 确认）；本文的性能、吞吐与路由数字均为上线前在 preprod / 试用环境（生产规模）验收中测得，不是生产指标。名称、租户与精确标识已匿名化，规模数字取整。</p>
 
     </div>
 
@@ -374,23 +374,23 @@
 
     <footer class="post-footer">
           <div class="post-tags">
-              <a href="/tech-en/tags/SRE/" rel="tag"># SRE</a>
-              <a href="/tech-en/tags/Apache-Doris/" rel="tag"># Apache Doris</a>
-              <a href="/tech-en/tags/ClickHouse/" rel="tag"># ClickHouse</a>
-              <a href="/tech-en/tags/OLAP/" rel="tag"># OLAP</a>
-              <a href="/tech-en/tags/%E5%AD%98%E5%82%A8%E5%BC%95%E6%93%8E/" rel="tag"># 存储引擎</a>
+              <a href="/tech/tags/SRE/" rel="tag"># SRE</a>
+              <a href="/tech/tags/Apache-Doris/" rel="tag"># Apache Doris</a>
+              <a href="/tech/tags/ClickHouse/" rel="tag"># ClickHouse</a>
+              <a href="/tech/tags/OLAP/" rel="tag"># OLAP</a>
+              <a href="/tech/tags/%E5%AD%98%E5%82%A8%E5%BC%95%E6%93%8E/" rel="tag"># 存储引擎</a>
           </div>
 
         
 
           <div class="post-nav">
             <div class="post-nav-item">
-                <a href="/tech-en/2026/08/03/2026-08-03_replacing-prometheus-federation_zh/" rel="prev" title="多租户指标平台上的告警分层设计">
+                <a href="/tech/2026/08/03/2026-08-03_replacing-prometheus-federation_zh/" rel="prev" title="多租户指标平台上的告警分层设计">
                   <i class="fa fa-angle-left"></i> 多租户指标平台上的告警分层设计
                 </a>
             </div>
             <div class="post-nav-item">
-                <a href="/tech-en/2026/08/03/2026-08-03_kubernetes-upgrade-engineering_zh/" rel="next" title="生产 Kubernetes 升级工程：50 集群，1.24 → 1.29，零事故">
+                <a href="/tech/2026/08/03/2026-08-03_kubernetes-upgrade-engineering_zh/" rel="next" title="生产 Kubernetes 升级工程：50 集群，1.24 → 1.29，零事故">
                   生产 Kubernetes 升级工程：50 集群，1.24 → 1.29，零事故 <i class="fa fa-angle-right"></i>
                 </a>
             </div>
@@ -418,7 +418,7 @@
     </span>
     <span class="author" itemprop="copyrightHolder">Rui Shao</span>
   </div>
-  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
   </div>
 
     </div>
@@ -431,7 +431,7 @@
     <span class="toggle-line"></span>
   </div>
   <div class="sidebar-dimmer"></div>
-  <div class="back-to-top" role="button" aria-label="Back to top">
+  <div class="back-to-top" role="button" aria-label="返回顶部">
     <i class="fa fa-arrow-up fa-lg"></i>
     <span>0%</span>
   </div>

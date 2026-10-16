@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 8.1.1">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/tech/favicon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/tech/favicon.svg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/tech/favicon.svg">
+  <link rel="mask-icon" href="/tech/favicon.svg" color="#222">
+
+<link rel="stylesheet" href="/tech/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"shaorui0.github.io","root":"/tech/","images":"/tech/images","scheme":"Gemini","darkmode":false,"version":"8.27.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/tech/js/config.js" defer></script>
+
+    <meta name="description" content="三份大盘、115 个面板，按「先问坏没坏、再问哪一层」两级分诊组织；告警从 27 条候选刻意砍到 12 条，每一条留下来的理由都是一次真实发生过、没人察觉的故障（35 小时、16 天、反复 5 次）。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="从零给存算分离 Doris 建观测：两级分诊与 12 条告警">
+<meta property="og:url" content="https://shaorui0.github.io/tech/2026/10/17/2026-10-17_observing-a-signal-driven-doris_zh/index.html">
+<meta property="og:site_name" content="Tech &amp; AI · 中文">
+<meta property="og:description" content="三份大盘、115 个面板，按「先问坏没坏、再问哪一层」两级分诊组织；告警从 27 条候选刻意砍到 12 条，每一条留下来的理由都是一次真实发生过、没人察觉的故障（35 小时、16 天、反复 5 次）。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-10-16T15:00:00.000Z">
+<meta property="article:modified_time" content="2026-10-16T17:11:26.022Z">
+<meta property="article:author" content="Rui Shao">
+<meta property="article:tag" content="Prometheus">
+<meta property="article:tag" content="SLO">
+<meta property="article:tag" content="SRE">
+<meta property="article:tag" content="VictoriaMetrics">
+<meta property="article:tag" content="可观测性">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://shaorui0.github.io/tech/2026/10/17/2026-10-17_observing-a-signal-driven-doris_zh/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://shaorui0.github.io/tech/2026/10/17/2026-10-17_observing-a-signal-driven-doris_zh/","path":"2026/10/17/2026-10-17_observing-a-signal-driven-doris_zh/","title":"从零给存算分离 Doris 建观测：两级分诊与 12 条告警"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>从零给存算分离 Doris 建观测：两级分诊与 12 条告警 | Tech & AI · 中文</title>
+  
+
+
+
+
+
+
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous" defer></script>
+<script src="/tech/js/utils.js" defer></script><script src="/tech/js/motion.js" defer></script><script src="/tech/js/sidebar.js" defer></script><script src="/tech/js/next-boot.js" defer></script>
+
+  
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.10.1/mermaid.min.js","integrity":"sha256-BmQmdWDS8X2OTbrwELWK366LV6escyWhHHe0XCTU/Hk="}}</script>
+  <script src="/tech/js/third-party/tags/mermaid.js" defer></script>
+
+
+
+
+
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/tech/css/noscript.css">
+  </noscript>
+<!-- hexo injector head_end start --><style>
+.article-toc-wrap {
+  margin-bottom: 1.5em;
+  padding: 1em 1.25em;
+  background: #f8f9fa;
+  border-radius: 6px;
+  border-left: 3px solid #ddd;
+}
+.article-toc-wrap .toc-title {
+  font-weight: bold;
+  margin-bottom: 0.5em;
+  font-size: 0.95em;
+  color: #555;
+}
+.article-toc-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.article-toc-list .article-toc-list { padding-left: 1em; margin-top: 0.25em; }
+.article-toc-item { margin: 0.35em 0; }
+.article-toc-link {
+  text-decoration: none;
+  color: #444;
+  font-size: 0.9em;
+}
+.article-toc-link:hover { color: #08c; text-decoration: underline; }
+.article-toc-level-3 .article-toc-link { font-size: 0.85em; }
+.article-toc-level-4 .article-toc-link { font-size: 0.8em; }
+</style><!-- hexo injector head_end end --></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/tech/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Tech & AI · 中文</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">系统、基础设施与 AI</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/tech/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-tags"><a href="/tech/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/tech/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/tech/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li><li class="menu-item menu-item-english"><a href="https://shaorui0.github.io/tech-en/" rel="section"><i class="fa fa-language fa-fw"></i>English</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%B5%B7%E7%82%B9%EF%BC%9A%E4%BB%80%E4%B9%88%E9%83%BD%E6%B2%A1%E6%9C%89%EF%BC%8C%E8%80%8C%E4%B8%94%E8%BF%99%E4%B8%AA%E5%B9%B3%E5%8F%B0%E6%98%AF%E6%82%84%E6%82%84%E5%9D%8F%E7%9A%84"><span class="nav-number">1.</span> <span class="nav-text">起点：什么都没有，而且这个平台是悄悄坏的</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A4%A7%E7%9B%98%EF%BC%9A%E4%B8%A4%E7%BA%A7%E5%88%86%E8%AF%8A%EF%BC%8C%E8%80%8C%E4%B8%8D%E6%98%AF%E4%B8%80%E6%95%B4%E9%9D%A2%E5%A2%99"><span class="nav-number">2.</span> <span class="nav-text">大盘：两级分诊，而不是一整面墙</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%91%8A%E8%AD%A6%EF%BC%9A27-%E6%9D%A1%E5%80%99%E9%80%89%EF%BC%8C%E7%95%99-12-%E6%9D%A1"><span class="nav-number">3.</span> <span class="nav-text">告警：27 条候选，留 12 条</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%BF%99%E4%BB%B6%E4%BA%8B%E4%B8%8D%E6%98%AF%E4%BB%80%E4%B9%88"><span class="nav-number">4.</span> <span class="nav-text">这件事不是什么</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%88%91%E8%83%BD%E8%BE%A9%E6%8A%A4%E7%9A%84%E9%83%A8%E5%88%86"><span class="nav-number">5.</span> <span class="nav-text">我能辩护的部分</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Rui Shao</p>
+  <div class="site-description" itemprop="description">Rui Shao 的技术博客（中文）— 系统、基础设施与 AI</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/tech/archives/">
+          <span class="site-state-item-count">61</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/tech/categories/">
+        <span class="site-state-item-count">19</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tech/tags/">
+        <span class="site-state-item-count">59</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/shaorui0" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;shaorui0" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.linkedin.com/in/rui-shao-a21a55194/" title="LinkedIn → https:&#x2F;&#x2F;www.linkedin.com&#x2F;in&#x2F;rui-shao-a21a55194&#x2F;" rel="noopener me" target="_blank"><i class="fab fa-linkedin fa-fw"></i>LinkedIn</a>
+      </span>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://shaorui0.github.io/tech/2026/10/17/2026-10-17_observing-a-signal-driven-doris_zh/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/tech/images/avatar.gif">
+      <meta itemprop="name" content="Rui Shao">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Tech & AI · 中文">
+      <meta itemprop="description" content="Rui Shao 的技术博客（中文）— 系统、基础设施与 AI">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="从零给存算分离 Doris 建观测：两级分诊与 12 条告警 | Tech & AI · 中文">
+      <meta itemprop="description" content="三份大盘、115 个面板，按「先问坏没坏、再问哪一层」两级分诊组织；告警从 27 条候选刻意砍到 12 条，每一条留下来的理由都是一次真实发生过、没人察觉的故障（35 小时、16 天、反复 5 次）。">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          从零给存算分离 Doris 建观测：两级分诊与 12 条告警
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2026-10-17 00:00:00 / 修改时间：02:11:26" itemprop="dateCreated datePublished" datetime="2026-10-17T00:00:00+09:00">2026-10-17</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/tech/categories/%E5%8F%AF%E8%A7%82%E6%B5%8B%E6%80%A7/" itemprop="url" rel="index"><span itemprop="name">可观测性</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+            <div class="post-description">三份大盘、115 个面板，按「先问坏没坏、再问哪一层」两级分诊组织；告警从 27 条候选刻意砍到 12 条，每一条留下来的理由都是一次真实发生过、没人察觉的故障（35 小时、16 天、反复 5 次）。</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><nav class="article-toc-wrap" aria-label="文章目录"><div class="toc-title">文章目录</div><ol class="article-toc-list"><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#%E8%B5%B7%E7%82%B9%EF%BC%9A%E4%BB%80%E4%B9%88%E9%83%BD%E6%B2%A1%E6%9C%89%EF%BC%8C%E8%80%8C%E4%B8%94%E8%BF%99%E4%B8%AA%E5%B9%B3%E5%8F%B0%E6%98%AF%E6%82%84%E6%82%84%E5%9D%8F%E7%9A%84"><span class="article-toc-text">起点：什么都没有，而且这个平台是悄悄坏的</span></a></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#%E5%A4%A7%E7%9B%98%EF%BC%9A%E4%B8%A4%E7%BA%A7%E5%88%86%E8%AF%8A%EF%BC%8C%E8%80%8C%E4%B8%8D%E6%98%AF%E4%B8%80%E6%95%B4%E9%9D%A2%E5%A2%99"><span class="article-toc-text">大盘：两级分诊，而不是一整面墙</span></a></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#%E5%91%8A%E8%AD%A6%EF%BC%9A27-%E6%9D%A1%E5%80%99%E9%80%89%EF%BC%8C%E7%95%99-12-%E6%9D%A1"><span class="article-toc-text">告警：27 条候选，留 12 条</span></a></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#%E8%BF%99%E4%BB%B6%E4%BA%8B%E4%B8%8D%E6%98%AF%E4%BB%80%E4%B9%88"><span class="article-toc-text">这件事不是什么</span></a></li><li class="article-toc-item article-toc-level-2"><a class="article-toc-link" href="#%E6%88%91%E8%83%BD%E8%BE%A9%E6%8A%A4%E7%9A%84%E9%83%A8%E5%88%86"><span class="article-toc-text">我能辩护的部分</span></a></li></ol></nav>
+<blockquote>
+<p>英文版：<a href="https://shaorui0.github.io/tech-en/2026/10/17/2026-10-17_observing-a-signal-driven-doris_en/">English</a></p>
+</blockquote>
+<h2 id="起点：什么都没有，而且这个平台是悄悄坏的">起点：什么都没有，而且这个平台是悄悄坏的</h2>
+<p>我接手时，存算分离 Doris 没有大盘，也没有告警。对一个还没上线的平台这很正常，但这个平台的故障模式大多是静默的：计算组能缩到零，元数据放在一个独立服务里、底下是分布式 KV，副本数由一个控制面组件决定。这套东西大部分坏法不会报错，只会让某个池子悄悄停止干活。</p>
+<p>建设过程中的三次真实事故定下了设计目标，因为每一次都拖了很久才被发现：</p>
+<ul>
+<li>预热任务指向一个已被删除的计算组，持续失败 <strong>35 小时</strong>。</li>
+<li>平台 CI 覆盖了计算平台的状态，反复 <strong>5 次</strong>，才有人把这几次连起来。</li>
+<li>元数据存储唯一的健康信号冻结了 <strong>16 天</strong>，面板上一直是绿的。</li>
+</ul>
+<p>这三件事在延迟或错误率面板上都看不出来，这个观察决定了后面所有设计。</p>
+<h2 id="大盘：两级分诊，而不是一整面墙">大盘：两级分诊，而不是一整面墙</h2>
+<p>三份大盘，共 <strong>115 个面板</strong>，每份只回答一个问题。</p>
+<table>
+<thead>
+<tr>
+<th>大盘</th>
+<th>面板数</th>
+<th>回答的问题</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Summary</td>
+<td><strong>31</strong></td>
+<td>有没有坏？坏在哪一层？</td>
+</tr>
+<tr>
+<td>Details</td>
+<td><strong>60</strong>，分 13 个分区</td>
+<td>这一层里具体是哪、为什么？</td>
+</tr>
+<tr>
+<td>Autoscaler 健康</td>
+<td><strong>24</strong></td>
+<td>控制面还活着吗？有没有在决策、在动作？</td>
+</tr>
+</tbody>
+</table>
+<p>组织原则是两级分诊。Summary 的读法是：被叫醒、什么上下文都没有的人一分钟内能看完。它按层排，第一屏就已经缩小了搜索范围。Details 沿同样的思路分成 13 个分区，从 Summary 下钻，落到的是一个有名字的分区，而不是在 60 张图里翻。Autoscaler 单独一份，因为它的故障性质不同：它坏的时候，其他面板可以全绿，容量却已经不再跟随需求。</p>
+<p>代价是面板数量比谁都不想读的多。我接受这个代价，因为 Details 是查表用的，不是拿来盯的，事故中少一个面板的代价远大于多一个。</p>
+<p>要说清的边界：大盘已部署，每个面板的查询都与源 JSON 逐条核对过，但数据来自 preprod 和 sandbox 环境，也没有逐个面板做目视渲染检查。它们没经过生产流量形态的检验。</p>
+<h2 id="告警：27-条候选，留-12-条">告警：27 条候选，留 12 条</h2>
+<p>我先写了 27 条候选规则，每条表达式都在 VictoriaMetrics 里用真实指标验证过，然后砍掉 15 条。筛选标准只有一句：<strong>只保留能抓住「静默失效」或「不可逆」故障的规则。</strong> 人几分钟内本来就会发现的、或者只是已被覆盖问题的症状，一律推迟。</p>
+<p>留下的 12 条分三组：</p>
+<ul>
+<li><strong>可用性（4 条）。</strong> 各池常驻的头部 backend、frontend 和元数据服务，以及一条查询错误率规则，它被前三条抑制，一次故障只出一条告警，而不是一场风暴。</li>
+<li><strong>控制面（4 条）。</strong> autoscaler tick 停摆、tick 序列整个消失、做了扩缩决策却没有动作、副本写入失败。5 次覆盖和 35 小时那两件事，本该由这组规则抓住。</li>
+<li><strong>元数据安全（4 条）。</strong> 分布式存储容错余量耗尽、协调器不可达、指标消失、delete bitmap 失败计数。「指标消失」这条是为那 16 天写的。</li>
+</ul>
+<p>每条规则都配了对自身静默的对冲。「指标消失」和「tick 序列消失」是关于监控本身失明的规则：依赖一个已经消失的序列的告警永远不会触发。这是冻结的健康信号教给我的：一条永远绿的线，不是健康的证据。</p>
+<p>目前这些规则不会 page 任何人，只路由到一个没有 oncall 的测试频道，上生产时再升级成 page。路由用一个小模拟器验证：把 9 组非 Doris 标签在改动前后各回放一遍，确认原有路由没有移动。</p>
+<h2 id="这件事不是什么">这件事不是什么</h2>
+<p>标题写的是观测，读者容易默认更多，所以把范围说准：</p>
+<ul>
+<li>12 条规则是<strong>设计，不是已部署</strong>。变更还在评审。生产上触发过的告警数：按构造就是 0。</li>
+<li>它们不是 SLO burn-rate 告警。它们防的是静默失效和不可逆故障，这个集合比延迟目标窄，但我认为更要紧。查询延迟的 SLI/SLO 层还没建，我宁愿直说，也不把这些规则改名去凑数。</li>
+<li>没跑 <code>amtool check-config</code>，也没做变异测试（故意把东西弄坏、看规则会不会响）。表达式用真实数据验证过，触发行为没有端到端验证。</li>
+</ul>
+<h2 id="我能辩护的部分">我能辩护的部分</h2>
+<p>从 27 砍到 12 才是有价值的工作。写 27 条告警一个下午就够，判断其中 15 条只会教大家无视这个频道，花的时间更长，也是能迁移的部分。「对静默和不可逆报警，并让每条规则带一个对自身失明的检查」这条设计原则，是把三次事故倒着读出来的，不是套模板得来的。</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tech/tags/SRE/" rel="tag"># SRE</a>
+              <a href="/tech/tags/VictoriaMetrics/" rel="tag"># VictoriaMetrics</a>
+              <a href="/tech/tags/Prometheus/" rel="tag"># Prometheus</a>
+              <a href="/tech/tags/SLO/" rel="tag"># SLO</a>
+              <a href="/tech/tags/%E5%8F%AF%E8%A7%82%E6%B5%8B%E6%80%A7/" rel="tag"># 可观测性</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/tech/2026/10/17/2026-10-17_agents-write-the-code-the-harness-decides-done_zh/" rel="prev" title="项目级 AI Agent harness：约束放在 hook 和测试里，不放在 prompt 里">
+                  <i class="fa fa-angle-left"></i> 项目级 AI Agent harness：约束放在 hook 和测试里，不放在 prompt 里
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/tech/2026/10/17/2026-10-17_dr-drills-find-runbook-gaps_zh/" rel="next" title="Doris 容量与灾备：演练到底是为了什么">
+                  Doris 容量与灾备：演练到底是为了什么 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">Rui Shao</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+<!-- hexo injector body_end start --><script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>mermaid.initialize({ startOnLoad: true, theme: "default" });</script><!-- hexo injector body_end end --></body>
+</html>
